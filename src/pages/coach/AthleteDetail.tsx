@@ -105,7 +105,8 @@ import {
   Save,
   Loader2,
   Shield,
-  GraduationCap
+  GraduationCap,
+  Smartphone,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -139,6 +140,7 @@ import { useRealtimeAnalytics } from "@/hooks/useRealtimeAnalytics";
 import { VelocityTrendChart } from "@/components/coach/analytics/VelocityTrendChart";
 import { BarPathGallery } from "@/components/coach/video/BarPathGallery";
 import { AiInsightCard } from "@/components/coach/analytics/AiInsightCard";
+import { AthleteViewerDialog } from "@/components/coach/AthleteViewerDialog";
 
 
 // Exercise Stats Content Component - uses REAL data from workout_exercises
@@ -2044,6 +2046,7 @@ export default function AthleteDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
+  const [godModeOpen, setGodModeOpen] = useState(false);
 
   // Fetch athlete profile
   const { data: profile, isLoading: profileLoading } = useQuery({
@@ -2590,29 +2593,46 @@ export default function AthleteDetail() {
                 </div>
               </div>
 
-              {/* Actions Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="shrink-0">
-                    <MoreHorizontal className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 bg-popover">
-                  <DropdownMenuItem className="cursor-pointer">
-                    <Pencil className="h-4 w-4 mr-2" />
-                    Edit Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Message
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
-                    <Archive className="h-4 w-4 mr-2" />
-                    Archive
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* Actions */}
+              <div className="flex items-center gap-2 shrink-0">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setGodModeOpen(true)}
+                      >
+                        <Smartphone className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Visualizza come Atleta</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <MoreHorizontal className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 bg-popover">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="cursor-pointer">
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Message
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
+                      <Archive className="h-4 w-4 mr-2" />
+                      Archive
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
         </Card>
@@ -3215,6 +3235,14 @@ export default function AthleteDetail() {
             />
           </TabsContent>
         </Tabs>
+
+        {/* God Mode - View as Athlete */}
+        <AthleteViewerDialog
+          athleteId={id!}
+          athleteName={profile.full_name || "Atleta"}
+          open={godModeOpen}
+          onOpenChange={setGodModeOpen}
+        />
       </div>
     </CoachLayout>
   );

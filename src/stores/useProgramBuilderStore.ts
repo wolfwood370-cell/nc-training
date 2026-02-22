@@ -40,6 +40,9 @@ export interface ProgramBuilderState {
   // Superset pending state
   supersetPendingId: string | null;
   
+  // Week clipboard for copy/paste
+  weekClipboard: WeekProgram | null;
+  
   // Metadata
   programId: string | null;
   programName: string;
@@ -59,6 +62,10 @@ export interface ProgramBuilderActions {
   cloneWeekToRange: (sourceWeekIndex: number, targetWeekIndices: number[]) => void;
   removeWeek: (weekIndex: number) => void;
   setTotalWeeks: (count: number) => void;
+  copyWeekToClipboard: (weekIndex: number) => void;
+  pasteWeekFromClipboard: (weekIndex: number) => void;
+  clearWeek: (weekIndex: number) => void;
+  swapDays: (weekIndex: number, fromDayIndex: number, toDayIndex: number) => void;
   
   // Block template operations
   extractBlock: (startWeek: number, endWeek: number) => ProgramData;
@@ -208,6 +215,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
   currentWeek: 0,
   selectedExercise: null,
   supersetPendingId: null,
+  weekClipboard: null,
   programId: null,
   programName: '',
   isDirty: false,
@@ -223,6 +231,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
       currentWeek: 0,
       selectedExercise: null,
       supersetPendingId: null,
+      weekClipboard: null,
       programId: null,
       programName: '',
       isDirty: false,
@@ -236,6 +245,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
       currentWeek: 0,
       selectedExercise: null,
       supersetPendingId: null,
+      weekClipboard: null,
       programId: id,
       programName: name,
       isDirty: false,
@@ -249,6 +259,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
       currentWeek: 0,
       selectedExercise: null,
       supersetPendingId: null,
+      weekClipboard: null,
       programId: null,
       programName: '',
       isDirty: false,
@@ -462,6 +473,62 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
       currentWeek: newCurrentWeek,
       isDirty: true,
     });
+  },
+
+  copyWeekToClipboard: (weekIndex) => {
+    const state = get();
+    const sourceWeek = state.program[weekIndex];
+    if (!sourceWeek) return;
+
+    // Deep clone the week data for clipboard
+    const clipboard: WeekProgram = {};
+    for (let d = 0; d < 7; d++) {
+      clipboard[d] = (sourceWeek[d] || []).map((ex) => deepCloneExercise(ex));
+    }
+    set({ weekClipboard: clipboard });
+  },
+
+  pasteWeekFromClipboard: (weekIndex) => {
+    const state = get();
+    if (!state.weekClipboard) return;
+
+    const newProgram = deepCloneProgram(state.program);
+    if (!newProgram[weekIndex]) {
+      newProgram[weekIndex] = {};
+      for (let d = 0; d < 7; d++) {
+        newProgram[weekIndex][d] = [];
+      }
+    }
+
+    for (let d = 0; d < 7; d++) {
+      newProgram[weekIndex][d] = (state.weekClipboard[d] || []).map((ex) => deepCloneExercise(ex));
+    }
+
+    set({ program: newProgram, isDirty: true });
+  },
+
+  clearWeek: (weekIndex) => {
+    const state = get();
+    const newProgram = deepCloneProgram(state.program);
+    if (!newProgram[weekIndex]) return;
+
+    for (let d = 0; d < 7; d++) {
+      newProgram[weekIndex][d] = [];
+    }
+
+    set({ program: newProgram, isDirty: true });
+  },
+
+  swapDays: (weekIndex, fromDayIndex, toDayIndex) => {
+    const state = get();
+    const newProgram = deepCloneProgram(state.program);
+    if (!newProgram[weekIndex]) return;
+
+    const temp = newProgram[weekIndex][fromDayIndex] || [];
+    newProgram[weekIndex][fromDayIndex] = newProgram[weekIndex][toDayIndex] || [];
+    newProgram[weekIndex][toDayIndex] = temp;
+
+    set({ program: newProgram, isDirty: true });
   },
 
   // =========================================

@@ -155,6 +155,10 @@ export function useWeekActions() {
       extractBlock: state.extractBlock,
       insertBlock: state.insertBlock,
       applyProgression: state.applyProgression,
+      copyWeekToClipboard: state.copyWeekToClipboard,
+      pasteWeekFromClipboard: state.pasteWeekFromClipboard,
+      clearWeek: state.clearWeek,
+      swapDays: state.swapDays,
     }))
   );
 }

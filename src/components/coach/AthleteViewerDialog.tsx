@@ -1,0 +1,350 @@
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Zap,
+  Dumbbell,
+  Moon,
+  Activity,
+  CheckCircle2,
+  Flame,
+  Heart,
+  Scale,
+  Utensils,
+  AlertTriangle,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { it } from "date-fns/locale";
+
+interface AthleteViewerDialogProps {
+  athleteId: string;
+  athleteName: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function AthleteViewerDialog({
+  athleteId,
+  athleteName,
+  open,
+  onOpenChange,
+}: AthleteViewerDialogProps) {
+  const todayDate = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
+
+  // Fetch readiness
+  const { data: readiness, isLoading: readinessLoading } = useQuery({
+    queryKey: ["god-mode-readiness", athleteId, todayDate],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("daily_readiness")
+        .select("*")
+        .eq("athlete_id", athleteId)
+        .eq("date", todayDate)
+        .maybeSingle();
+      return data;
+    },
+    enabled: open && !!athleteId,
+  });
+
+  // Fetch today's workouts
+  const { data: todayWorkouts = [], isLoading: workoutsLoading } = useQuery({
+    queryKey: ["god-mode-workouts", athleteId, todayDate],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("workouts")
+        .select("id, title, status, scheduled_date, estimated_duration")
+        .eq("athlete_id", athleteId)
+        .eq("scheduled_date", todayDate)
+        .order("created_at", { ascending: true });
+      return data || [];
+    },
+    enabled: open && !!athleteId,
+  });
+
+  // Fetch nutrition logs for today
+  const { data: nutritionLogs = [], isLoading: nutritionLoading } = useQuery({
+    queryKey: ["god-mode-nutrition", athleteId, todayDate],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("nutrition_logs")
+        .select("*")
+        .eq("athlete_id", athleteId)
+        .eq("date", todayDate)
+        .order("logged_at", { ascending: true });
+      return data || [];
+    },
+    enabled: open && !!athleteId,
+  });
+
+  // Fetch active nutrition plan
+  const { data: nutritionPlan } = useQuery({
+    queryKey: ["god-mode-nutrition-plan", athleteId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("nutrition_plans")
+        .select("*")
+        .eq("athlete_id", athleteId)
+        .eq("active", true)
+        .maybeSingle();
+      return data;
+    },
+    enabled: open && !!athleteId,
+  });
+
+  // Fetch habits
+  const { data: habits = [], isLoading: habitsLoading } = useQuery({
+    queryKey: ["god-mode-habits", athleteId, todayDate],
+    queryFn: async () => {
+      const { data: athleteHabits } = await supabase
+        .from("athlete_habits")
+        .select("id, habit_id, habits_library(name, category)")
+        .eq("athlete_id", athleteId)
+        .eq("active", true);
+
+      if (!athleteHabits?.length) return [];
+
+      const { data: logs } = await supabase
+        .from("habit_logs")
+        .select("athlete_habit_id, completed")
+        .eq("athlete_id", athleteId)
+        .eq("date", todayDate);
+
+      const logMap = new Map(logs?.map((l) => [l.athlete_habit_id, l.completed]) || []);
+
+      return athleteHabits.map((h) => ({
+        id: h.id,
+        name: (h.habits_library as any)?.name || "Abitudine",
+        category: (h.habits_library as any)?.category || "general",
+        completed: logMap.get(h.id) ?? false,
+      }));
+    },
+    enabled: open && !!athleteId,
+  });
+
+  // Aggregate nutrition
+  const nutritionTotals = useMemo(() => {
+    return nutritionLogs.reduce(
+      (acc, log) => ({
+        calories: acc.calories + (log.calories || 0),
+        protein: acc.protein + (log.protein || 0),
+        carbs: acc.carbs + (log.carbs || 0),
+        fats: acc.fats + (log.fats || 0),
+      }),
+      { calories: 0, protein: 0, carbs: 0, fats: 0 }
+    );
+  }, [nutritionLogs]);
+
+  const completedHabits = habits.filter((h) => h.completed).length;
+  const readinessScore = readiness?.score;
+
+  const getScoreColor = (score: number) => {
+    if (score >= 75) return "text-success";
+    if (score >= 50) return "text-warning";
+    return "text-destructive";
+  };
+
+  const isLoading = readinessLoading || workoutsLoading;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[420px] p-0 gap-0 overflow-hidden max-h-[90vh]">
+        <DialogHeader className="px-4 pt-4 pb-2">
+          <DialogTitle className="text-sm font-semibold flex items-center gap-2">
+            <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center">
+              <Activity className="h-3.5 w-3.5 text-primary" />
+            </div>
+            Vista Atleta — {athleteName}
+          </DialogTitle>
+          <p className="text-[10px] text-muted-foreground">
+            Modalità sola lettura · {format(new Date(), "EEEE d MMMM", { locale: it })}
+          </p>
+        </DialogHeader>
+
+        {/* Phone-like content area */}
+        <ScrollArea className="h-[70vh] px-4 pb-4">
+          <div className="space-y-3 pt-2">
+            {/* ===== READINESS CARD ===== */}
+            <Card className="overflow-hidden">
+              <CardContent className="p-4">
+                {readinessLoading ? (
+                  <Skeleton className="h-16 w-full" />
+                ) : readiness ? (
+                  <div className="flex items-center gap-4">
+                    {/* Score Ring */}
+                    <div className="relative flex-shrink-0">
+                      <svg className="w-16 h-16 -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="8" className="text-muted/30" />
+                        <circle
+                          cx="50" cy="50" r="42" fill="none"
+                          stroke={readinessScore && readinessScore >= 75 ? "hsl(160 84% 39%)" : readinessScore && readinessScore >= 50 ? "hsl(38 92% 50%)" : "hsl(0 84% 60%)"}
+                          strokeWidth="8" strokeLinecap="round"
+                          strokeDasharray={`${2 * Math.PI * 42}`}
+                          strokeDashoffset={`${2 * Math.PI * 42 * (1 - (readinessScore || 0) / 100)}`}
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className={cn("text-lg font-bold", getScoreColor(readinessScore || 0))}>
+                          {readinessScore}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold">Punteggio Recupero</p>
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Moon className="h-3 w-3" /> {readiness.sleep_hours ?? "—"}h
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Heart className="h-3 w-3" /> Stress: {readiness.stress_level ?? "—"}/10
+                        </span>
+                        {readiness.body_weight && (
+                          <span className="flex items-center gap-1">
+                            <Scale className="h-3 w-3" /> {readiness.body_weight} kg
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 text-muted-foreground">
+                    <AlertTriangle className="h-5 w-5" />
+                    <div>
+                      <p className="text-sm font-medium">Check-in non completato</p>
+                      <p className="text-xs">L'atleta non ha ancora registrato la readiness oggi.</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* ===== TODAY'S WORKOUTS ===== */}
+            <Card>
+              <CardContent className="p-4 space-y-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <Dumbbell className="h-4 w-4 text-primary" />
+                  <h3 className="text-sm font-semibold">Allenamento di Oggi</h3>
+                </div>
+                {workoutsLoading ? (
+                  <Skeleton className="h-12 w-full" />
+                ) : todayWorkouts.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-2">Nessun allenamento programmato per oggi.</p>
+                ) : (
+                  todayWorkouts.map((w) => (
+                    <div key={w.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/40">
+                      <div className="flex items-center gap-2">
+                        <div className={cn(
+                          "h-7 w-7 rounded-md flex items-center justify-center",
+                          w.status === "completed" ? "bg-success/15" : "bg-primary/10"
+                        )}>
+                          {w.status === "completed" ? (
+                            <CheckCircle2 className="h-4 w-4 text-success" />
+                          ) : (
+                            <Dumbbell className="h-4 w-4 text-primary" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium">{w.title}</p>
+                          {w.estimated_duration && (
+                            <p className="text-[10px] text-muted-foreground">~{w.estimated_duration} min</p>
+                          )}
+                        </div>
+                      </div>
+                      <Badge variant={w.status === "completed" ? "default" : "secondary"} className="text-[10px]">
+                        {w.status === "completed" ? "Completato" : "In attesa"}
+                      </Badge>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+
+            {/* ===== NUTRITION SUMMARY ===== */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Utensils className="h-4 w-4 text-primary" />
+                  <h3 className="text-sm font-semibold">Nutrizione</h3>
+                </div>
+                {nutritionLoading ? (
+                  <Skeleton className="h-10 w-full" />
+                ) : (
+                  <div className="grid grid-cols-4 gap-2 text-center">
+                    <div>
+                      <p className="text-lg font-bold">{nutritionTotals.calories}</p>
+                      <p className="text-[10px] text-muted-foreground">kcal</p>
+                      {nutritionPlan && (
+                        <p className="text-[9px] text-muted-foreground">/{nutritionPlan.daily_calories}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold">{Math.round(nutritionTotals.protein)}</p>
+                      <p className="text-[10px] text-muted-foreground">Proteine</p>
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold">{Math.round(nutritionTotals.carbs)}</p>
+                      <p className="text-[10px] text-muted-foreground">Carb</p>
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold">{Math.round(nutritionTotals.fats)}</p>
+                      <p className="text-[10px] text-muted-foreground">Grassi</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* ===== HABITS ===== */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Flame className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-semibold">Abitudini</h3>
+                  </div>
+                  <Badge variant="secondary" className="text-[10px]">
+                    {completedHabits}/{habits.length}
+                  </Badge>
+                </div>
+                {habitsLoading ? (
+                  <Skeleton className="h-8 w-full" />
+                ) : habits.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Nessuna abitudine assegnata.</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {habits.map((h) => (
+                      <div key={h.id} className="flex items-center gap-2 p-1.5 rounded-md">
+                        <div className={cn(
+                          "h-5 w-5 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+                          h.completed ? "bg-success border-success" : "border-muted-foreground/40"
+                        )}>
+                          {h.completed && <CheckCircle2 className="h-3 w-3 text-success-foreground" />}
+                        </div>
+                        <span className={cn(
+                          "text-xs",
+                          h.completed ? "line-through text-muted-foreground" : "text-foreground"
+                        )}>
+                          {h.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+}

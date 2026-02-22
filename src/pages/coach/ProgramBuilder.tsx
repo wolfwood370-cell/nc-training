@@ -997,6 +997,23 @@ export default function ProgramBuilder() {
               onCloneWeek={handleOpenCloneWeekDialog}
               onApplyProgression={handleApplyProgression}
               onRemoveWeek={handleRemoveWeek}
+              onCopyWeek={(weekIndex) => {
+                weekActions.copyWeekToClipboard(weekIndex);
+                toast.success("Settimana copiata con successo!", {
+                  description: `Settimana ${weekIndex + 1} copiata negli appunti`,
+                });
+              }}
+              onPasteWeek={(weekIndex) => {
+                weekActions.pasteWeekFromClipboard(weekIndex);
+                toast.success("Settimana incollata!", {
+                  description: `Contenuto incollato nella Settimana ${weekIndex + 1}`,
+                });
+              }}
+              onClearWeek={(weekIndex) => {
+                weekActions.clearWeek(weekIndex);
+                toast.success(`Settimana ${weekIndex + 1} svuotata`);
+              }}
+              hasClipboard={!!useProgramBuilderStore.getState().weekClipboard}
             />
 
             {/* MAIN SECTION: Slot-Based Day Grid */}

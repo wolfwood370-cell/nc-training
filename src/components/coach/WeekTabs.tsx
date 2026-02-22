@@ -16,6 +16,13 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { PhaseFocusType } from "@/hooks/usePeriodization";
 import {
   Dumbbell,
@@ -29,6 +36,10 @@ import {
   Layers,
   Download,
   Trash2,
+  ClipboardPaste,
+  Eraser,
+  Users,
+  MoreVertical,
 } from "lucide-react";
 
 // Phase configuration for colors and icons
@@ -113,6 +124,11 @@ interface WeekTabsProps {
   onLoadBlock?: () => void;
   onRemoveWeek?: (weekIndex: number) => void;
   onApplyProgression?: (weekIndex: number) => void;
+  onCopyWeek?: (weekIndex: number) => void;
+  onPasteWeek?: (weekIndex: number) => void;
+  onClearWeek?: (weekIndex: number) => void;
+  onAssignTemplate?: () => void;
+  hasClipboard?: boolean;
   className?: string;
 }
 
@@ -126,6 +142,11 @@ export function WeekTabs({
   onLoadBlock,
   onRemoveWeek,
   onApplyProgression,
+  onCopyWeek,
+  onPasteWeek,
+  onClearWeek,
+  onAssignTemplate,
+  hasClipboard,
   className,
 }: WeekTabsProps) {
   // Map weeks to their corresponding phases
@@ -206,6 +227,58 @@ export function WeekTabs({
                   <TooltipContent>Carica Blocco Template</TooltipContent>
                 </Tooltip>
               )}
+            </div>
+          )}
+
+          {/* Bulk Actions Dropdown */}
+          {(onCopyWeek || onPasteWeek || onClearWeek || onAssignTemplate) && (
+            <div className="flex items-center pr-2 mr-2 border-r border-border/50">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs px-2">
+                    <MoreVertical className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Azioni</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  {onCopyWeek && (
+                    <DropdownMenuItem onClick={() => onCopyWeek(currentWeek)}>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copia l'intera settimana
+                    </DropdownMenuItem>
+                  )}
+                  {onPasteWeek && (
+                    <DropdownMenuItem
+                      onClick={() => onPasteWeek(currentWeek)}
+                      disabled={!hasClipboard}
+                    >
+                      <ClipboardPaste className="h-4 w-4 mr-2" />
+                      Incolla settimana
+                    </DropdownMenuItem>
+                  )}
+                  {onClearWeek && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => onClearWeek(currentWeek)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Eraser className="h-4 w-4 mr-2" />
+                        Svuota settimana
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {onAssignTemplate && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={onAssignTemplate}>
+                        <Users className="h-4 w-4 mr-2" />
+                        Assegna template a più atleti
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           )}
 
