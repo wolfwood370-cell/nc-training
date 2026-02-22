@@ -250,6 +250,7 @@ export function useOfflineSync() {
   const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
 
   const isServerError = (code?: number) => code != null && code >= 500;
+  const isPermanentError = (code?: number) => code != null && code >= 400 && code < 500;
 
   // Process queue one-by-one with exponential backoff
   const processQueue = useCallback(async () => {
@@ -283,13 +284,22 @@ export function useOfflineSync() {
       if (result.ok) {
         removeFromQueue(item.id);
         syncedCount++;
+      } else if (isPermanentError(result.statusCode)) {
+        // 4xx client errors → dead letter: discard immediately, never retry
+        console.error(
+          `[OfflineSync] Dead letter: item ${item.id} failed with permanent error ${result.statusCode}. Removing from queue.`,
+          item.payload
+        );
+        removeFromQueue(item.id);
+        failedCount++;
       } else {
-        // 5xx errors after MAX_RETRIES → mark as permanently failed
-        if (item.retryCount + 1 >= MAX_RETRIES && isServerError(result.statusCode)) {
-          markFailed(item.id, result.statusCode);
-          failedCount++;
-        } else if (item.retryCount + 1 >= MAX_RETRIES) {
-          removeFromQueue(item.id);
+        // Transient errors (5xx, network) → retry with backoff up to MAX_RETRIES
+        if (item.retryCount + 1 >= MAX_RETRIES) {
+          if (isServerError(result.statusCode)) {
+            markFailed(item.id, result.statusCode);
+          } else {
+            removeFromQueue(item.id);
+          }
           failedCount++;
         } else {
           incrementRetry(item.id);

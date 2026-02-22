@@ -108,6 +108,29 @@ export function useAuth() {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+
+    // Clear Zustand persisted state
+    try {
+      const { useActiveSessionStore } = await import('@/stores/useActiveSessionStore');
+      useActiveSessionStore.persist.clearStorage();
+    } catch { /* ignore */ }
+
+    // Clear offline sync queue
+    try {
+      localStorage.removeItem('offline_workout_queue');
+      localStorage.removeItem('last_feedback_timestamp');
+    } catch { /* ignore */ }
+
+    // Clear IndexedDB offline storage
+    try {
+      const dbs = await indexedDB.databases();
+      for (const db of dbs) {
+        if (db.name) indexedDB.deleteDatabase(db.name);
+      }
+    } catch { /* ignore */ }
+
+    // Hard reload to fully reset JS memory
+    window.location.href = '/auth';
   };
 
   return {
