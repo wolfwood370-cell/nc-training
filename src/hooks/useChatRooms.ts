@@ -92,18 +92,22 @@ export function useChatRooms() {
 
       const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
-      // Fetch last message for each room
+      // Fetch last message for each room (batch query instead of N+1)
       const lastMessages: Map<string, Message> = new Map();
-      for (const roomId of roomIds) {
-        const { data: msgs } = await supabase
+      if (roomIds.length > 0) {
+        const { data: allMsgs } = await supabase
           .from('messages')
           .select('*')
-          .eq('room_id', roomId)
-          .order('created_at', { ascending: false })
-          .limit(1);
+          .in('room_id', roomIds)
+          .order('created_at', { ascending: false });
 
-        if (msgs?.[0]) {
-          lastMessages.set(roomId, msgs[0] as Message);
+        // Pick only the latest message per room
+        if (allMsgs) {
+          for (const msg of allMsgs) {
+            if (!lastMessages.has(msg.room_id)) {
+              lastMessages.set(msg.room_id, msg as Message);
+            }
+          }
         }
       }
 

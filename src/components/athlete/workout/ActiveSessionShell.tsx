@@ -162,7 +162,7 @@ export function ActiveSessionShell({
               </div>
               <span className="text-xs text-muted-foreground">•</span>
               <span className="text-xs text-muted-foreground tabular-nums">
-                {completedSets}/{totalSets} sets
+                {completedSets}/{totalSets} serie
               </span>
               {!isOnline && (
                 <WifiOff className="h-3 w-3 text-amber-500" />

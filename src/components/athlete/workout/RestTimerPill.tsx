@@ -82,6 +82,8 @@ export function RestTimerPill({
   const [remaining, setRemaining] = useState(0);
   const completedRef = useRef(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const onSkipRef = useRef(onSkip);
+  onSkipRef.current = onSkip;
 
   // Notification permission is now requested via enableNotifications()
   // called from a user gesture (e.g. unlockAudio in WorkoutPlayer).
@@ -109,7 +111,7 @@ export function RestTimerPill({
         stopMediaSession();
         onRestTimerEnd();
         fireTimerNotification();
-        onSkip();
+        onSkipRef.current();
       }
     };
 
@@ -118,7 +120,7 @@ export function RestTimerPill({
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [endTime, onSkip]);
+  }, [endTime]);
 
   const active = endTime != null && remaining > 0;
   if (!active && endTime == null) return null;
@@ -207,7 +209,7 @@ export function RestTimerPill({
                 15s
               </Button>
               <Button size="sm" className="h-9 ml-2" onClick={onSkip}>
-                Skip
+                Salta
               </Button>
             </div>
           </div>

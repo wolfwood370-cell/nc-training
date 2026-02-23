@@ -196,7 +196,7 @@ function deepCloneProgram(program: ProgramData): ProgramData {
     const weekIndex = Number(weekKey);
     cloned[weekIndex] = {};
     for (let d = 0; d < 7; d++) {
-      cloned[weekIndex][d] = (program[weekIndex]?.[d] || []).map(ex => ({ ...ex }));
+      cloned[weekIndex][d] = (program[weekIndex]?.[d] || []).map(ex => deepCloneExercise(ex));
     }
   }
   return cloned;
