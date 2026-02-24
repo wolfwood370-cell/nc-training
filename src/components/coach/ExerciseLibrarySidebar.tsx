@@ -125,7 +125,7 @@ function DraggableExercise({ exercise, onEdit, onArchive }: DraggableExercisePro
           <Dumbbell className="h-4 w-4 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate">{exercise.name}</p>
+          <p className="text-sm font-medium truncate leading-tight">{exercise.name}</p>
           <div className="flex flex-wrap gap-0.5 mt-0.5">
             {exercise.muscles.slice(0, 2).map((muscle) => (
               <Badge 
