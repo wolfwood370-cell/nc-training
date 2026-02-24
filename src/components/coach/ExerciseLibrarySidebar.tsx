@@ -394,7 +394,7 @@ export function ExerciseLibrarySidebar({ className }: ExerciseLibrarySidebarProp
   };
 
   return (
-    <div className={cn("flex flex-col h-full bg-card border-r border-border", className)}>
+    <div className={cn("flex flex-col h-full bg-card border-r border-border overflow-hidden", className)}>
       {/* Header */}
       <div className="p-3 border-b border-border/50 space-y-3">
         {/* Title Row */}

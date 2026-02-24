@@ -894,12 +894,12 @@ export default function ProgramBuilder() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex h-[calc(100vh-140px)] overflow-x-auto">
+        <div className="flex h-[calc(100vh-140px)] overflow-hidden">
           {/* Left Sidebar - Exercise Library */}
-          <ExerciseLibrarySidebar className="min-w-[320px] w-[320px] shrink-0" />
+          <ExerciseLibrarySidebar className="w-[320px] min-w-[320px] shrink-0" />
 
           {/* Main Content */}
-          <div className="flex-1 flex flex-col min-w-0 overflow-x-auto p-4">
+          <div className="flex-1 flex flex-col min-w-0 overflow-x-auto">
             {/* TOP ROW: Periodization Timeline Header */}
             <PeriodizationHeader
               athleteId={selectedAthlete?.id || null}
