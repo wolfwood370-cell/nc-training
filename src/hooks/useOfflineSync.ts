@@ -346,10 +346,14 @@ export function useOfflineSync() {
   // Listen for online/offline events
   useEffect(() => {
     const handleOnline = () => {
+      setIsOnline(true);
       setSyncStatus('idle');
       processQueue();
     };
-    const handleOffline = () => setSyncStatus('offline');
+    const handleOffline = () => {
+      setIsOnline(false);
+      setSyncStatus('offline');
+    };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);

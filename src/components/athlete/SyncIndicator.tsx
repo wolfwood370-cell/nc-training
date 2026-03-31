@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useIsFetching } from "@tanstack/react-query";
 import { Cloud, CloudOff, Loader2, ShieldAlert, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,20 @@ interface SyncIndicatorProps {
  */
 export function SyncIndicator({ readinessScore }: SyncIndicatorProps) {
   const isFetching = useIsFetching();
-  const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+  const [isOnline, setIsOnline] = useState(() =>
+    typeof navigator !== "undefined" ? navigator.onLine : true
+  );
+
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
+  }, []);
 
   const readinessBadge = readinessScore != null ? (
     readinessScore < 40 ? (
