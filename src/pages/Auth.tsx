@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Dumbbell, Users } from "lucide-react";
 import { mapSupabaseError } from "@/lib/errorMapping";
+import { supabase } from "@/integrations/supabase/client";
 import { MetaHead } from "@/components/MetaHead";
 import { Footer } from "@/components/layout/Footer";
 

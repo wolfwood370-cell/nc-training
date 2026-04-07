@@ -60,6 +60,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               
               {/* Coach Routes — wrapped in SubscriptionGuard */}
               <Route path="/coach" element={<SubscriptionGuard><CoachHome /></SubscriptionGuard>} />
