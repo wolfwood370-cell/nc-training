@@ -28,6 +28,25 @@ export default function Auth() {
   const [signupName, setSignupName] = useState("");
   const [signupRole, setSignupRole] = useState<"coach" | "athlete">("athlete");
 
+  const handleForgotPassword = async () => {
+    if (!loginEmail) {
+      toast.error("Inserisci la tua email prima di procedere");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Email di recupero inviata! Controlla la tua casella di posta.");
+    } catch (error: any) {
+      toast.error(mapSupabaseError(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
