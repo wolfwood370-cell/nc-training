@@ -43,15 +43,15 @@ export function PhoneMockup({ children }: PhoneMockupProps) {
 export function ResponsivePhoneWrapper({ children }: PhoneMockupProps) {
   return (
     <>
-      {/* Mobile: Show app directly */}
-      <div className="lg:hidden">
+      {/* Mobile: app fills the viewport */}
+      <div className="lg:hidden" style={{ height: "100dvh", width: "100%" }}>
         {children}
       </div>
-      
-      {/* Desktop: Show inside phone mockup */}
-      <PhoneMockup>
-        {children}
-      </PhoneMockup>
+
+      {/* Desktop: app rendered inside iPhone mockup */}
+      <div className="hidden lg:block">
+        <PhoneMockup>{children}</PhoneMockup>
+      </div>
     </>
   );
 }

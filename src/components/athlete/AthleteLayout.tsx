@@ -16,8 +16,7 @@ interface AthleteLayoutProps {
 export function AthleteLayout({ children, title }: AthleteLayoutProps) {
   const appContent = (
     <div
-      className="theme-athlete relative flex flex-col bg-white dark:bg-black text-foreground overflow-hidden"
-      style={{ height: "100dvh", width: "100%" }}
+      className="theme-athlete relative flex flex-col h-full w-full bg-white dark:bg-black text-foreground overflow-hidden"
     >
       {/* Status bar safe area */}
       <div style={{ paddingTop: "env(safe-area-inset-top)" }} className="flex-shrink-0" />
