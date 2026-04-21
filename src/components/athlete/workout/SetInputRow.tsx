@@ -1,10 +1,147 @@
-import { memo, useState, useCallback } from "react";
+import { memo, useState, useCallback, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSetMutation } from "@/hooks/useSetMutation";
 import { Calculator, Check, Minus, Plus } from "lucide-react";
 import { triggerHaptic } from "@/hooks/useHapticFeedback";
+
+// ---------------------------------------------------------------------------
+// Hybrid Tap-to-Edit Stepper — center input is editable, ± buttons adjust
+// ---------------------------------------------------------------------------
+
+function HybridStepper({
+  value,
+  displayValue,
+  onChange,
+  onAdjust,
+  step,
+  inputMode,
+  unit,
+  ariaLabel,
+  completed,
+  onCenterTap,
+  centerIcon,
+}: {
+  value: string;
+  displayValue: number;
+  onChange: (raw: string) => void;
+  onAdjust: (delta: number) => void;
+  step: number;
+  inputMode: "decimal" | "numeric";
+  unit: string;
+  ariaLabel: string;
+  completed?: boolean;
+  onCenterTap?: () => void;
+  centerIcon?: React.ReactNode;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [focused, setFocused] = useState(false);
+
+  // Show empty while focused if user is typing; otherwise show formatted number
+  const shown = focused
+    ? value
+    : displayValue > 0
+      ? formatNumber(displayValue)
+      : "";
+
+  return (
+    <div className="grid grid-cols-[auto_1fr_auto] gap-1.5 items-center">
+      <button
+        type="button"
+        aria-label={`Riduci ${ariaLabel}`}
+        onClick={() => {
+          triggerHaptic("light");
+          onAdjust(-step);
+        }}
+        className={cn(
+          "h-12 w-12 rounded-xl flex items-center justify-center",
+          "bg-background/80 text-foreground hover:bg-background",
+          "transition-transform active:scale-90 select-none touch-manipulation",
+        )}
+      >
+        <Minus className="h-4 w-4" />
+      </button>
+
+      <div
+        className={cn(
+          "relative h-12 rounded-xl flex items-center justify-center px-2",
+          "bg-background border border-border/50",
+          completed && "border-primary/40",
+          focused && "ring-2 ring-primary/40",
+        )}
+      >
+        <input
+          ref={inputRef}
+          type="text"
+          inputMode={inputMode}
+          pattern={inputMode === "decimal" ? "[0-9]*[.,]?[0-9]*" : "[0-9]*"}
+          enterKeyHint="done"
+          aria-label={ariaLabel}
+          value={shown}
+          placeholder="—"
+          onFocus={(e) => {
+            setFocused(true);
+            // Select-all so user can immediately overwrite
+            requestAnimationFrame(() => e.target.select());
+            onCenterTap?.();
+          }}
+          onChange={(e) => {
+            const raw = e.target.value.replace(",", ".");
+            // Allow empty / valid numeric input only
+            if (raw === "" || /^\d*\.?\d*$/.test(raw)) {
+              onChange(raw);
+            }
+          }}
+          onBlur={() => {
+            setFocused(false);
+            // Normalize on blur
+            if (value === "" || value === ".") {
+              onChange("");
+              return;
+            }
+            const n = parseFloat(value);
+            if (Number.isFinite(n)) {
+              onChange(formatNumber(Math.max(0, n)));
+            }
+          }}
+          className={cn(
+            "w-full min-w-[60px] bg-transparent border-0 outline-none p-0",
+            "text-center text-xl font-bold tabular-nums",
+            "focus:ring-0 focus-visible:ring-0",
+            completed ? "text-primary" : "text-foreground",
+            "placeholder:text-muted-foreground placeholder:font-bold",
+          )}
+        />
+        <span className="absolute right-2 text-[10px] uppercase tracking-wider text-muted-foreground pointer-events-none">
+          {centerIcon}
+          {!centerIcon && unit}
+        </span>
+      </div>
+
+      <button
+        type="button"
+        aria-label={`Aumenta ${ariaLabel}`}
+        onClick={() => {
+          triggerHaptic("light");
+          onAdjust(step);
+        }}
+        className={cn(
+          "h-12 w-12 rounded-xl flex items-center justify-center",
+          "bg-background/80 text-foreground hover:bg-background",
+          "transition-transform active:scale-90 select-none touch-manipulation",
+        )}
+      >
+        <Plus className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+function formatNumber(n: number): string {
+  // Drop trailing zeros, keep up to 2 decimals
+  return (+n.toFixed(2)).toString();
+}
 import {
   Drawer,
   DrawerContent,
@@ -137,45 +274,7 @@ function InlinePlateDrawer({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Stepper Button (square, 48px min, with haptic)
-// ---------------------------------------------------------------------------
-
-function StepperBtn({
-  onTap,
-  variant = "ghost",
-  ariaLabel,
-  children,
-  disabled,
-}: {
-  onTap: () => void;
-  variant?: "ghost" | "filled";
-  ariaLabel: string;
-  children: React.ReactNode;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={ariaLabel}
-      disabled={disabled}
-      onClick={() => {
-        triggerHaptic("light");
-        onTap();
-      }}
-      className={cn(
-        "h-12 min-w-12 rounded-xl flex items-center justify-center text-xs font-bold tabular-nums",
-        "transition-transform active:scale-90 select-none touch-manipulation",
-        "disabled:opacity-30 disabled:pointer-events-none",
-        variant === "filled"
-          ? "bg-primary/15 text-primary hover:bg-primary/25"
-          : "bg-background/80 text-foreground hover:bg-background",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
+// (StepperBtn removed — replaced by HybridStepper above)
 
 // ---------------------------------------------------------------------------
 // SetInputRow — One-thumb mobile layout
@@ -225,12 +324,15 @@ export const SetInputRow = memo(function SetInputRow({
     actualReps === "" ? targetReps || 0 : parseInt(actualReps, 10) || 0;
 
   const adjustKg = (delta: number) => {
-    const next = Math.max(0, +(currentKg + delta).toFixed(2));
-    handleUpdate("actualKg", next.toString());
+    const base = actualKg === "" ? targetKg || 0 : parseFloat(actualKg) || 0;
+    const next = Math.max(0, +(base + delta).toFixed(2));
+    handleUpdate("actualKg", formatNumber(next));
   };
 
   const adjustReps = (delta: number) => {
-    const next = Math.max(0, currentReps + delta);
+    const base =
+      actualReps === "" ? targetReps || 0 : parseInt(actualReps, 10) || 0;
+    const next = Math.max(0, base + delta);
     handleUpdate("actualReps", next.toString());
   };
 
@@ -290,84 +392,58 @@ export const SetInputRow = memo(function SetInputRow({
           </div>
         </div>
 
-        {/* Steppers Row: Weight (kg) */}
-        <div className="grid grid-cols-[auto_auto_1fr_auto_auto] gap-1.5 items-center mb-2">
-          <StepperBtn ariaLabel="Riduci peso 5kg" onTap={() => adjustKg(-5)}>
-            −5
-          </StepperBtn>
-          <StepperBtn ariaLabel="Riduci peso 2.5kg" onTap={() => adjustKg(-2.5)}>
-            <Minus className="h-3.5 w-3.5" />
-          </StepperBtn>
-
+        {/* Weight stepper — hybrid tap-to-edit */}
+        <div className="flex items-center gap-1.5 mb-2">
+          <div className="flex-1 min-w-0">
+            <HybridStepper
+              ariaLabel="peso"
+              value={actualKg}
+              displayValue={currentKg}
+              onChange={(raw) => handleUpdate("actualKg", raw)}
+              onAdjust={adjustKg}
+              step={1}
+              inputMode="decimal"
+              unit="kg"
+              completed={completed}
+            />
+          </div>
           <button
             type="button"
-            onClick={() => displayWeight > 0 && setPlateOpen(true)}
+            aria-label="Calcolatore dischi"
+            disabled={displayWeight <= 0}
+            onClick={() => {
+              triggerHaptic("light");
+              setPlateOpen(true);
+            }}
             className={cn(
-              "h-12 rounded-xl flex items-center justify-center gap-1.5 px-3",
-              "bg-background border border-border/50",
-              "active:scale-[0.98] transition-transform select-none touch-manipulation",
-              completed && "border-primary/40",
+              "h-12 w-12 shrink-0 rounded-xl flex items-center justify-center",
+              "bg-background/80 hover:bg-background border border-border/50",
+              "transition-transform active:scale-90 touch-manipulation",
+              "disabled:opacity-30 disabled:pointer-events-none",
             )}
           >
-            <span
-              className={cn(
-                "text-xl font-bold tabular-nums",
-                completed ? "text-primary" : "text-foreground",
-              )}
-            >
-              {currentKg > 0 ? currentKg : "—"}
-            </span>
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              kg
-            </span>
-            {displayWeight > 0 && (
-              <Calculator className="h-3 w-3 text-muted-foreground/60 ml-0.5" />
-            )}
+            <Calculator className="h-4 w-4 text-muted-foreground" />
           </button>
-
-          <StepperBtn ariaLabel="Aumenta peso 2.5kg" onTap={() => adjustKg(2.5)}>
-            <Plus className="h-3.5 w-3.5" />
-          </StepperBtn>
-          <StepperBtn ariaLabel="Aumenta peso 5kg" onTap={() => adjustKg(5)}>
-            +5
-          </StepperBtn>
         </div>
 
-        {/* Steppers Row: Reps + big Check button */}
-        <div className="grid grid-cols-[auto_auto_1fr_auto_auto_1fr] gap-1.5 items-center">
-          <StepperBtn ariaLabel="Riduci reps" onTap={() => adjustReps(-1)}>
-            <Minus className="h-3.5 w-3.5" />
-          </StepperBtn>
-          <StepperBtn ariaLabel="Riduci 5 reps" onTap={() => adjustReps(-5)}>
-            −5
-          </StepperBtn>
-
-          <div
-            className={cn(
-              "h-12 rounded-xl flex items-center justify-center gap-1.5 px-3",
-              "bg-background border border-border/50",
-              completed && "border-primary/40",
-            )}
-          >
-            <span
-              className={cn(
-                "text-xl font-bold tabular-nums",
-                completed ? "text-primary" : "text-foreground",
-              )}
-            >
-              {currentReps > 0 ? currentReps : "—"}
-            </span>
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              reps
-            </span>
+        {/* Reps stepper + big Check button */}
+        <div className="flex items-center gap-1.5">
+          <div className="flex-1 min-w-0">
+            <HybridStepper
+              ariaLabel="ripetizioni"
+              value={actualReps}
+              displayValue={currentReps}
+              onChange={(raw) => {
+                const cleaned = raw.replace(/[^\d]/g, "");
+                handleUpdate("actualReps", cleaned);
+              }}
+              onAdjust={adjustReps}
+              step={1}
+              inputMode="numeric"
+              unit="reps"
+              completed={completed}
+            />
           </div>
-
-          <StepperBtn ariaLabel="Aumenta reps" onTap={() => adjustReps(1)}>
-            <Plus className="h-3.5 w-3.5" />
-          </StepperBtn>
-          <StepperBtn ariaLabel="Aumenta 5 reps" onTap={() => adjustReps(5)}>
-            +5
-          </StepperBtn>
 
           {/* Big Complete button */}
           <Button
@@ -375,7 +451,7 @@ export const SetInputRow = memo(function SetInputRow({
             onClick={() => handleComplete(!completed)}
             aria-label={completed ? "Annulla completamento" : "Completa serie"}
             className={cn(
-              "h-12 min-w-12 rounded-xl ml-1 px-3",
+              "h-12 w-12 shrink-0 rounded-xl px-0",
               "transition-all active:scale-95 touch-manipulation",
               completed
                 ? "bg-primary text-primary-foreground hover:bg-primary/90"
