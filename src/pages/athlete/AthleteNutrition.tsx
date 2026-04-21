@@ -51,6 +51,7 @@ import { FoodDatabase } from "@/components/nutrition/FoodDatabase";
 import { CalorieBankCard } from "@/components/nutrition/CalorieBankCard";
 import { SmartCopyDrawer } from "@/components/nutrition/SmartCopyDrawer";
 import { FoodCameraScanner } from "@/components/athlete/nutrition/FoodCameraScanner";
+import { MealTimeline } from "@/components/nutrition/MealTimeline";
 import {
   Line,
   Scatter,
@@ -1042,6 +1043,9 @@ export default function AthleteNutrition() {
             </div>
           </CardContent>
         </Card>
+
+        {/* ===== MEAL TIMELINE — temporal vertical feed ===== */}
+        <MealTimeline refreshKey={consumed.calories} />
       </div>
 
       {/* ===== FLOATING ACTION BUTTONS ===== */}

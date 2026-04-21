@@ -1367,6 +1367,7 @@ export type Database = {
           id: string
           logged_at: string
           meal_name: string | null
+          meal_tag: string | null
           notes: string | null
           protein: number | null
           water: number | null
@@ -1381,6 +1382,7 @@ export type Database = {
           id?: string
           logged_at?: string
           meal_name?: string | null
+          meal_tag?: string | null
           notes?: string | null
           protein?: number | null
           water?: number | null
@@ -1395,6 +1397,7 @@ export type Database = {
           id?: string
           logged_at?: string
           meal_name?: string | null
+          meal_tag?: string | null
           notes?: string | null
           protein?: number | null
           water?: number | null
