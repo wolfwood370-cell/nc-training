@@ -1,7 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,11 +46,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { 
-  Flame, 
-  Target, 
-  TrendingDown, 
-  TrendingUp, 
+import {
+  Flame,
+  Target,
+  TrendingDown,
+  TrendingUp,
   Minus,
   Save,
   Loader2,
@@ -61,7 +67,7 @@ import {
   Calculator,
   RefreshCw,
   Dumbbell,
-  Coffee
+  Coffee,
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useAuth } from "@/hooks/useAuth";
@@ -80,10 +86,10 @@ interface StrategyContentProps {
   athleteId: string | undefined;
 }
 
-type StrategyType = 'cut' | 'maintain' | 'bulk';
-type StrategyMode = 'static' | 'cycling_on_off' | 'custom_daily';
-type HabitCategory = 'recovery' | 'nutrition' | 'mindset';
-type HabitFrequency = 'daily' | 'weekly' | 'as_needed';
+type StrategyType = "cut" | "maintain" | "bulk";
+type StrategyMode = "static" | "cycling_on_off" | "custom_daily";
+type HabitCategory = "recovery" | "nutrition" | "mindset";
+type HabitFrequency = "daily" | "weekly" | "as_needed";
 
 interface MacroTargets {
   calories: number;
@@ -142,49 +148,84 @@ interface ScheduledWorkout {
   workoutName?: string;
 }
 
-const CATEGORY_CONFIG: Record<HabitCategory, { label: string; icon: React.ElementType; color: string }> = {
+const CATEGORY_CONFIG: Record<
+  HabitCategory,
+  { label: string; icon: React.ElementType; color: string }
+> = {
   recovery: { label: "Recovery", icon: Moon, color: "text-blue-500" },
   nutrition: { label: "Nutrition", icon: Apple, color: "text-green-500" },
   mindset: { label: "Mindset", icon: Brain, color: "text-purple-500" },
 };
 
-const STRATEGY_CONFIG: Record<StrategyType, { label: string; icon: React.ElementType; color: string; description: string }> = {
-  cut: { label: "Cut", icon: TrendingDown, color: "text-orange-500", description: "Deficit calorico per perdita peso" },
-  maintain: { label: "Maintain", icon: Minus, color: "text-blue-500", description: "Mantenimento peso attuale" },
-  bulk: { label: "Bulk", icon: TrendingUp, color: "text-green-500", description: "Surplus calorico per aumento massa" },
+const STRATEGY_CONFIG: Record<
+  StrategyType,
+  { label: string; icon: React.ElementType; color: string; description: string }
+> = {
+  cut: {
+    label: "Cut",
+    icon: TrendingDown,
+    color: "text-orange-500",
+    description: "Deficit calorico per perdita peso",
+  },
+  maintain: {
+    label: "Maintain",
+    icon: Minus,
+    color: "text-blue-500",
+    description: "Mantenimento peso attuale",
+  },
+  bulk: {
+    label: "Bulk",
+    icon: TrendingUp,
+    color: "text-green-500",
+    description: "Surplus calorico per aumento massa",
+  },
 };
 
 // Macro colors as per requirements
 const MACRO_COLORS = {
   protein: "#EF4444", // Red
-  fats: "#EAB308",    // Yellow
-  carbs: "#22C55E",   // Green
+  fats: "#EAB308", // Yellow
+  carbs: "#22C55E", // Green
 };
 
 // Day labels in Italian
-const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+const DAY_LABELS = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
 
 export function StrategyContent({ athleteId }: StrategyContentProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   // Strategy mode state
-  const [strategyMode, setStrategyMode] = useState<StrategyMode>('static');
+  const [strategyMode, setStrategyMode] = useState<StrategyMode>("static");
   const [hasInitializedCycling, setHasInitializedCycling] = useState(false);
-  
+
   // Static targets state
   const [calories, setCalories] = useState(2000);
   const [protein, setProtein] = useState(150);
   const [carbs, setCarbs] = useState(200);
   const [fats, setFats] = useState(70);
-  
+
   // Cycling targets state
-  const [onDayTargets, setOnDayTargets] = useState<MacroTargets>({ calories: 2800, protein: 200, carbs: 300, fats: 80 });
-  const [offDayTargets, setOffDayTargets] = useState<MacroTargets>({ calories: 2200, protein: 180, carbs: 200, fats: 70 });
+  const [onDayTargets, setOnDayTargets] = useState<MacroTargets>({
+    calories: 2800,
+    protein: 200,
+    carbs: 300,
+    fats: 80,
+  });
+  const [offDayTargets, setOffDayTargets] = useState<MacroTargets>({
+    calories: 2200,
+    protein: 180,
+    carbs: 200,
+    fats: 70,
+  });
 
   // Handle strategy mode changes - smart defaults
   const handleStrategyModeChange = (newMode: StrategyMode) => {
-    if (newMode === 'cycling_on_off' && !hasInitializedCycling && strategyMode === 'static') {
+    if (
+      newMode === "cycling_on_off" &&
+      !hasInitializedCycling &&
+      strategyMode === "static"
+    ) {
       // Pre-fill cycling targets with current static values
       const staticTargets: MacroTargets = { calories, protein, carbs, fats };
       setOnDayTargets({
@@ -206,16 +247,25 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
 
   // Math Guard: Calculate actual calories from macros
   const calculateCaloriesFromMacros = (targets: MacroTargets) => {
-    return (targets.protein * 4) + (targets.carbs * 4) + (targets.fats * 9);
+    return targets.protein * 4 + targets.carbs * 4 + targets.fats * 9;
   };
 
-  const staticCalculatedCalories = calculateCaloriesFromMacros({ calories, protein, carbs, fats });
+  const staticCalculatedCalories = calculateCaloriesFromMacros({
+    calories,
+    protein,
+    carbs,
+    fats,
+  });
   const onDayCalculatedCalories = calculateCaloriesFromMacros(onDayTargets);
   const offDayCalculatedCalories = calculateCaloriesFromMacros(offDayTargets);
 
   const staticCalorieDiff = Math.abs(calories - staticCalculatedCalories);
-  const onDayCalorieDiff = Math.abs(onDayTargets.calories - onDayCalculatedCalories);
-  const offDayCalorieDiff = Math.abs(offDayTargets.calories - offDayCalculatedCalories);
+  const onDayCalorieDiff = Math.abs(
+    onDayTargets.calories - onDayCalculatedCalories,
+  );
+  const offDayCalorieDiff = Math.abs(
+    offDayTargets.calories - offDayCalculatedCalories,
+  );
 
   // Auto-fix functions for Math Guard
   const autoFixStaticCalories = () => {
@@ -223,26 +273,30 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
   };
 
   const autoFixOnDayCalories = () => {
-    setOnDayTargets(prev => ({ ...prev, calories: onDayCalculatedCalories }));
+    setOnDayTargets((prev) => ({ ...prev, calories: onDayCalculatedCalories }));
   };
 
   const autoFixOffDayCalories = () => {
-    setOffDayTargets(prev => ({ ...prev, calories: offDayCalculatedCalories }));
+    setOffDayTargets((prev) => ({
+      ...prev,
+      calories: offDayCalculatedCalories,
+    }));
   };
-  
+
   // Smart assistant state
   const [weeklyAvgGoal, setWeeklyAvgGoal] = useState(2500);
   const [trainingDaysPerWeek, setTrainingDaysPerWeek] = useState(4);
   const [autoCalcEnabled, setAutoCalcEnabled] = useState(false);
-  
+
   // Other form state
-  const [strategyType, setStrategyType] = useState<StrategyType>('maintain');
+  const [strategyType, setStrategyType] = useState<StrategyType>("maintain");
   const [weeklyWeightGoal, setWeeklyWeightGoal] = useState(0);
 
   // Dialog state
   const [addHabitOpen, setAddHabitOpen] = useState(false);
   const [newHabitName, setNewHabitName] = useState("");
-  const [newHabitCategory, setNewHabitCategory] = useState<HabitCategory>("nutrition");
+  const [newHabitCategory, setNewHabitCategory] =
+    useState<HabitCategory>("nutrition");
   const [newHabitDescription, setNewHabitDescription] = useState("");
   const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
 
@@ -259,15 +313,16 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      
+
       if (error) throw error;
       if (!data) return null;
-      
+
       // Transform the data to match our interface
       return {
         ...data,
-        strategy_mode: (data.strategy_mode || 'static') as StrategyMode,
-        cycling_targets: data.cycling_targets as unknown as CyclingTargets | null,
+        strategy_mode: (data.strategy_mode || "static") as StrategyMode,
+        cycling_targets:
+          data.cycling_targets as unknown as CyclingTargets | null,
       } as NutritionPlan;
     },
     enabled: !!athleteId,
@@ -278,31 +333,35 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
     queryKey: ["athlete-week-schedule", athleteId],
     queryFn: async () => {
       if (!athleteId) return [];
-      
+
       const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
       const weekEnd = addDays(weekStart, 6);
-      
+
       const { data, error } = await supabase
         .from("workout_logs")
         .select("scheduled_date, status, workout_id")
         .eq("athlete_id", athleteId)
         .gte("scheduled_date", format(weekStart, "yyyy-MM-dd"))
         .lte("scheduled_date", format(weekEnd, "yyyy-MM-dd"));
-      
+
       if (error) throw error;
-      
+
       // Create 7-day array
       const schedule: ScheduledWorkout[] = [];
       for (let i = 0; i < 7; i++) {
         const date = format(addDays(weekStart, i), "yyyy-MM-dd");
-        const workoutsOnDay = data?.filter(w => w.scheduled_date === date) || [];
+        const workoutsOnDay =
+          data?.filter((w) => w.scheduled_date === date) || [];
         schedule.push({
           date,
           hasWorkout: workoutsOnDay.length > 0,
-          workoutName: workoutsOnDay.length > 0 ? `${workoutsOnDay.length} sessione/i` : undefined,
+          workoutName:
+            workoutsOnDay.length > 0
+              ? `${workoutsOnDay.length} sessione/i`
+              : undefined,
         });
       }
-      
+
       return schedule;
     },
     enabled: !!athleteId,
@@ -311,14 +370,16 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
   // Update form when plan loads
   useEffect(() => {
     if (nutritionPlan) {
-      setStrategyMode((nutritionPlan.strategy_mode as StrategyMode) || 'static');
+      setStrategyMode(
+        (nutritionPlan.strategy_mode as StrategyMode) || "static",
+      );
       setCalories(nutritionPlan.daily_calories);
       setProtein(nutritionPlan.protein_g);
       setCarbs(nutritionPlan.carbs_g);
       setFats(nutritionPlan.fats_g);
       setStrategyType(nutritionPlan.strategy_type as StrategyType);
       setWeeklyWeightGoal(Number(nutritionPlan.weekly_weight_goal) || 0);
-      
+
       if (nutritionPlan.cycling_targets) {
         const ct = nutritionPlan.cycling_targets as CyclingTargets;
         if (ct.on) setOnDayTargets(ct.on);
@@ -337,7 +398,7 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
         .select("*")
         .eq("coach_id", user.id)
         .order("category", { ascending: true });
-      
+
       if (error) throw error;
       return data as HabitLibraryItem[];
     },
@@ -351,12 +412,13 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
       if (!athleteId) return [];
       const { data, error } = await supabase
         .from("athlete_habits")
-        .select(`
-          *,
+        .select(
+          `          *,
           habit:habits_library(*)
-        `)
+        `,
+        )
         .eq("athlete_id", athleteId);
-      
+
       if (error) throw error;
       return data as AthleteHabit[];
     },
@@ -367,8 +429,10 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
   const calculateRestDayCalories = () => {
     const restDays = 7 - trainingDaysPerWeek;
     if (restDays <= 0) return offDayTargets.calories;
-    
-    const neededRestCals = (weeklyAvgGoal * 7 - (onDayTargets.calories * trainingDaysPerWeek)) / restDays;
+
+    const neededRestCals =
+      (weeklyAvgGoal * 7 - onDayTargets.calories * trainingDaysPerWeek) /
+      restDays;
     return Math.max(1200, Math.round(neededRestCals));
   };
 
@@ -399,31 +463,35 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
           .eq("active", true);
       }
 
-      const cyclingTargetsJson = strategyMode === 'cycling_on_off' 
-        ? JSON.parse(JSON.stringify({ on: onDayTargets, off: offDayTargets }))
-        : null;
+      const cyclingTargetsJson =
+        strategyMode === "cycling_on_off"
+          ? JSON.parse(JSON.stringify({ on: onDayTargets, off: offDayTargets }))
+          : null;
 
       // Insert new plan
-      const { error } = await supabase
-        .from("nutrition_plans")
-        .insert([{
+      const { error } = await supabase.from("nutrition_plans").insert([
+        {
           athlete_id: athleteId,
           coach_id: user.id,
-          daily_calories: strategyMode === 'static' ? calories : onDayTargets.calories,
-          protein_g: strategyMode === 'static' ? protein : onDayTargets.protein,
-          carbs_g: strategyMode === 'static' ? carbs : onDayTargets.carbs,
-          fats_g: strategyMode === 'static' ? fats : onDayTargets.fats,
+          daily_calories:
+            strategyMode === "static" ? calories : onDayTargets.calories,
+          protein_g: strategyMode === "static" ? protein : onDayTargets.protein,
+          carbs_g: strategyMode === "static" ? carbs : onDayTargets.carbs,
+          fats_g: strategyMode === "static" ? fats : onDayTargets.fats,
           strategy_type: strategyType,
           strategy_mode: strategyMode,
           cycling_targets: cyclingTargetsJson,
           weekly_weight_goal: weeklyWeightGoal,
           active: true,
-        }]);
+        },
+      ]);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["nutrition-plan", athleteId] });
+      queryClient.invalidateQueries({
+        queryKey: ["nutrition-plan", athleteId],
+      });
       toast.success("Strategia nutrizionale salvata!");
     },
     onError: (error) => {
@@ -436,7 +504,7 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
   const createHabitMutation = useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error("Not authenticated");
-      
+
       const { data, error } = await supabase
         .from("habits_library")
         .insert({
@@ -468,20 +536,20 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
   const assignHabitMutation = useMutation({
     mutationFn: async (habitId: string) => {
       if (!athleteId) throw new Error("Missing athlete ID");
-      
-      const { error } = await supabase
-        .from("athlete_habits")
-        .insert({
-          athlete_id: athleteId,
-          habit_id: habitId,
-          frequency: 'daily',
-          active: true,
-        });
+
+      const { error } = await supabase.from("athlete_habits").insert({
+        athlete_id: athleteId,
+        habit_id: habitId,
+        frequency: "daily",
+        active: true,
+      });
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["athlete-habits", athleteId] });
+      queryClient.invalidateQueries({
+        queryKey: ["athlete-habits", athleteId],
+      });
       setAddHabitOpen(false);
       setSelectedHabitId(null);
       toast.success("Habit assegnato!");
@@ -494,7 +562,13 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
 
   // Toggle habit active state mutation
   const toggleHabitMutation = useMutation({
-    mutationFn: async ({ habitId, active }: { habitId: string; active: boolean }) => {
+    mutationFn: async ({
+      habitId,
+      active,
+    }: {
+      habitId: string;
+      active: boolean;
+    }) => {
       const { error } = await supabase
         .from("athlete_habits")
         .update({ active })
@@ -503,7 +577,9 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["athlete-habits", athleteId] });
+      queryClient.invalidateQueries({
+        queryKey: ["athlete-habits", athleteId],
+      });
     },
     onError: (error) => {
       toast.error("Errore nell'aggiornamento dell'habit");
@@ -522,7 +598,9 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["athlete-habits", athleteId] });
+      queryClient.invalidateQueries({
+        queryKey: ["athlete-habits", athleteId],
+      });
       toast.success("Habit rimosso");
     },
     onError: (error) => {
@@ -539,62 +617,87 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
     const total = proteinCals + carbsCals + fatsCals;
 
     return [
-      { 
-        name: "Proteine", 
-        value: Math.round((proteinCals / total) * 100), 
-        grams: targets.protein, 
+      {
+        name: "Proteine",
+        value: Math.round((proteinCals / total) * 100),
+        grams: targets.protein,
         kcal: proteinCals,
-        color: MACRO_COLORS.protein 
+        color: MACRO_COLORS.protein,
       },
-      { 
-        name: "Carboidrati", 
-        value: Math.round((carbsCals / total) * 100), 
-        grams: targets.carbs, 
+      {
+        name: "Carboidrati",
+        value: Math.round((carbsCals / total) * 100),
+        grams: targets.carbs,
         kcal: carbsCals,
-        color: MACRO_COLORS.carbs 
+        color: MACRO_COLORS.carbs,
       },
-      { 
-        name: "Grassi", 
-        value: Math.round((fatsCals / total) * 100), 
-        grams: targets.fats, 
+      {
+        name: "Grassi",
+        value: Math.round((fatsCals / total) * 100),
+        grams: targets.fats,
         kcal: fatsCals,
-        color: MACRO_COLORS.fats 
+        color: MACRO_COLORS.fats,
       },
     ];
   };
 
-  const staticMacroData = useMemo(() => getMacroChartData({ calories, protein, carbs, fats }), [calories, protein, carbs, fats]);
-  const onDayMacroData = useMemo(() => getMacroChartData(onDayTargets), [onDayTargets]);
-  const offDayMacroData = useMemo(() => getMacroChartData(offDayTargets), [offDayTargets]);
+  const staticMacroData = useMemo(
+    () => getMacroChartData({ calories, protein, carbs, fats }),
+    [calories, protein, carbs, fats],
+  );
+  const onDayMacroData = useMemo(
+    () => getMacroChartData(onDayTargets),
+    [onDayTargets],
+  );
+  const offDayMacroData = useMemo(
+    () => getMacroChartData(offDayTargets),
+    [offDayTargets],
+  );
 
   // Get habits not yet assigned to this athlete
   const availableHabits = useMemo(() => {
     if (!habitsLibrary || !athleteHabits) return [];
-    const assignedIds = new Set(athleteHabits.map(ah => ah.habit_id));
-    return habitsLibrary.filter(h => !assignedIds.has(h.id));
+    const assignedIds = new Set(athleteHabits.map((ah) => ah.habit_id));
+    return habitsLibrary.filter((h) => !assignedIds.has(h.id));
   }, [habitsLibrary, athleteHabits]);
 
   // Group athlete habits by category
   const groupedHabits = useMemo(() => {
     if (!athleteHabits) return {};
-    return athleteHabits.reduce((acc, ah) => {
-      const category = ah.habit?.category || 'nutrition';
-      if (!acc[category]) acc[category] = [];
-      acc[category].push(ah);
-      return acc;
-    }, {} as Record<HabitCategory, AthleteHabit[]>);
+    return athleteHabits.reduce(
+      (acc, ah) => {
+        const category = ah.habit?.category || "nutrition";
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(ah);
+        return acc;
+      },
+      {} as Record<HabitCategory, AthleteHabit[]>,
+    );
   }, [athleteHabits]);
 
   // Calculate weekly average from cycling targets
   const currentWeeklyAverage = useMemo(() => {
-    if (strategyMode !== 'cycling_on_off') return null;
+    if (strategyMode !== "cycling_on_off") return null;
     const trainingCals = onDayTargets.calories * trainingDaysPerWeek;
     const restCals = offDayTargets.calories * (7 - trainingDaysPerWeek);
     return Math.round((trainingCals + restCals) / 7);
-  }, [strategyMode, onDayTargets.calories, offDayTargets.calories, trainingDaysPerWeek]);
+  }, [
+    strategyMode,
+    onDayTargets.calories,
+    offDayTargets.calories,
+    trainingDaysPerWeek,
+  ]);
 
   // Custom Donut Chart component
-  const MacroDonutChart = ({ data, title, totalCals }: { data: MacroChartEntry[]; title: string; totalCals: number }) => (
+  const MacroDonutChart = ({
+    data,
+    title,
+    totalCals,
+  }: {
+    data: MacroChartEntry[];
+    title: string;
+    totalCals: number;
+  }) => (
     <div className="flex flex-col items-center">
       <p className="text-sm font-medium mb-2">{title}</p>
       <div className="w-[200px] h-[200px] relative">
@@ -619,9 +722,15 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                 const d = payload[0].payload as MacroChartEntry;
                 return (
                   <div className="bg-popover border border-border rounded-lg p-2 shadow-lg text-xs">
-                    <p className="font-medium" style={{ color: d.color }}>{d.name}</p>
-                    <p>{d.grams}g • {d.kcal} kcal</p>
-                    <p className="text-muted-foreground">{d.value}% del totale</p>
+                    <p className="font-medium" style={{ color: d.color }}>
+                      {d.name}
+                    </p>
+                    <p>
+                      {d.grams}g • {d.kcal} kcal
+                    </p>
+                    <p className="text-muted-foreground">
+                      {d.value}% del totale
+                    </p>
                   </div>
                 );
               }}
@@ -638,7 +747,10 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
       <div className="flex gap-3 mt-3 text-xs">
         {data.map((entry) => (
           <div key={entry.name} className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+            <div
+              className="w-2.5 h-2.5 rounded-full"
+              style={{ backgroundColor: entry.color }}
+            />
             <span>{entry.grams}g</span>
           </div>
         ))}
@@ -647,32 +759,34 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
   );
 
   // Math Guard Badge component
-  const MathGuardBadge = ({ 
-    targetCalories, 
-    calculatedCalories, 
-    onAutoFix 
-  }: { 
-    targetCalories: number; 
-    calculatedCalories: number; 
+  const MathGuardBadge = ({
+    targetCalories,
+    calculatedCalories,
+    onAutoFix,
+  }: {
+    targetCalories: number;
+    calculatedCalories: number;
     onAutoFix: () => void;
   }) => {
     const diff = Math.abs(targetCalories - calculatedCalories);
     const showWarning = diff > 50;
-    
+
     if (!showWarning) return null;
-    
+
     return (
       <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/30">
-        <Badge variant="outline" className="gap-1 text-amber-600 border-amber-500/50">
-          <span className="text-amber-500">⚠️</span>
-          Δ {diff} kcal
+        <Badge
+          variant="outline"
+          className="gap-1 text-amber-600 border-amber-500/50"
+        >
+          <span className="text-amber-500"></span>Δ {diff} kcal
         </Badge>
         <span className="text-xs text-amber-600">
           Macro = {calculatedCalories} kcal
         </span>
-        <Button 
-          size="sm" 
-          variant="outline" 
+        <Button
+          size="sm"
+          variant="outline"
           className="h-6 text-xs ml-auto border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
           onClick={onAutoFix}
         >
@@ -684,22 +798,22 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
   };
 
   // Macro Input Grid component
-  const MacroInputGrid = ({ 
-    targets, 
-    setTargets, 
+  const MacroInputGrid = ({
+    targets,
+    setTargets,
     label,
     calculatedCalories,
-    onAutoFix
-  }: { 
-    targets: MacroTargets; 
-    setTargets: (t: MacroTargets) => void; 
+    onAutoFix,
+  }: {
+    targets: MacroTargets;
+    setTargets: (t: MacroTargets) => void;
     label: string;
     calculatedCalories: number;
     onAutoFix: () => void;
   }) => {
     const calorieDiff = Math.abs(targets.calories - calculatedCalories);
     const showWarning = calorieDiff > 50;
-    
+
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2">
@@ -710,7 +824,7 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
           )}
           <span className="font-medium text-sm">{label}</span>
         </div>
-        
+
         <div className="space-y-3">
           <div>
             <Label className="text-xs text-muted-foreground">Calorie</Label>
@@ -718,25 +832,30 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
               <Input
                 type="number"
                 value={targets.calories}
-                onChange={(e) => setTargets({ ...targets, calories: Number(e.target.value) })}
+                onChange={(e) =>
+                  setTargets({ ...targets, calories: Number(e.target.value) })
+                }
                 className="w-24 h-9"
               />
               <span className="text-xs text-muted-foreground">kcal</span>
             </div>
           </div>
-          
+
           {/* Math Guard Warning */}
           {showWarning && (
             <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/30">
-              <Badge variant="outline" className="gap-1 text-amber-600 border-amber-500/50 text-xs">
-                ⚠️ Δ{calorieDiff}
+              <Badge
+                variant="outline"
+                className="gap-1 text-amber-600 border-amber-500/50 text-xs"
+              >
+                Δ{calorieDiff}
               </Badge>
               <span className="text-xs text-amber-600 hidden sm:inline">
                 Macro = {calculatedCalories}
               </span>
-              <Button 
-                size="sm" 
-                variant="ghost" 
+              <Button
+                size="sm"
+                variant="ghost"
                 className="h-6 text-xs ml-auto text-amber-600"
                 onClick={onAutoFix}
               >
@@ -744,41 +863,56 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
               </Button>
             </div>
           )}
-          
+
           <div className="grid grid-cols-3 gap-2">
             <div>
               <Label className="text-xs flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: MACRO_COLORS.protein }} />
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: MACRO_COLORS.protein }}
+                />
                 Prot
               </Label>
               <Input
                 type="number"
                 value={targets.protein}
-                onChange={(e) => setTargets({ ...targets, protein: Number(e.target.value) })}
+                onChange={(e) =>
+                  setTargets({ ...targets, protein: Number(e.target.value) })
+                }
                 className="h-8 text-sm"
               />
             </div>
             <div>
               <Label className="text-xs flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: MACRO_COLORS.carbs }} />
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: MACRO_COLORS.carbs }}
+                />
                 Carb
               </Label>
               <Input
                 type="number"
                 value={targets.carbs}
-                onChange={(e) => setTargets({ ...targets, carbs: Number(e.target.value) })}
+                onChange={(e) =>
+                  setTargets({ ...targets, carbs: Number(e.target.value) })
+                }
                 className="h-8 text-sm"
               />
             </div>
             <div>
               <Label className="text-xs flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: MACRO_COLORS.fats }} />
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: MACRO_COLORS.fats }}
+                />
                 Grassi
               </Label>
               <Input
                 type="number"
                 value={targets.fats}
-                onChange={(e) => setTargets({ ...targets, fats: Number(e.target.value) })}
+                onChange={(e) =>
+                  setTargets({ ...targets, fats: Number(e.target.value) })
+                }
                 className="h-8 text-sm"
               />
             </div>
@@ -808,13 +942,20 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                 <Flame className="h-6 w-6 text-orange-500" />
               </div>
               <div>
-                <CardTitle className="text-lg">Protocollo Nutrizionale v2.0</CardTitle>
-                <CardDescription>Target statici o cycling training/rest</CardDescription>
+                <CardTitle className="text-lg">
+                  Protocollo Nutrizionale v2.0
+                </CardTitle>
+                <CardDescription>
+                  Target statici o cycling training/rest
+                </CardDescription>
               </div>
             </div>
-            
+
             {/* Strategy Mode Toggle */}
-            <Tabs value={strategyMode} onValueChange={(v) => handleStrategyModeChange(v as StrategyMode)}>
+            <Tabs
+              value={strategyMode}
+              onValueChange={(v) => handleStrategyModeChange(v as StrategyMode)}
+            >
               <TabsList>
                 <TabsTrigger value="static" className="gap-1.5">
                   <Target className="h-3.5 w-3.5" />
@@ -828,9 +969,9 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
             </Tabs>
           </div>
         </CardHeader>
-        
+
         <CardContent className="space-y-6">
-          {strategyMode === 'static' ? (
+          {strategyMode === "static" ? (
             /* STATIC MODE */
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Left: Inputs */}
@@ -855,8 +996,14 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                 {/* Macros */}
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="protein" className="text-sm font-medium flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: MACRO_COLORS.protein }} />
+                    <Label
+                      htmlFor="protein"
+                      className="text-sm font-medium flex items-center gap-1.5"
+                    >
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: MACRO_COLORS.protein }}
+                      />
                       Proteine
                     </Label>
                     <div className="flex items-center gap-2">
@@ -871,8 +1018,14 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="carbs" className="text-sm font-medium flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: MACRO_COLORS.carbs }} />
+                    <Label
+                      htmlFor="carbs"
+                      className="text-sm font-medium flex items-center gap-1.5"
+                    >
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: MACRO_COLORS.carbs }}
+                      />
                       Carbs
                     </Label>
                     <div className="flex items-center gap-2">
@@ -887,8 +1040,14 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="fats" className="text-sm font-medium flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: MACRO_COLORS.fats }} />
+                    <Label
+                      htmlFor="fats"
+                      className="text-sm font-medium flex items-center gap-1.5"
+                    >
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: MACRO_COLORS.fats }}
+                      />
                       Grassi
                     </Label>
                     <div className="flex items-center gap-2">
@@ -903,9 +1062,9 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Math Guard for Static Mode */}
-                <MathGuardBadge 
+                <MathGuardBadge
                   targetCalories={calories}
                   calculatedCalories={staticCalculatedCalories}
                   onAutoFix={autoFixStaticCalories}
@@ -914,9 +1073,9 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
 
               {/* Right: Donut Chart */}
               <div className="flex items-center justify-center">
-                <MacroDonutChart 
-                  data={staticMacroData} 
-                  title="Distribuzione Macro" 
+                <MacroDonutChart
+                  data={staticMacroData}
+                  title="Distribuzione Macro"
                   totalCals={calories}
                 />
               </div>
@@ -931,9 +1090,9 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                     <Calculator className="h-5 w-5 text-primary" />
                     <span className="font-medium">Smart Assistant</span>
                   </div>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
+                  <Button
+                    size="sm"
+                    variant="outline"
                     onClick={applySmartCalc}
                     className="gap-1.5"
                   >
@@ -941,45 +1100,61 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                     Auto-calcola Rest Days
                   </Button>
                 </div>
-                
+
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label className="text-xs text-muted-foreground">Media Settimanale Target</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Media Settimanale Target
+                    </Label>
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
                         value={weeklyAvgGoal}
-                        onChange={(e) => setWeeklyAvgGoal(Number(e.target.value))}
+                        onChange={(e) =>
+                          setWeeklyAvgGoal(Number(e.target.value))
+                        }
                         className="h-9"
                       />
-                      <span className="text-xs text-muted-foreground">kcal</span>
+                      <span className="text-xs text-muted-foreground">
+                        kcal
+                      </span>
                     </div>
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground">Giorni Allenamento</Label>
-                    <Select 
-                      value={trainingDaysPerWeek.toString()} 
+                    <Label className="text-xs text-muted-foreground">
+                      Giorni Allenamento
+                    </Label>
+                    <Select
+                      value={trainingDaysPerWeek.toString()}
                       onValueChange={(v) => setTrainingDaysPerWeek(Number(v))}
                     >
                       <SelectTrigger className="h-9">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {[2, 3, 4, 5, 6].map(d => (
-                          <SelectItem key={d} value={d.toString()}>{d} giorni</SelectItem>
+                        {[2, 3, 4, 5, 6].map((d) => (
+                          <SelectItem key={d} value={d.toString()}>
+                            {d} giorni
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground">Media Attuale</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Media Attuale
+                    </Label>
                     <div className="h-9 flex items-center">
-                      <Badge variant={
-                        currentWeeklyAverage && Math.abs(currentWeeklyAverage - weeklyAvgGoal) < 50 
-                          ? "default" 
-                          : "secondary"
-                      } className="text-sm">
-                        {currentWeeklyAverage || '—'} kcal/giorno
+                      <Badge
+                        variant={
+                          currentWeeklyAverage &&
+                          Math.abs(currentWeeklyAverage - weeklyAvgGoal) < 50
+                            ? "default"
+                            : "secondary"
+                        }
+                        className="text-sm"
+                      >
+                        {currentWeeklyAverage || "—"} kcal/giorno
                       </Badge>
                     </div>
                   </div>
@@ -990,7 +1165,7 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Training Days */}
                 <div className="p-4 rounded-xl border border-orange-500/30 bg-orange-500/5">
-                  <MacroInputGrid 
+                  <MacroInputGrid
                     targets={onDayTargets}
                     setTargets={setOnDayTargets}
                     label="Training Days"
@@ -998,17 +1173,17 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                     onAutoFix={autoFixOnDayCalories}
                   />
                   <div className="mt-4">
-                    <MacroDonutChart 
-                      data={onDayMacroData} 
-                      title="" 
+                    <MacroDonutChart
+                      data={onDayMacroData}
+                      title=""
                       totalCals={onDayTargets.calories}
                     />
                   </div>
                 </div>
-                
+
                 {/* Rest Days */}
                 <div className="p-4 rounded-xl border border-blue-500/30 bg-blue-500/5">
-                  <MacroInputGrid 
+                  <MacroInputGrid
                     targets={offDayTargets}
                     setTargets={setOffDayTargets}
                     label="Rest Days"
@@ -1016,9 +1191,9 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                     onAutoFix={autoFixOffDayCalories}
                   />
                   <div className="mt-4">
-                    <MacroDonutChart 
-                      data={offDayMacroData} 
-                      title="" 
+                    <MacroDonutChart
+                      data={offDayMacroData}
+                      title=""
                       totalCals={offDayTargets.calories}
                     />
                   </div>
@@ -1034,7 +1209,10 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
             {/* Strategy Type */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">Fase Goal</Label>
-              <Select value={strategyType} onValueChange={(v) => setStrategyType(v as StrategyType)}>
+              <Select
+                value={strategyType}
+                onValueChange={(v) => setStrategyType(v as StrategyType)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -1061,7 +1239,8 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                   Variazione Peso Settimanale Target
                 </Label>
                 <Badge variant="outline" className="font-mono">
-                  {weeklyWeightGoal > 0 ? "+" : ""}{weeklyWeightGoal.toFixed(1)}%
+                  {weeklyWeightGoal > 0 ? "+" : ""}
+                  {weeklyWeightGoal.toFixed(1)}%
                 </Badge>
               </div>
               <Slider
@@ -1081,27 +1260,31 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
           </div>
 
           {/* Dynamic Week Preview - Only for cycling mode */}
-          {strategyMode === 'cycling_on_off' && weekSchedule && (
+          {strategyMode === "cycling_on_off" && weekSchedule && (
             <>
               <Separator />
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <Label className="text-sm font-medium">Preview Settimana</Label>
+                  <Label className="text-sm font-medium">
+                    Preview Settimana
+                  </Label>
                 </div>
                 <div className="grid grid-cols-7 gap-2">
                   {weekSchedule.map((day, i) => {
                     const isTraining = day.hasWorkout;
-                    const dayCalories = isTraining ? onDayTargets.calories : offDayTargets.calories;
-                    
+                    const dayCalories = isTraining
+                      ? onDayTargets.calories
+                      : offDayTargets.calories;
+
                     return (
-                      <div 
+                      <div
                         key={day.date}
                         className={cn(
                           "p-2 rounded-lg text-center transition-all",
-                          isTraining 
-                            ? "bg-orange-500/10 border border-orange-500/30" 
-                            : "bg-muted/50 border border-border"
+                          isTraining
+                            ? "bg-orange-500/10 border border-orange-500/30"
+                            : "bg-muted/50 border border-border",
                         )}
                       >
                         <p className="text-xs font-medium">{DAY_LABELS[i]}</p>
@@ -1112,10 +1295,14 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                             <Coffee className="h-3.5 w-3.5 mx-auto text-muted-foreground" />
                           )}
                         </div>
-                        <p className={cn(
-                          "text-xs mt-1 font-mono",
-                          isTraining ? "text-orange-600" : "text-muted-foreground"
-                        )}>
+                        <p
+                          className={cn(
+                            "text-xs mt-1 font-mono",
+                            isTraining
+                              ? "text-orange-600"
+                              : "text-muted-foreground",
+                          )}
+                        >
                           {dayCalories}
                         </p>
                       </div>
@@ -1128,7 +1315,7 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
 
           {/* Save Button */}
           <div className="flex justify-end pt-4 border-t">
-            <Button 
+            <Button
               onClick={() => savePlanMutation.mutate()}
               disabled={savePlanMutation.isPending}
             >
@@ -1153,7 +1340,9 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
               </div>
               <div>
                 <CardTitle className="text-lg">Habit Stacking</CardTitle>
-                <CardDescription>Assegna abitudini quotidiane da tracciare</CardDescription>
+                <CardDescription>
+                  Assegna abitudini quotidiane da tracciare
+                </CardDescription>
               </div>
             </div>
 
@@ -1177,7 +1366,9 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                   {/* Existing Habits */}
                   {availableHabits.length > 0 && (
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Dalla tua libreria</Label>
+                      <Label className="text-sm font-medium">
+                        Dalla tua libreria
+                      </Label>
                       <div className="grid gap-2 max-h-48 overflow-y-auto">
                         {availableHabits.map((habit) => {
                           const config = CATEGORY_CONFIG[habit.category];
@@ -1187,16 +1378,22 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                               onClick={() => setSelectedHabitId(habit.id)}
                               className={cn(
                                 "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all",
-                                selectedHabitId === habit.id 
-                                  ? "border-primary bg-primary/5" 
-                                  : "border-border hover:border-primary/50"
+                                selectedHabitId === habit.id
+                                  ? "border-primary bg-primary/5"
+                                  : "border-border hover:border-primary/50",
                               )}
                             >
-                              <config.icon className={cn("h-4 w-4", config.color)} />
+                              <config.icon
+                                className={cn("h-4 w-4", config.color)}
+                              />
                               <div className="flex-1">
-                                <p className="text-sm font-medium">{habit.name}</p>
+                                <p className="text-sm font-medium">
+                                  {habit.name}
+                                </p>
                                 {habit.description && (
-                                  <p className="text-xs text-muted-foreground">{habit.description}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {habit.description}
+                                  </p>
                                 )}
                               </div>
                               {selectedHabitId === habit.id && (
@@ -1213,28 +1410,36 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
 
                   {/* Create New Habit */}
                   <div className="space-y-3">
-                    <Label className="text-sm font-medium">Oppure crea nuovo</Label>
+                    <Label className="text-sm font-medium">
+                      Oppure crea nuovo
+                    </Label>
                     <Input
                       placeholder="Nome habit (es. Creatine 5g)"
                       value={newHabitName}
                       onChange={(e) => setNewHabitName(e.target.value)}
                     />
-                    <Select 
-                      value={newHabitCategory} 
-                      onValueChange={(v) => setNewHabitCategory(v as HabitCategory)}
+                    <Select
+                      value={newHabitCategory}
+                      onValueChange={(v) =>
+                        setNewHabitCategory(v as HabitCategory)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
-                          <SelectItem key={key} value={key}>
-                            <div className="flex items-center gap-2">
-                              <config.icon className={cn("h-4 w-4", config.color)} />
-                              {config.label}
-                            </div>
-                          </SelectItem>
-                        ))}
+                        {Object.entries(CATEGORY_CONFIG).map(
+                          ([key, config]) => (
+                            <SelectItem key={key} value={key}>
+                              <div className="flex items-center gap-2">
+                                <config.icon
+                                  className={cn("h-4 w-4", config.color)}
+                                />
+                                {config.label}
+                              </div>
+                            </SelectItem>
+                          ),
+                        )}
                       </SelectContent>
                     </Select>
                     <Input
@@ -1242,11 +1447,13 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                       value={newHabitDescription}
                       onChange={(e) => setNewHabitDescription(e.target.value)}
                     />
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="w-full"
-                      disabled={!newHabitName.trim() || createHabitMutation.isPending}
+                      disabled={
+                        !newHabitName.trim() || createHabitMutation.isPending
+                      }
                       onClick={() => createHabitMutation.mutate()}
                     >
                       {createHabitMutation.isPending ? (
@@ -1260,12 +1467,18 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                 </div>
 
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setAddHabitOpen(false)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setAddHabitOpen(false)}
+                  >
                     Annulla
                   </Button>
-                  <Button 
+                  <Button
                     disabled={!selectedHabitId || assignHabitMutation.isPending}
-                    onClick={() => selectedHabitId && assignHabitMutation.mutate(selectedHabitId)}
+                    onClick={() =>
+                      selectedHabitId &&
+                      assignHabitMutation.mutate(selectedHabitId)
+                    }
                   >
                     {assignHabitMutation.isPending ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -1284,19 +1497,24 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
             <div className="text-center py-8 text-muted-foreground">
               <Leaf className="h-10 w-10 mx-auto mb-3 opacity-50" />
               <p>Nessun habit assegnato</p>
-              <p className="text-sm mt-1">
-                Clicca "Aggiungi Habit" per iniziare
-              </p>
+              <p className="text-sm mt-1">Clicca"Aggiungi Habit"per iniziare</p>
             </div>
           ) : (
             <div className="space-y-6">
-              {(Object.entries(groupedHabits) as [HabitCategory, AthleteHabit[]][]).map(([category, habits]) => {
+              {(
+                Object.entries(groupedHabits) as [
+                  HabitCategory,
+                  AthleteHabit[],
+                ][]
+              ).map(([category, habits]) => {
                 const config = CATEGORY_CONFIG[category];
                 return (
                   <div key={category} className="space-y-3">
                     <div className="flex items-center gap-2">
                       <config.icon className={cn("h-4 w-4", config.color)} />
-                      <span className="text-sm font-medium">{config.label}</span>
+                      <span className="text-sm font-medium">
+                        {config.label}
+                      </span>
                       <Badge variant="secondary" className="text-xs">
                         {habits.length}
                       </Badge>
@@ -1307,21 +1525,29 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                           key={ah.id}
                           className={cn(
                             "flex items-center justify-between p-3 rounded-lg border transition-all",
-                            ah.active ? "border-border bg-card" : "border-border/50 bg-muted/30 opacity-60"
+                            ah.active
+                              ? "border-border bg-card"
+                              : "border-border/50 bg-muted/30 opacity-60",
                           )}
                         >
                           <div className="flex items-center gap-3">
                             <Switch
                               checked={ah.active}
-                              onCheckedChange={(checked) => 
-                                toggleHabitMutation.mutate({ habitId: ah.id, active: checked })
+                              onCheckedChange={(checked) =>
+                                toggleHabitMutation.mutate({
+                                  habitId: ah.id,
+                                  active: checked,
+                                })
                               }
                             />
                             <div>
-                              <p className={cn(
-                                "text-sm font-medium",
-                                !ah.active && "line-through text-muted-foreground"
-                              )}>
+                              <p
+                                className={cn(
+                                  "text-sm font-medium",
+                                  !ah.active &&
+                                    "line-through text-muted-foreground",
+                                )}
+                              >
                                 {ah.habit?.name}
                               </p>
                               {ah.habit?.description && (
@@ -1331,29 +1557,44 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                               )}
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs capitalize">
-                              {ah.frequency === 'daily' ? 'Giornaliero' : 
-                               ah.frequency === 'weekly' ? 'Settimanale' : 'Quando serve'}
+                            <Badge
+                              variant="outline"
+                              className="text-xs capitalize"
+                            >
+                              {ah.frequency === "daily"
+                                ? "Giornaliero"
+                                : ah.frequency === "weekly"
+                                  ? "Settimanale"
+                                  : "Quando serve"}
                             </Badge>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                >
                                   <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Rimuovi habit?</AlertDialogTitle>
+                                  <AlertDialogTitle>
+                                    Rimuovi habit?
+                                  </AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Questo habit verrà rimosso dall'atleta. Puoi sempre riassegnarlo in futuro.
+                                    Questo habit verrà rimosso dall'atleta. Puoi
+                                    sempre riassegnarlo in futuro.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Annulla</AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={() => removeHabitMutation.mutate(ah.id)}
+                                    onClick={() =>
+                                      removeHabitMutation.mutate(ah.id)
+                                    }
                                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                   >
                                     Rimuovi

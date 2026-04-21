@@ -15,13 +15,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { 
-  Play, 
-  FileText, 
-  Link2, 
-  FileEdit, 
-  MoreVertical, 
-  Trash2, 
+import {
+  Play,
+  FileText,
+  Link2,
+  FileEdit,
+  MoreVertical,
+  Trash2,
   ExternalLink,
   Brain,
   Loader2,
@@ -54,7 +54,11 @@ const typeColors: Record<ContentType, string> = {
   ai_knowledge: "bg-violet-500/10 text-violet-500",
 };
 
-export function ResourceCard({ resource, onDelete, onOpenVideo }: ResourceCardProps) {
+export function ResourceCard({
+  resource,
+  onDelete,
+  onOpenVideo,
+}: ResourceCardProps) {
   const [isIngesting, setIsIngesting] = useState(false);
   const [isIndexed, setIsIndexed] = useState(resource.type === "ai_knowledge");
 
@@ -73,29 +77,32 @@ export function ResourceCard({ resource, onDelete, onOpenVideo }: ResourceCardPr
     try {
       const contentParts = [`Titolo: ${resource.title}`];
       if (resource.tags.length > 0) {
-        contentParts.push(`Tags: ${resource.tags.join(", ")}`);
+        contentParts.push(`Tags: ${resource.tags.join(",")}`);
       }
       if (resource.url) {
         contentParts.push(`URL: ${resource.url}`);
       }
       const content = contentParts.join("\n");
 
-      const { data, error } = await supabase.functions.invoke("ingest-knowledge", {
-        body: {
-          content,
-          metadata: {
-            source: resource.title,
-            type: resource.type,
-            resource_id: resource.id,
+      const { data, error } = await supabase.functions.invoke(
+        "ingest-knowledge",
+        {
+          body: {
+            content,
+            metadata: {
+              source: resource.title,
+              type: resource.type,
+              resource_id: resource.id,
+            },
           },
         },
-      });
+      );
 
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
       setIsIndexed(true);
-      toast.success(`"${resource.title}" indicizzato nell'AI Brain! 🧠`);
+      toast.success(`"${resource.title}"indicizzato nell'AI Brain!`);
     } catch (err) {
       console.error("Ingest error:", err);
       toast.error("Errore nell'indicizzazione. Riprova.");
@@ -105,7 +112,9 @@ export function ResourceCard({ resource, onDelete, onOpenVideo }: ResourceCardPr
   };
 
   return (
-    <Card className={`group hover:shadow-md transition-shadow relative ${isAiKnowledge ? "border-violet-500/30" : ""}`}>
+    <Card
+      className={`group hover:shadow-md transition-shadow relative ${isAiKnowledge ? "border-violet-500/30" : ""}`}
+    >
       {/* AI Brain badge for ai_knowledge type */}
       {isAiKnowledge && (
         <div className="absolute top-2 right-12 z-10">
@@ -118,12 +127,14 @@ export function ResourceCard({ resource, onDelete, onOpenVideo }: ResourceCardPr
                 >
                   <Brain className="h-3 w-3" />
                   AI Brain
-                  {isIndexed && <CheckCircle2 className="h-3 w-3 text-emerald-500" />}
+                  {isIndexed && (
+                    <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                  )}
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
                 {isIndexed
-                  ? "L'AI conosce questo documento ✅"
+                  ? "L'AI conosce questo documento"
                   : "In attesa di indicizzazione..."}
               </TooltipContent>
             </Tooltip>
@@ -134,7 +145,10 @@ export function ResourceCard({ resource, onDelete, onOpenVideo }: ResourceCardPr
       {/* Non-AI indexed badge */}
       {!isAiKnowledge && isIndexed && (
         <div className="absolute top-2 right-12 z-10">
-          <Badge variant="secondary" className="bg-violet-500/10 text-violet-500 border-violet-500/20 text-[10px] gap-1">
+          <Badge
+            variant="secondary"
+            className="bg-violet-500/10 text-violet-500 border-violet-500/20 text-[10px] gap-1"
+          >
             <Brain className="h-3 w-3" />
             AI
           </Badge>
@@ -148,18 +162,22 @@ export function ResourceCard({ resource, onDelete, onOpenVideo }: ResourceCardPr
               {typeIcons[resource.type]}
             </div>
             <div className="space-y-1">
-              <CardTitle className="text-base line-clamp-1">{resource.title}</CardTitle>
+              <CardTitle className="text-base line-clamp-1">
+                {resource.title}
+              </CardTitle>
               <p className="text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(resource.created_at), { addSuffix: true })}
+                {formatDistanceToNow(new Date(resource.created_at), {
+                  addSuffix: true,
+                })}
               </p>
             </div>
           </div>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <MoreVertical className="h-4 w-4" />
@@ -173,7 +191,7 @@ export function ResourceCard({ resource, onDelete, onOpenVideo }: ResourceCardPr
                 </DropdownMenuItem>
               )}
               {!isAiKnowledge && (
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={handleIngestToAI}
                   disabled={isIngesting || isIndexed}
                 >
@@ -182,11 +200,15 @@ export function ResourceCard({ resource, onDelete, onOpenVideo }: ResourceCardPr
                   ) : (
                     <Brain className="h-4 w-4 mr-2" />
                   )}
-                  {isIndexed ? "Già indicizzato" : isIngesting ? "Training..." : "🧠 Aggiungi all'AI Brain"}
+                  {isIndexed
+                    ? "Già indicizzato"
+                    : isIngesting
+                      ? "Training..."
+                      : "Aggiungi all'AI Brain"}
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => onDelete(resource.id)}
                 className="text-destructive focus:text-destructive"
               >
@@ -197,43 +219,49 @@ export function ResourceCard({ resource, onDelete, onOpenVideo }: ResourceCardPr
           </DropdownMenu>
         </div>
       </CardHeader>
-      
+
       <CardContent className="pt-0 space-y-2">
         {/* AI Knowledge category badge */}
-        {isAiKnowledge && (() => {
-          const catTag = resource.tags.find((t) => t.startsWith("cat:"));
-          if (!catTag) return null;
-          const categoryLabels: Record<string, string> = {
-            "tecnica_allenamento": "🏋️‍♂️ Tecnica & Allenamento",
-            "fisiologia_recupero": "🧬 Fisiologia & Recupero",
-            "nutrizione": "🥑 Nutrizione",
-            "mindset": "🧠 Mindset",
-            "admin_policy": "📋 Admin & Policy",
-            "altro": "📄 Altro",
-          };
-          const catKey = catTag.replace("cat:", "");
-          const label = categoryLabels[catKey] || catKey;
-          return (
-            <Badge variant="outline" className="text-xs border-violet-500/30 text-violet-400">
-              {label}
-            </Badge>
-          );
-        })()}
+        {isAiKnowledge &&
+          (() => {
+            const catTag = resource.tags.find((t) => t.startsWith("cat:"));
+            if (!catTag) return null;
+            const categoryLabels: Record<string, string> = {
+              tecnica_allenamento: "Tecnica & Allenamento",
+              fisiologia_recupero: "Fisiologia & Recupero",
+              nutrizione: "Nutrizione",
+              mindset: "Mindset",
+              admin_policy: "Admin & Policy",
+              altro: "Altro",
+            };
+            const catKey = catTag.replace("cat:", "");
+            const label = categoryLabels[catKey] || catKey;
+            return (
+              <Badge
+                variant="outline"
+                className="text-xs border-violet-500/30 text-violet-400"
+              >
+                {label}
+              </Badge>
+            );
+          })()}
 
         {resource.tags.filter((t) => !t.startsWith("cat:")).length > 0 && (
           <div className="flex flex-wrap gap-1.5">
-            {resource.tags.filter((t) => !t.startsWith("cat:")).map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
+            {resource.tags
+              .filter((t) => !t.startsWith("cat:"))
+              .map((tag) => (
+                <Badge key={tag} variant="secondary" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
           </div>
         )}
-        
+
         {!isAiKnowledge && (resource.url || onOpenVideo) && (
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="w-full mt-3 gap-2"
             onClick={handleOpen}
           >

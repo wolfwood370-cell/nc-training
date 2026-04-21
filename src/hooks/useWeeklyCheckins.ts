@@ -1,14 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
+import { supabase } from"@/integrations/supabase/client";
+import { useAuth } from"@/hooks/useAuth";
+import { toast } from"sonner";
 
 export interface WeeklyCheckin {
   id: string;
   coach_id: string;
   athlete_id: string;
   week_start: string;
-  status: "pending" | "approved" | "sent" | "skipped";
+  status:"pending"|"approved"|"sent"|"skipped";
   ai_summary: string | null;
   coach_notes: string | null;
   metrics_snapshot: {
@@ -71,7 +71,7 @@ export function useWeeklyCheckins() {
       if (!session) throw new Error("Not authenticated");
 
       const res = await supabase.functions.invoke("generate-batch-checkins", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers: { Authorization:`Bearer ${session.access_token}`},
       });
 
       if (res.error) throw res.error;
@@ -92,7 +92,7 @@ export function useWeeklyCheckins() {
       updates,
     }: {
       id: string;
-      updates: Partial<Pick<WeeklyCheckin, "status" | "ai_summary" | "coach_notes">>;
+      updates: Partial<Pick<WeeklyCheckin,"status"|"ai_summary"|"coach_notes">>;
     }) => {
       const { error } = await supabase
         .from("weekly_checkins")
@@ -111,7 +111,7 @@ export function useWeeklyCheckins() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
-      const messageText = checkin.coach_notes || checkin.ai_summary || "";
+      const messageText = checkin.coach_notes || checkin.ai_summary ||"";
       if (!messageText.trim()) throw new Error("No content to send");
 
       // Get or create direct room with athlete
@@ -126,8 +126,8 @@ export function useWeeklyCheckins() {
       const { error: msgError } = await supabase.from("messages").insert({
         room_id: roomId,
         sender_id: session.user.id,
-        content: `📋 Report Settimanale:\n\n${messageText}`,
-        media_type: "text",
+        content:`Report Settimanale:\n\n${messageText}`,
+        media_type:"text",
       });
 
       if (msgError) throw msgError;
@@ -135,7 +135,7 @@ export function useWeeklyCheckins() {
       // Update status
       const { error: updateError } = await supabase
         .from("weekly_checkins")
-        .update({ status: "sent" })
+        .update({ status:"sent"})
         .eq("id", checkin.id);
 
       if (updateError) throw updateError;

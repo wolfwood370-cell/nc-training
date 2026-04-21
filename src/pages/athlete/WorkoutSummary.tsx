@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useMemo } from"react";
+import { useParams, useNavigate } from"react-router-dom";
+import { useQuery } from"@tanstack/react-query";
+import { motion, AnimatePresence } from"framer-motion";
 import {
   Trophy,
   Clock,
@@ -13,18 +13,18 @@ import {
   Zap,
   Star,
   ArrowRight,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { ResponsivePhoneWrapper } from "@/components/athlete/PhoneMockup";
-import { Confetti } from "@/components/celebration/Confetti";
-import { SmartCopyDrawer } from "@/components/nutrition/SmartCopyDrawer";
-import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
+} from"lucide-react";
+import { cn } from"@/lib/utils";
+import { supabase } from"@/integrations/supabase/client";
+import { Button } from"@/components/ui/button";
+import { Slider } from"@/components/ui/slider";
+import { Badge } from"@/components/ui/badge";
+import { Card, CardContent } from"@/components/ui/card";
+import { ResponsivePhoneWrapper } from"@/components/athlete/PhoneMockup";
+import { Confetti } from"@/components/celebration/Confetti";
+import { SmartCopyDrawer } from"@/components/nutrition/SmartCopyDrawer";
+import { useAuth } from"@/hooks/useAuth";
+import { toast } from"sonner";
 
 // ============================================================
 // ANIMATED COUNTER
@@ -74,7 +74,7 @@ export default function WorkoutSummary() {
         .from("workout_logs")
         .select("*")
         .eq("workout_id", sessionId)
-        .eq("status", "completed")
+        .eq("status","completed")
         .order("completed_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -112,7 +112,7 @@ export default function WorkoutSummary() {
     return { duration, totalVolume, totalSets, totalReps };
   }, [workoutLog]);
 
-  // Determine "High Note" achievement
+  // Determine"High Note"achievement
   const highNote = useMemo(() => {
     if (!workoutLog) return null;
 
@@ -122,26 +122,26 @@ export default function WorkoutSummary() {
     if (metrics.totalVolume > 5000) {
       return {
         icon: Dumbbell,
-        title: "Volume Massimo!",
-        subtitle: `${metrics.totalVolume.toLocaleString()} kg sollevati in una sessione`,
-        color: "from-violet-500 to-purple-600",
+        title:"Volume Massimo!",
+        subtitle:`${metrics.totalVolume.toLocaleString()} kg sollevati in una sessione`,
+        color:"from-violet-500 to-purple-600",
       };
     }
 
     if (load > 500) {
       return {
         icon: Flame,
-        title: "Carico Elevato!",
-        subtitle: `${load} UA — sessione ad alta intensità`,
-        color: "from-orange-500 to-red-600",
+        title:"Carico Elevato!",
+        subtitle:`${load} UA — sessione ad alta intensità`,
+        color:"from-orange-500 to-red-600",
       };
     }
 
     return {
       icon: Star,
-      title: "Sessione Completata!",
-      subtitle: "Ogni allenamento ti avvicina ai tuoi obiettivi",
-      color: "from-emerald-500 to-teal-600",
+      title:"Sessione Completata!",
+      subtitle:"Ogni allenamento ti avvicina ai tuoi obiettivi",
+      color:"from-emerald-500 to-teal-600",
     };
   }, [workoutLog, metrics]);
 
@@ -161,7 +161,7 @@ export default function WorkoutSummary() {
         .from("daily_readiness")
         .upsert(
           { athlete_id: user.id, date: today, score: Math.round((10 - sessionRpe) * 10) },
-          { onConflict: "athlete_id,date" }
+          { onConflict:"athlete_id,date"}
         );
 
       setRpeSaved(true);
@@ -174,18 +174,18 @@ export default function WorkoutSummary() {
   const sessionLoad = metrics.duration * sessionRpe;
 
   const getRpeLabel = (rpe: number) => {
-    if (rpe <= 2) return "Facile";
-    if (rpe <= 4) return "Moderato";
-    if (rpe <= 6) return "Impegnativo";
-    if (rpe <= 8) return "Molto Duro";
-    return "Massimale";
+    if (rpe <= 2) return"Facile";
+    if (rpe <= 4) return"Moderato";
+    if (rpe <= 6) return"Impegnativo";
+    if (rpe <= 8) return"Molto Duro";
+    return"Massimale";
   };
 
   const getRpeColor = (rpe: number) => {
-    if (rpe <= 3) return "text-emerald-500";
-    if (rpe <= 5) return "text-yellow-500";
-    if (rpe <= 7) return "text-orange-500";
-    return "text-red-500";
+    if (rpe <= 3) return"text-emerald-500";
+    if (rpe <= 5) return"text-yellow-500";
+    if (rpe <= 7) return"text-orange-500";
+    return"text-red-500";
   };
 
   return (
@@ -197,36 +197,33 @@ export default function WorkoutSummary() {
         {/* Animated background gradient */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <motion.div
-            className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] opacity-[0.07]"
-            style={{
+            className="absolute -top-1/2 -left-1/2 w-[200%] h-[200%] opacity-[0.07]"            style={{
               background:
                 "radial-gradient(ellipse at center, hsl(var(--primary)) 0%, transparent 60%)",
             }}
             animate={{ rotate: [0, 360] }}
-            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 30, repeat: Infinity, ease:"linear"}}
           />
         </div>
 
         {/* Status bar safe area */}
-        <div className="safe-top flex-shrink-0" />
+        <div className="safe-top flex-shrink-0"/>
 
         {/* Scrollable content */}
         <main className="flex-1 overflow-y-auto relative z-10">
           <div className="px-5 py-8 space-y-6 max-w-md mx-auto">
             {/* ===== HERO ===== */}
             <motion.div
-              className="text-center space-y-3"
-              initial={{ opacity: 0, y: 30 }}
+              className="text-center space-y-3"              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
               <motion.div
-                className="mx-auto h-20 w-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"
-                initial={{ scale: 0 }}
+                className="mx-auto h-20 w-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"                initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: "spring", delay: 0.2 }}
+                transition={{ type:"spring", delay: 0.2 }}
               >
-                <Trophy className="h-10 w-10 text-primary" />
+                <Trophy className="h-10 w-10 text-primary"/>
               </motion.div>
               <h1 className="text-3xl font-bold">Sessione Completata</h1>
               <p className="text-muted-foreground">
@@ -246,10 +243,10 @@ export default function WorkoutSummary() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3, duration: 0.5 }}
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"/>
                 <div className="relative flex items-center gap-4">
                   <div className="h-14 w-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                    <highNote.icon className="h-7 w-7" />
+                    <highNote.icon className="h-7 w-7"/>
                   </div>
                   <div>
                     <p className="font-bold text-lg">{highNote.title}</p>
@@ -261,15 +258,14 @@ export default function WorkoutSummary() {
 
             {/* ===== METRICS GRID ===== */}
             <motion.div
-              className="grid grid-cols-2 gap-3"
-              initial={{ opacity: 0, y: 20 }}
+              className="grid grid-cols-2 gap-3"              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
             >
               {/* Duration */}
               <Card className="border-[hsl(var(--m3-outline-variant,var(--border))/0.3)] bg-[hsl(var(--m3-surface-container,var(--card)))]">
                 <CardContent className="p-4 text-center">
-                  <Clock className="h-5 w-5 mx-auto mb-2 text-muted-foreground" />
+                  <Clock className="h-5 w-5 mx-auto mb-2 text-muted-foreground"/>
                   <p className="text-2xl font-bold">
                     <AnimatedNumber value={metrics.duration} />
                   </p>
@@ -282,7 +278,7 @@ export default function WorkoutSummary() {
               {/* Tonnage */}
               <Card className="border-[hsl(var(--m3-outline-variant,var(--border))/0.3)] bg-[hsl(var(--m3-surface-container,var(--card)))]">
                 <CardContent className="p-4 text-center">
-                  <Dumbbell className="h-5 w-5 mx-auto mb-2 text-primary" />
+                  <Dumbbell className="h-5 w-5 mx-auto mb-2 text-primary"/>
                   <p className="text-2xl font-bold">
                     <AnimatedNumber value={metrics.totalVolume} duration={1500} />
                   </p>
@@ -295,7 +291,7 @@ export default function WorkoutSummary() {
               {/* Sets */}
               <Card className="border-[hsl(var(--m3-outline-variant,var(--border))/0.3)] bg-[hsl(var(--m3-surface-container,var(--card)))]">
                 <CardContent className="p-4 text-center">
-                  <TrendingUp className="h-5 w-5 mx-auto mb-2 text-emerald-500" />
+                  <TrendingUp className="h-5 w-5 mx-auto mb-2 text-emerald-500"/>
                   <p className="text-2xl font-bold">
                     <AnimatedNumber value={metrics.totalSets} />
                   </p>
@@ -308,7 +304,7 @@ export default function WorkoutSummary() {
               {/* Session Load */}
               <Card className="border-primary/20 bg-primary/5">
                 <CardContent className="p-4 text-center">
-                  <Zap className="h-5 w-5 mx-auto mb-2 text-primary" />
+                  <Zap className="h-5 w-5 mx-auto mb-2 text-primary"/>
                   <p className="text-2xl font-bold text-primary">
                     <AnimatedNumber value={sessionLoad} />
                   </p>
@@ -330,8 +326,7 @@ export default function WorkoutSummary() {
                   <div className="flex items-center justify-between">
                     <p className="font-semibold text-sm">Quanto è stato duro?</p>
                     <Badge
-                      variant="secondary"
-                      className={cn("font-bold", getRpeColor(sessionRpe))}
+                      variant="secondary"                      className={cn("font-bold", getRpeColor(sessionRpe))}
                     >
                       {getRpeLabel(sessionRpe)}
                     </Badge>
@@ -364,10 +359,9 @@ export default function WorkoutSummary() {
                   <Button
                     onClick={handleSaveRpe}
                     disabled={rpeSaved}
-                    className="w-full"
-                    variant={rpeSaved ? "secondary" : "default"}
+                    className="w-full"                    variant={rpeSaved ?"secondary":"default"}
                   >
-                    {rpeSaved ? "✓ Salvato" : "Salva sRPE"}
+                    {rpeSaved ?"Salvato":"Salva sRPE"}
                   </Button>
                 </CardContent>
               </Card>
@@ -384,12 +378,11 @@ export default function WorkoutSummary() {
                 className={cn(
                   "w-full rounded-2xl p-5 text-left transition-all active:scale-[0.98]",
                   "bg-gradient-to-r from-[hsl(var(--m3-tertiary-container,var(--accent)))] to-[hsl(var(--m3-tertiary-container,var(--accent))/0.7)]",
-                  "border border-[hsl(var(--m3-outline-variant,var(--border))/0.3)]"
-                )}
+                  "border border-[hsl(var(--m3-outline-variant,var(--border))/0.3)]"                )}
               >
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-12 rounded-xl bg-white/20 dark:bg-white/10 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                    <Utensils className="h-6 w-6 text-[hsl(var(--m3-on-tertiary-container,var(--accent-foreground)))]" />
+                    <Utensils className="h-6 w-6 text-[hsl(var(--m3-on-tertiary-container,var(--accent-foreground)))]"/>
                   </div>
                   <div className="flex-1">
                     <p className="font-semibold text-sm text-[hsl(var(--m3-on-tertiary-container,var(--accent-foreground)))]">
@@ -399,7 +392,7 @@ export default function WorkoutSummary() {
                       Registra il pasto post-allenamento per ottimizzare il recupero
                     </p>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-[hsl(var(--m3-on-tertiary-container,var(--accent-foreground))/0.5)] flex-shrink-0" />
+                  <ChevronRight className="h-5 w-5 text-[hsl(var(--m3-on-tertiary-container,var(--accent-foreground))/0.5)] flex-shrink-0"/>
                 </div>
               </button>
             </motion.div>
@@ -409,15 +402,12 @@ export default function WorkoutSummary() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.1 }}
-              className="pt-2 pb-8"
-            >
+              className="pt-2 pb-8"            >
               <Button
-                variant="outline"
-                className="w-full h-12 rounded-xl"
-                onClick={() => navigate("/athlete")}
+                variant="outline"                className="w-full h-12 rounded-xl"                onClick={() => navigate("/athlete")}
               >
                 Torna alla Dashboard
-                <ArrowRight className="h-4 w-4 ml-2" />
+                <ArrowRight className="h-4 w-4 ml-2"/>
               </Button>
             </motion.div>
           </div>
@@ -428,7 +418,7 @@ export default function WorkoutSummary() {
       <SmartCopyDrawer
         open={nutritionDrawerOpen}
         onOpenChange={setNutritionDrawerOpen}
-        onLogged={() => toast.success("Pasto post-workout registrato! 💪")}
+        onLogged={() => toast.success("Pasto post-workout registrato!")}
       />
     </ResponsivePhoneWrapper>
   );

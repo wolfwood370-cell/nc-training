@@ -1,7 +1,7 @@
-import { useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { triggerHaptic } from '@/hooks/useHapticFeedback';
+import { useCallback } from'react';
+import { supabase } from'@/integrations/supabase/client';
+import { useToast } from'@/hooks/use-toast';
+import { triggerHaptic } from'@/hooks/useHapticFeedback';
 
 interface SetLogData {
   exerciseName: string;
@@ -32,8 +32,7 @@ export function usePersonalRecords() {
       // Fetch historical workout exercises for this exercise
       const { data: logs, error } = await supabase
         .from('workout_exercises')
-        .select(`
-          sets_data,
+        .select(`          sets_data,
           workout_logs!inner(athlete_id)
         `)
         .eq('exercise_name', exerciseName)
@@ -89,11 +88,10 @@ export function usePersonalRecords() {
     triggerHaptic('success');
     
     toast({
-      title: "🏆 Nuovo Record Personale!",
+      title:"Nuovo Record Personale!",
       description: improvement && improvement > 0
-        ? `${exerciseName}: ${weight}kg (+${improvement}kg rispetto al precedente)`
-        : `${exerciseName}: ${weight}kg - Prima volta!`,
-      className: "bg-gradient-to-r from-amber-500 to-yellow-400 text-white border-none",
+        ?`${exerciseName}: ${weight}kg (+${improvement}kg rispetto al precedente)`        :`${exerciseName}: ${weight}kg - Prima volta!`,
+      className:"bg-gradient-to-r from-amber-500 to-yellow-400 text-white border-none",
     });
   }, [toast]);
 

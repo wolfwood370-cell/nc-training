@@ -60,7 +60,7 @@ type QuickFilter = "all" | "high-risk" | "low-compliance" | "disengaged";
 
 function getInitials(name: string): string {
   return name
-    .split(" ")
+    .split("")
     .map((n) => n[0])
     .join("")
     .toUpperCase()
@@ -85,7 +85,7 @@ function getAcwrBadge(zone: AcwrZone, ratio: number | null) {
     case "high-risk":
       return (
         <Badge className="bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/20 font-mono text-xs">
-          ⚠ {display}
+          {display}
         </Badge>
       );
     case "detraining":
@@ -96,7 +96,10 @@ function getAcwrBadge(zone: AcwrZone, ratio: number | null) {
       );
     default:
       return (
-        <Badge variant="secondary" className="font-mono text-xs text-muted-foreground">
+        <Badge
+          variant="secondary"
+          className="font-mono text-xs text-muted-foreground"
+        >
           {display}
         </Badge>
       );
@@ -106,15 +109,39 @@ function getAcwrBadge(zone: AcwrZone, ratio: number | null) {
 function getStatusBadge(status: AthleteStatus) {
   switch (status) {
     case "active":
-      return <Badge variant="outline" className="text-[10px] border-success/40 text-success">Attivo</Badge>;
+      return (
+        <Badge
+          variant="outline"
+          className="text-[10px] border-success/40 text-success"
+        >
+          Attivo
+        </Badge>
+      );
     case "onboarding":
-      return <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">Onboarding</Badge>;
+      return (
+        <Badge
+          variant="outline"
+          className="text-[10px] border-primary/40 text-primary"
+        >
+          Onboarding
+        </Badge>
+      );
     case "injured":
-      return <Badge variant="outline" className="text-[10px] border-destructive/40 text-destructive">Infortunato</Badge>;
+      return (
+        <Badge
+          variant="outline"
+          className="text-[10px] border-destructive/40 text-destructive"
+        >
+          Infortunato
+        </Badge>
+      );
   }
 }
 
-function formatLastLogin(dateStr: string | null): { text: string; isStale: boolean } {
+function formatLastLogin(dateStr: string | null): {
+  text: string;
+  isStale: boolean;
+} {
   if (!dateStr) return { text: "Mai", isStale: true };
   const diff = Date.now() - new Date(dateStr).getTime();
   const hours = Math.floor(diff / 3_600_000);
@@ -170,7 +197,11 @@ function useRiskTableData() {
       const acwr = row.current_acwr != null ? Number(row.current_acwr) : null;
       const hasInjury = row.has_active_injury === true;
       const isOnboarding = !row.onboarding_completed;
-      const status: AthleteStatus = hasInjury ? "injured" : isOnboarding ? "onboarding" : "active";
+      const status: AthleteStatus = hasInjury
+        ? "injured"
+        : isOnboarding
+          ? "onboarding"
+          : "active";
 
       return {
         id: row.athlete_id,
@@ -213,7 +244,7 @@ export function RiskTable() {
     switch (filter) {
       case "high-risk":
         list = list.filter(
-          (a) => a.acwrZone === "high-risk" || a.acwrZone === "detraining"
+          (a) => a.acwrZone === "high-risk" || a.acwrZone === "detraining",
         );
         break;
       case "low-compliance":
@@ -222,7 +253,9 @@ export function RiskTable() {
       case "disengaged":
         list = list.filter((a) => {
           if (!a.lastLoginAt) return true;
-          return Date.now() - new Date(a.lastLoginAt).getTime() > 7 * 86_400_000;
+          return (
+            Date.now() - new Date(a.lastLoginAt).getTime() > 7 * 86_400_000
+          );
         });
         break;
     }
@@ -254,16 +287,19 @@ export function RiskTable() {
   // Macro metrics
   const totalActive = athletes.length;
   const actionNeeded = athletes.filter(
-    (a) => a.acwrZone === "high-risk" || a.compliance30d < 60 || a.status === "injured"
+    (a) =>
+      a.acwrZone === "high-risk" ||
+      a.compliance30d < 60 ||
+      a.status === "injured",
   ).length;
   const highRiskPct =
     totalActive > 0
       ? Math.round(
           (athletes.filter(
-            (a) => a.acwrZone === "high-risk" || a.acwrZone === "detraining"
+            (a) => a.acwrZone === "high-risk" || a.acwrZone === "detraining",
           ).length /
             totalActive) *
-            100
+            100,
         )
       : 0;
 
@@ -294,7 +330,9 @@ export function RiskTable() {
               <Shield className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Clienti Attivi</p>
+              <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
+                Clienti Attivi
+              </p>
               <p className="text-2xl font-bold tabular-nums">{totalActive}</p>
             </div>
           </CardContent>
@@ -305,25 +343,40 @@ export function RiskTable() {
               <AlertTriangle className="h-5 w-5 text-warning" />
             </div>
             <div>
-              <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Azione Richiesta</p>
-              <p className="text-2xl font-bold tabular-nums text-warning">{actionNeeded}</p>
+              <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
+                Azione Richiesta
+              </p>
+              <p className="text-2xl font-bold tabular-nums text-warning">
+                {actionNeeded}
+              </p>
             </div>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className={cn(
-              "h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0",
-              highRiskPct > 30 ? "bg-destructive/10" : "bg-success/10"
-            )}>
-              <TrendingDown className={cn("h-5 w-5", highRiskPct > 30 ? "text-destructive" : "text-success")} />
+            <div
+              className={cn(
+                "h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0",
+                highRiskPct > 30 ? "bg-destructive/10" : "bg-success/10",
+              )}
+            >
+              <TrendingDown
+                className={cn(
+                  "h-5 w-5",
+                  highRiskPct > 30 ? "text-destructive" : "text-success",
+                )}
+              />
             </div>
             <div>
-              <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Ratio Alto Rischio</p>
-              <p className={cn(
-                "text-2xl font-bold tabular-nums",
-                highRiskPct > 30 ? "text-destructive" : "text-success"
-              )}>
+              <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
+                Ratio Alto Rischio
+              </p>
+              <p
+                className={cn(
+                  "text-2xl font-bold tabular-nums",
+                  highRiskPct > 30 ? "text-destructive" : "text-success",
+                )}
+              >
                 {highRiskPct}%
               </p>
             </div>
@@ -334,7 +387,10 @@ export function RiskTable() {
       {/* ── Quick Filters ───────────────────────────────────── */}
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-3 pt-4 px-4 flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-base font-bold">📊 Panoramica Rischio Atleti</CardTitle>
+          <CardTitle className="text-base font-bold">
+            {" "}
+            Panoramica Rischio Atleti
+          </CardTitle>
           <div className="flex gap-1.5">
             {FILTERS.map((f) => (
               <Button
@@ -343,7 +399,7 @@ export function RiskTable() {
                 variant={filter === f.key ? "default" : "outline"}
                 className={cn(
                   "h-7 text-xs px-2.5 gap-1",
-                  filter === f.key && "shadow-sm"
+                  filter === f.key && "shadow-sm",
                 )}
                 onClick={() => setFilter(f.key)}
               >
@@ -358,26 +414,46 @@ export function RiskTable() {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[200px]">
-                  <Button variant="ghost" size="sm" className="h-7 -ml-2 text-xs gap-1" onClick={() => toggleSort("name")}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 -ml-2 text-xs gap-1"
+                    onClick={() => toggleSort("name")}
+                  >
                     Atleta
                     <ArrowUpDown className="h-3 w-3" />
                   </Button>
                 </TableHead>
                 <TableHead className="w-[90px]">Stato</TableHead>
                 <TableHead className="w-[100px]">
-                  <Button variant="ghost" size="sm" className="h-7 -ml-2 text-xs gap-1" onClick={() => toggleSort("acwr")}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 -ml-2 text-xs gap-1"
+                    onClick={() => toggleSort("acwr")}
+                  >
                     ACWR
                     <ArrowUpDown className="h-3 w-3" />
                   </Button>
                 </TableHead>
                 <TableHead className="w-[140px]">
-                  <Button variant="ghost" size="sm" className="h-7 -ml-2 text-xs gap-1" onClick={() => toggleSort("compliance30d")}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 -ml-2 text-xs gap-1"
+                    onClick={() => toggleSort("compliance30d")}
+                  >
                     Compliance 30gg
                     <ArrowUpDown className="h-3 w-3" />
                   </Button>
                 </TableHead>
                 <TableHead className="w-[100px]">
-                  <Button variant="ghost" size="sm" className="h-7 -ml-2 text-xs gap-1" onClick={() => toggleSort("lastLoginAt")}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 -ml-2 text-xs gap-1"
+                    onClick={() => toggleSort("lastLoginAt")}
+                  >
                     Ultimo Login
                     <ArrowUpDown className="h-3 w-3" />
                   </Button>
@@ -388,7 +464,10 @@ export function RiskTable() {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-sm text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="h-24 text-center text-sm text-muted-foreground"
+                  >
                     Nessun atleta corrisponde al filtro selezionato.
                   </TableCell>
                 </TableRow>
@@ -410,7 +489,9 @@ export function RiskTable() {
                               {getInitials(athlete.name)}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-sm font-medium truncate">{athlete.name}</span>
+                          <span className="text-sm font-medium truncate">
+                            {athlete.name}
+                          </span>
                         </div>
                       </TableCell>
 
@@ -418,7 +499,9 @@ export function RiskTable() {
                       <TableCell>{getStatusBadge(athlete.status)}</TableCell>
 
                       {/* ACWR */}
-                      <TableCell>{getAcwrBadge(athlete.acwrZone, athlete.acwr)}</TableCell>
+                      <TableCell>
+                        {getAcwrBadge(athlete.acwrZone, athlete.acwr)}
+                      </TableCell>
 
                       {/* Compliance */}
                       <TableCell>
@@ -427,16 +510,25 @@ export function RiskTable() {
                             value={athlete.compliance30d}
                             className={cn(
                               "h-1.5 w-16",
-                              athlete.compliance30d < 50 && "[&>div]:bg-destructive",
-                              athlete.compliance30d >= 50 && athlete.compliance30d < 80 && "[&>div]:bg-warning",
-                              athlete.compliance30d >= 80 && "[&>div]:bg-success"
+                              athlete.compliance30d < 50 &&
+                                "[&>div]:bg-destructive",
+                              athlete.compliance30d >= 50 &&
+                                athlete.compliance30d < 80 &&
+                                "[&>div]:bg-warning",
+                              athlete.compliance30d >= 80 &&
+                                "[&>div]:bg-success",
                             )}
                           />
-                          <span className={cn(
-                            "text-xs tabular-nums font-medium",
-                            athlete.compliance30d < 50 ? "text-destructive" :
-                            athlete.compliance30d < 80 ? "text-warning" : "text-muted-foreground"
-                          )}>
+                          <span
+                            className={cn(
+                              "text-xs tabular-nums font-medium",
+                              athlete.compliance30d < 50
+                                ? "text-destructive"
+                                : athlete.compliance30d < 80
+                                  ? "text-warning"
+                                  : "text-muted-foreground",
+                            )}
+                          >
                             {athlete.compliance30d}%
                           </span>
                         </div>
@@ -444,10 +536,14 @@ export function RiskTable() {
 
                       {/* Last Login */}
                       <TableCell>
-                        <span className={cn(
-                          "text-xs",
-                          login.isStale ? "text-destructive font-medium" : "text-muted-foreground"
-                        )}>
+                        <span
+                          className={cn(
+                            "text-xs",
+                            login.isStale
+                              ? "text-destructive font-medium"
+                              : "text-muted-foreground",
+                          )}
+                        >
                           {login.text}
                         </span>
                       </TableCell>
@@ -455,21 +551,43 @@ export function RiskTable() {
                       {/* Actions */}
                       <TableCell>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <DropdownMenuTrigger
+                            asChild
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-44">
-                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/coach/messages`); }}>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/coach/messages`);
+                              }}
+                            >
                               <MessageSquare className="h-4 w-4 mr-2" />
                               Messaggio
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/coach/athlete/${athlete.id}`); }}>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/coach/athlete/${athlete.id}`);
+                              }}
+                            >
                               <Eye className="h-4 w-4 mr-2" />
                               Vedi Programma
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/coach/athlete/${athlete.id}`); }}>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/coach/athlete/${athlete.id}`);
+                              }}
+                            >
                               <ClipboardList className="h-4 w-4 mr-2" />
                               Quick Review
                             </DropdownMenuItem>

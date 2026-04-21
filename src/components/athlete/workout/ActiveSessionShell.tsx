@@ -1,6 +1,6 @@
-import { ReactNode, useEffect, useState, useRef, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { ReactNode, useEffect, useState, useRef, useCallback } from"react";
+import { Button } from"@/components/ui/button";
+import { Badge } from"@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,12 +10,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Timer, Flag, Wifi, WifiOff, Video } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { ResponsivePhoneWrapper } from "@/components/athlete/PhoneMockup";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
-import { BarPathCamera } from "@/components/athlete/vision/BarPathCamera";
+} from"@/components/ui/alert-dialog";
+import { Timer, Flag, Wifi, WifiOff, Video } from"lucide-react";
+import { cn } from"@/lib/utils";
+import { ResponsivePhoneWrapper } from"@/components/athlete/PhoneMockup";
+import { Drawer, DrawerContent, DrawerTrigger } from"@/components/ui/drawer";
+import { BarPathCamera } from"@/components/athlete/vision/BarPathCamera";
 
 interface ActiveSessionShellProps {
   title: string;
@@ -34,7 +34,7 @@ interface ActiveSessionShellProps {
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
-  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  return`${mins.toString().padStart(2,"0")}:${secs.toString().padStart(2,"0")}`;
 }
 
 // Hold-to-Finish Button that opens a confirmation dialog
@@ -73,15 +73,13 @@ function HoldToFinishButton({ onFinish, completedSets, totalSets }: { onFinish: 
         onPointerDown={start}
         onPointerUp={cancel}
         onPointerLeave={cancel}
-        className="relative h-8 px-3 text-xs font-semibold rounded-md overflow-hidden bg-primary text-primary-foreground shrink-0 select-none touch-none"
-      >
+        className="relative h-8 px-3 text-xs font-semibold rounded-md overflow-hidden bg-primary text-primary-foreground shrink-0 select-none touch-none"      >
         <div
-          className="absolute inset-0 bg-destructive/80 transition-none"
-          style={{ width: `${progress}%` }}
+          className="absolute inset-0 bg-destructive/80 transition-none"          style={{ width:`${progress}%`}}
         />
         <span className="relative flex items-center gap-1">
-          <Flag className="h-3.5 w-3.5" />
-          {progress > 0 ? "Tieni premuto…" : "Termina"}
+          <Flag className="h-3.5 w-3.5"/>
+          {progress > 0 ?"Tieni premuto…":"Termina"}
         </span>
       </button>
 
@@ -89,21 +87,20 @@ function HoldToFinishButton({ onFinish, completedSets, totalSets }: { onFinish: 
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {noSetsLogged ? "⚠️ Nessuna serie registrata" : "Terminare l'allenamento?"}
+              {noSetsLogged ?"Nessuna serie registrata":"Terminare l'allenamento?"}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {noSetsLogged
-                ? "Non hai completato nessuna serie. Questo annullerà la sessione."
-                : `Hai completato ${completedSets} di ${totalSets} serie. Vuoi terminare?`}
+                ?"Non hai completato nessuna serie. Questo annullerà la sessione."                :`Hai completato ${completedSets} di ${totalSets} serie. Vuoi terminare?`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Continua</AlertDialogCancel>
             <AlertDialogAction
               onClick={onFinish}
-              className={noSetsLogged ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+              className={noSetsLogged ?"bg-destructive text-destructive-foreground hover:bg-destructive/90":""}
             >
-              {noSetsLogged ? "Annulla sessione" : "Termina"}
+              {noSetsLogged ?"Annulla sessione":"Termina"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -130,7 +127,7 @@ export function ActiveSessionShell({
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      e.returnValue = "";
+      e.returnValue ="";
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
@@ -139,9 +136,9 @@ export function ActiveSessionShell({
   const progressPercent = totalSets > 0 ? (completedSets / totalSets) * 100 : 0;
 
   const shellContent = (
-    <div className="h-[100dvh] lg:h-full flex flex-col bg-[hsl(var(--m3-surface,var(--background)))] text-foreground relative overflow-hidden" style={{ overscrollBehaviorY: "none" }}>
+    <div className="h-[100dvh] lg:h-full flex flex-col bg-[hsl(var(--m3-surface,var(--background)))] text-foreground relative overflow-hidden"style={{ overscrollBehaviorY:"none"}}>
       {/* Status bar safe area */}
-      <div className="safe-top flex-shrink-0" />
+      <div className="safe-top flex-shrink-0"/>
 
       {/* Compact Header */}
       <header className="flex-shrink-0 sticky top-0 z-40 bg-[hsl(var(--m3-surface,var(--background)))]/95 backdrop-blur-xl border-b border-border/20 px-4 py-3">
@@ -151,13 +148,13 @@ export function ActiveSessionShell({
               <h1 className="text-base font-semibold truncate">{title}</h1>
               {isRecoveryMode && (
                 <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 text-[10px] h-5 shrink-0">
-                  📉 Recupero
+                   Recupero
                 </Badge>
               )}
             </div>
             <div className="flex items-center gap-3 mt-0.5">
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Timer className="h-3 w-3" />
+                <Timer className="h-3 w-3"/>
                 <span className="tabular-nums font-medium">{formatTime(elapsedSeconds)}</span>
               </div>
               <span className="text-xs text-muted-foreground">•</span>
@@ -165,17 +162,17 @@ export function ActiveSessionShell({
                 {completedSets}/{totalSets} serie
               </span>
               {!isOnline && (
-                <WifiOff className="h-3 w-3 text-amber-500" />
+                <WifiOff className="h-3 w-3 text-amber-500"/>
               )}
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Drawer open={visionOpen} onOpenChange={setVisionOpen}>
               <DrawerTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs gap-1">
-                  <Video className="h-3.5 w-3.5" />
+                <Button variant="outline"size="sm"className="h-8 px-2.5 text-xs gap-1">
+                  <Video className="h-3.5 w-3.5"/>
                   <span className="hidden sm:inline">Analisi Video</span>
-                  <span className="sm:hidden">📹</span>
+                  <span className="sm:hidden"></span>
                 </Button>
               </DrawerTrigger>
               <DrawerContent className="h-[95dvh] p-0">
@@ -189,8 +186,7 @@ export function ActiveSessionShell({
         {/* Progress bar */}
         <div className="mt-3 h-1.5 bg-secondary rounded-full overflow-hidden">
           <div
-            className="h-full bg-primary transition-all duration-500 ease-out rounded-full"
-            style={{ width: `${progressPercent}%` }}
+            className="h-full bg-primary transition-all duration-500 ease-out rounded-full"            style={{ width:`${progressPercent}%`}}
           />
         </div>
       </header>

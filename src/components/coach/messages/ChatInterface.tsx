@@ -63,7 +63,13 @@ interface ChatInterfaceProps {
 }
 
 // Audio Waveform Component
-function AudioPlayer({ waveform, duration }: { waveform: number[]; duration: string }) {
+function AudioPlayer({
+  waveform,
+  duration,
+}: {
+  waveform: number[];
+  duration: string;
+}) {
   const [isPlaying, setIsPlaying] = useState(false);
 
   return (
@@ -74,7 +80,11 @@ function AudioPlayer({ waveform, duration }: { waveform: number[]; duration: str
         className="h-8 w-8 shrink-0"
         onClick={() => setIsPlaying(!isPlaying)}
       >
-        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+        {isPlaying ? (
+          <Pause className="h-4 w-4" />
+        ) : (
+          <Play className="h-4 w-4" />
+        )}
       </Button>
       <div className="flex items-center gap-0.5 flex-1">
         {waveform.map((height, i) => (
@@ -113,7 +123,7 @@ function LinkPreview({
             className="w-full h-full object-cover"
           />
           {preview.provider.toLowerCase().includes("youtube") ||
-            preview.provider.toLowerCase().includes("loom") ? (
+          preview.provider.toLowerCase().includes("loom") ? (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="h-12 w-12 rounded-full bg-black/60 flex items-center justify-center">
                 <Play className="h-6 w-6 text-white ml-1" />
@@ -141,7 +151,7 @@ const mockMessages: Message[] = [
   {
     id: "1",
     type: "text",
-    content: "Ciao coach! Ho completato l'allenamento di oggi 💪",
+    content: "Ciao coach! Ho completato l'allenamento di oggi",
     timestamp: "10:30",
     isMe: false,
   },
@@ -159,7 +169,10 @@ const mockMessages: Message[] = [
     timestamp: "10:40",
     isMe: false,
     metadata: {
-      audioWaveform: [8, 12, 18, 14, 20, 16, 22, 18, 14, 10, 16, 20, 24, 18, 12, 8, 14, 18, 16, 12],
+      audioWaveform: [
+        8, 12, 18, 14, 20, 16, 22, 18, 14, 10, 16, 20, 24, 18, 12, 8, 14, 18,
+        16, 12,
+      ],
       audioDuration: "0:32",
     },
   },
@@ -170,7 +183,8 @@ const mockMessages: Message[] = [
     timestamp: "10:45",
     isMe: false,
     metadata: {
-      imageUrl: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=300&fit=crop",
+      imageUrl:
+        "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&h=300&fit=crop",
     },
   },
   {
@@ -182,8 +196,10 @@ const mockMessages: Message[] = [
     metadata: {
       linkPreview: {
         title: "Perfect Squat Form - Complete Tutorial",
-        description: "Learn the perfect squat technique with this comprehensive guide covering stance, depth, and common mistakes.",
-        thumbnail: "https://images.unsplash.com/photo-1566241142559-40e1dab266c6?w=400&h=225&fit=crop",
+        description:
+          "Learn the perfect squat technique with this comprehensive guide covering stance, depth, and common mistakes.",
+        thumbnail:
+          "https://images.unsplash.com/photo-1566241142559-40e1dab266c6?w=400&h=225&fit=crop",
         url: "https://www.youtube.com/watch?v=example",
         provider: "YouTube",
       },
@@ -192,7 +208,7 @@ const mockMessages: Message[] = [
   {
     id: "6",
     type: "text",
-    content: "Perfetto! Lo guardo subito. Grazie mille coach! 🙏",
+    content: "Perfetto! Lo guardo subito. Grazie mille coach!",
     timestamp: "10:52",
     isMe: false,
   },
@@ -208,10 +224,14 @@ export function ChatInterface({
   const [isAiMode, setIsAiMode] = useState(false);
   const [aiMessages, setAiMessages] = useState<Message[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiHistory, setAiHistory] = useState<{ role: string; content: string }[]>([]);
+  const [aiHistory, setAiHistory] = useState<
+    { role: string; content: string }[]
+  >([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { data: quota, refetch: refetchQuota } = useAiQuota(isAiMode);
-  const quotaExhausted = quota ? quota.message_count >= quota.daily_limit : false;
+  const quotaExhausted = quota
+    ? quota.message_count >= quota.daily_limit
+    : false;
 
   // Scroll to bottom when AI messages change
   useEffect(() => {
@@ -227,7 +247,10 @@ export function ChatInterface({
       id: `user-${Date.now()}`,
       type: "text",
       content: messageText.trim(),
-      timestamp: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }),
+      timestamp: new Date().toLocaleTimeString("it-IT", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       isMe: true,
     };
 
@@ -244,7 +267,10 @@ export function ChatInterface({
         id: aiMsgId,
         type: "text",
         content: "",
-        timestamp: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }),
+        timestamp: new Date().toLocaleTimeString("it-IT", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
         isMe: false,
         isAi: true,
       },
@@ -288,18 +314,22 @@ export function ChatInterface({
 
           if (line.endsWith("\r")) line = line.slice(0, -1);
           if (line.startsWith(":") || line.trim() === "") continue;
-          if (!line.startsWith("data: ")) continue;
+          if (!line.startsWith("data:")) continue;
 
           const jsonStr = line.slice(6).trim();
           if (jsonStr === "[DONE]") break;
 
           try {
             const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            const content = parsed.choices?.[0]?.delta?.content as
+              | string
+              | undefined;
             if (content) {
               fullContent += content;
               setAiMessages((prev) =>
-                prev.map((m) => (m.id === aiMsgId ? { ...m, content: fullContent } : m))
+                prev.map((m) =>
+                  m.id === aiMsgId ? { ...m, content: fullContent } : m,
+                ),
               );
             }
           } catch {
@@ -320,9 +350,12 @@ export function ChatInterface({
       setAiMessages((prev) =>
         prev.map((m) =>
           m.id === aiMsgId
-            ? { ...m, content: `⚠️ ${err instanceof Error ? err.message : "Errore sconosciuto"}` }
-            : m
-        )
+            ? {
+                ...m,
+                content: `${err instanceof Error ? err.message : "Errore sconosciuto"}`,
+              }
+            : m,
+        ),
       );
     } finally {
       setIsAiLoading(false);
@@ -351,15 +384,20 @@ export function ChatInterface({
   const displayMessages = isAiMode ? aiMessages : mockMessages;
 
   return (
-    <Card className={cn(
-      "border-0 shadow-sm flex flex-col overflow-hidden h-full transition-colors duration-300",
-      isAiMode && "ring-1 ring-violet-500/30"
-    )}>
+    <Card
+      className={cn(
+        "border-0 shadow-sm flex flex-col overflow-hidden h-full transition-colors duration-300",
+        isAiMode && "ring-1 ring-violet-500/30",
+      )}
+    >
       {/* Chat Header */}
-      <div className={cn(
-        "flex items-center justify-between px-4 py-3 border-b flex-shrink-0 transition-colors duration-300",
-        isAiMode && "bg-gradient-to-r from-violet-500/5 to-cyan-500/5 border-violet-500/20"
-      )}>
+      <div
+        className={cn(
+          "flex items-center justify-between px-4 py-3 border-b flex-shrink-0 transition-colors duration-300",
+          isAiMode &&
+            "bg-gradient-to-r from-violet-500/5 to-cyan-500/5 border-violet-500/20",
+        )}
+      >
         <div className="flex items-center gap-3">
           {/* Mobile Back Button */}
           <Button
@@ -399,7 +437,9 @@ export function ChatInterface({
                 )}
               </div>
               <div>
-                <h3 className="text-sm font-semibold">{conversation.athleteName}</h3>
+                <h3 className="text-sm font-semibold">
+                  {conversation.athleteName}
+                </h3>
                 <p className="text-xs text-muted-foreground">
                   {conversation.isOnline ? "Online" : "Ultima attività 2h fa"}
                 </p>
@@ -411,7 +451,10 @@ export function ChatInterface({
         <div className="flex items-center gap-3">
           {/* AI Mode Toggle */}
           <div className="flex items-center gap-2">
-            <Label htmlFor="ai-mode" className="text-[10px] text-muted-foreground cursor-pointer">
+            <Label
+              htmlFor="ai-mode"
+              className="text-[10px] text-muted-foreground cursor-pointer"
+            >
               {isAiMode ? (
                 <span className="flex items-center gap-1">
                   <Bot className="h-3 w-3 text-violet-500" /> AI
@@ -427,7 +470,8 @@ export function ChatInterface({
               checked={isAiMode}
               onCheckedChange={setIsAiMode}
               className={cn(
-                isAiMode && "data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-violet-500 data-[state=checked]:to-cyan-500"
+                isAiMode &&
+                  "data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-violet-500 data-[state=checked]:to-cyan-500",
               )}
             />
           </div>
@@ -463,12 +507,19 @@ export function ChatInterface({
               <div className="h-16 w-16 rounded-full bg-gradient-to-br from-violet-500/20 to-cyan-500/20 flex items-center justify-center mb-4">
                 <Brain className="h-8 w-8 text-violet-500" />
               </div>
-              <h3 className="text-base font-semibold mb-1">Assistente AI del Coach</h3>
+              <h3 className="text-base font-semibold mb-1">
+                Assistente AI del Coach
+              </h3>
               <p className="text-sm text-muted-foreground max-w-xs">
-                Il tuo assistente virtuale risponde basandosi sui documenti e i materiali del coach.
+                Il tuo assistente virtuale risponde basandosi sui documenti e i
+                materiali del coach.
               </p>
               <div className="flex flex-wrap gap-2 mt-4 max-w-sm justify-center">
-                {["Come faccio lo squat correttamente?", "Quante serie devo fare?", "Tecnica di panca piana"].map((q) => (
+                {[
+                  "Come faccio lo squat correttamente?",
+                  "Quante serie devo fare?",
+                  "Tecnica di panca piana",
+                ].map((q) => (
                   <Button
                     key={q}
                     variant="outline"
@@ -502,13 +553,13 @@ export function ChatInterface({
                   msg.isMe
                     ? "bg-primary text-primary-foreground rounded-tr-sm"
                     : msg.isAi
-                    ? "bg-gradient-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20 rounded-tl-sm"
-                    : "bg-muted rounded-tl-sm"
+                      ? "bg-gradient-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20 rounded-tl-sm"
+                      : "bg-muted rounded-tl-sm",
                 )}
               >
                 {/* Text Message */}
-                {msg.type === "text" && (
-                  msg.isAi ? (
+                {msg.type === "text" &&
+                  (msg.isAi ? (
                     msg.content ? (
                       <div className="text-sm prose prose-sm dark:prose-invert max-w-none [&>p]:m-0">
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
@@ -523,8 +574,7 @@ export function ChatInterface({
                     )
                   ) : (
                     <p className="text-sm">{msg.content}</p>
-                  )
-                )}
+                  ))}
 
                 {/* Audio Message */}
                 {msg.type === "audio" && msg.metadata?.audioWaveform && (
@@ -560,7 +610,9 @@ export function ChatInterface({
                 <div
                   className={cn(
                     "flex items-center justify-end gap-1 mt-1",
-                    msg.isMe ? "text-primary-foreground/70" : "text-muted-foreground"
+                    msg.isMe
+                      ? "text-primary-foreground/70"
+                      : "text-muted-foreground",
                   )}
                 >
                   <span className="text-[10px]">{msg.timestamp}</span>
@@ -583,10 +635,13 @@ export function ChatInterface({
       </ScrollArea>
 
       {/* Message Input */}
-      <div className={cn(
-        "border-t p-4 flex-shrink-0 transition-colors duration-300",
-        isAiMode && "border-violet-500/20 bg-gradient-to-r from-violet-500/5 to-cyan-500/5"
-      )}>
+      <div
+        className={cn(
+          "border-t p-4 flex-shrink-0 transition-colors duration-300",
+          isAiMode &&
+            "border-violet-500/20 bg-gradient-to-r from-violet-500/5 to-cyan-500/5",
+        )}
+      >
         <div className="flex items-end gap-2">
           {/* Action Buttons - hidden in AI mode */}
           {!isAiMode && (
@@ -615,7 +670,8 @@ export function ChatInterface({
               }
               className={cn(
                 "min-h-[44px] max-h-32 resize-none",
-                isAiMode && "border-violet-500/20 focus-visible:ring-violet-500/30"
+                isAiMode &&
+                  "border-violet-500/20 focus-visible:ring-violet-500/30",
               )}
               rows={1}
               value={messageText}
@@ -634,9 +690,12 @@ export function ChatInterface({
             size="icon"
             className={cn(
               "h-10 w-10 shrink-0",
-              isAiMode && "bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600"
+              isAiMode &&
+                "bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600",
             )}
-            disabled={!messageText.trim() || isAiLoading || (isAiMode && quotaExhausted)}
+            disabled={
+              !messageText.trim() || isAiLoading || (isAiMode && quotaExhausted)
+            }
             onClick={isAiMode ? handleSendAiMessage : undefined}
           >
             {isAiLoading ? (
@@ -651,10 +710,9 @@ export function ChatInterface({
         <p className="text-[10px] text-muted-foreground text-center mt-2">
           {isAiMode
             ? quotaExhausted
-              ? "⛔ Hai raggiunto il limite giornaliero. L'assistente tornerà domani!"
-              : "🧠 Il tuo assistente virtuale sta cercando nei manuali del coach..."
-            : "💡 Per i video, usa Loom o YouTube e condividi il link"
-          }
+              ? "Hai raggiunto il limite giornaliero. L'assistente tornerà domani!"
+              : "Il tuo assistente virtuale sta cercando nei manuali del coach..."
+            : "Per i video, usa Loom o YouTube e condividi il link"}
         </p>
       </div>
     </Card>

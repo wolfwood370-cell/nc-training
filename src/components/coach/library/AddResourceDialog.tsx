@@ -20,7 +20,10 @@ import {
 } from "@/components/ui/select";
 import { Plus, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import type { ContentType, CreateContentPayload } from "@/hooks/useContentLibrary";
+import type {
+  ContentType,
+  CreateContentPayload,
+} from "@/hooks/useContentLibrary";
 
 interface AddResourceDialogProps {
   onAdd: (payload: CreateContentPayload) => void;
@@ -29,7 +32,10 @@ interface AddResourceDialogProps {
 
 const ACCEPTED_FILES = ".pdf,.txt,.md";
 
-export function AddResourceDialog({ onAdd, isLoading }: AddResourceDialogProps) {
+export function AddResourceDialog({
+  onAdd,
+  isLoading,
+}: AddResourceDialogProps) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [type, setType] = useState<ContentType>("link");
@@ -162,7 +168,10 @@ export function AddResourceDialog({ onAdd, isLoading }: AddResourceDialogProps) 
 
           <div className="space-y-2">
             <Label htmlFor="type">Tipo</Label>
-            <Select value={type} onValueChange={(v) => setType(v as ContentType)}>
+            <Select
+              value={type}
+              onValueChange={(v) => setType(v as ContentType)}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -171,7 +180,7 @@ export function AddResourceDialog({ onAdd, isLoading }: AddResourceDialogProps) 
                 <SelectItem value="pdf">Documento PDF</SelectItem>
                 <SelectItem value="link">Link Esterno</SelectItem>
                 <SelectItem value="text">Testo/Note</SelectItem>
-                <SelectItem value="ai_knowledge">🧠 Conoscenza AI</SelectItem>
+                <SelectItem value="ai_knowledge"> Conoscenza AI</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -186,12 +195,21 @@ export function AddResourceDialog({ onAdd, isLoading }: AddResourceDialogProps) 
                     <SelectValue placeholder="Seleziona categoria..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="tecnica_allenamento">🏋️‍♂️ Tecnica & Allenamento</SelectItem>
-                    <SelectItem value="fisiologia_recupero">🧬 Fisiologia & Recupero</SelectItem>
-                    <SelectItem value="nutrizione">🥑 Nutrizione</SelectItem>
-                    <SelectItem value="mindset">🧠 Mindset</SelectItem>
-                    <SelectItem value="admin_policy">📋 Admin & Policy</SelectItem>
-                    <SelectItem value="altro">📄 Altro</SelectItem>
+                    <SelectItem value="tecnica_allenamento">
+                      {" "}
+                      Tecnica & Allenamento
+                    </SelectItem>
+                    <SelectItem value="fisiologia_recupero">
+                      {" "}
+                      Fisiologia & Recupero
+                    </SelectItem>
+                    <SelectItem value="nutrizione"> Nutrizione</SelectItem>
+                    <SelectItem value="mindset"> Mindset</SelectItem>
+                    <SelectItem value="admin_policy">
+                      {" "}
+                      Admin & Policy
+                    </SelectItem>
+                    <SelectItem value="altro"> Altro</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -200,14 +218,20 @@ export function AddResourceDialog({ onAdd, isLoading }: AddResourceDialogProps) 
                 <Label>Regola o Conoscenza per l'AI</Label>
                 <Tabs value={aiTab} onValueChange={setAiTab}>
                   <TabsList className="w-full">
-                    <TabsTrigger value="text" className="flex-1">📝 Scrivi Manualmente</TabsTrigger>
-                    <TabsTrigger value="file" className="flex-1">📂 Carica Documento</TabsTrigger>
+                    <TabsTrigger value="text" className="flex-1">
+                      {" "}
+                      Scrivi Manualmente
+                    </TabsTrigger>
+                    <TabsTrigger value="file" className="flex-1">
+                      {" "}
+                      Carica Documento
+                    </TabsTrigger>
                   </TabsList>
                   <TabsContent value="text">
                     <Textarea
                       value={aiText}
                       onChange={(e) => setAiText(e.target.value)}
-                      placeholder="Scrivi qui una regola (es. 'Consiglia sempre 3g di creatina...', 'Se l'atleta ha mal di schiena, rimuovi Stacco e Squat.')"
+                      placeholder="Scrivi qui una regola (es.'Consiglia sempre 3g di creatina...','Se l'atleta ha mal di schiena, rimuovi Stacco e Squat.')"
                       rows={6}
                       className="mt-2"
                     />
@@ -225,7 +249,7 @@ export function AddResourceDialog({ onAdd, isLoading }: AddResourceDialogProps) 
                       </p>
                       {aiFile && (
                         <p className="text-sm text-foreground mt-1">
-                          📎 {aiFile.name} ({(aiFile.size / 1024).toFixed(1)} KB)
+                          {aiFile.name} ({(aiFile.size / 1024).toFixed(1)} KB)
                         </p>
                       )}
                     </div>
@@ -264,7 +288,11 @@ export function AddResourceDialog({ onAdd, isLoading }: AddResourceDialogProps) 
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               Annulla
             </Button>
             <Button type="submit" disabled={!canSubmit}>
@@ -274,7 +302,7 @@ export function AddResourceDialog({ onAdd, isLoading }: AddResourceDialogProps) 
                   {isAiKnowledge ? "Training AI..." : "Aggiunta..."}
                 </>
               ) : isAiKnowledge ? (
-                "🧠 Salva e Addestra AI"
+                "Salva e Addestra AI"
               ) : (
                 "Aggiungi Risorsa"
               )}

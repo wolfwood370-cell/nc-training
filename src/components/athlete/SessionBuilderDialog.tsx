@@ -16,14 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Search,
-  Dumbbell,
-  Play,
-  Loader2,
-  X,
-  Filter,
-} from "lucide-react";
+import { Search, Dumbbell, Play, Loader2, X, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -92,8 +85,7 @@ export function SessionBuilderDialog({
       const matchesSearch =
         searchQuery === "" ||
         ex.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesMuscle =
-        !filterMuscle || ex.muscles.includes(filterMuscle);
+      const matchesMuscle = !filterMuscle || ex.muscles.includes(filterMuscle);
       return matchesSearch && matchesMuscle;
     });
   }, [exercises, searchQuery, filterMuscle]);
@@ -170,7 +162,7 @@ export function SessionBuilderDialog({
     onSuccess: ({ workoutId }) => {
       toast({
         title: "Sessione creata",
-        description: "Buon allenamento! 💪",
+        description: "Buon allenamento!",
       });
       onOpenChange(false);
       setSelectedExercises([]);
@@ -211,7 +203,10 @@ export function SessionBuilderDialog({
       <DialogContent className="max-w-md max-h-[85vh] flex flex-col p-0">
         <DialogHeader className="px-4 pt-4 pb-2">
           <DialogTitle className="flex items-center gap-2">
-            <Dumbbell className="h-5 w-5" style={{ color: brandColor || undefined }} />
+            <Dumbbell
+              className="h-5 w-5"
+              style={{ color: brandColor || undefined }}
+            />
             Sessione Libera
           </DialogTitle>
           <DialogDescription>
@@ -247,7 +242,11 @@ export function SessionBuilderDialog({
                   variant={filterMuscle === null ? "default" : "outline"}
                   className="cursor-pointer shrink-0"
                   onClick={() => setFilterMuscle(null)}
-                  style={filterMuscle === null && brandColor ? { backgroundColor: brandColor } : undefined}
+                  style={
+                    filterMuscle === null && brandColor
+                      ? { backgroundColor: brandColor }
+                      : undefined
+                  }
                 >
                   Tutti
                 </Badge>
@@ -256,8 +255,14 @@ export function SessionBuilderDialog({
                     key={muscle}
                     variant={filterMuscle === muscle ? "default" : "outline"}
                     className="cursor-pointer shrink-0 capitalize"
-                    onClick={() => setFilterMuscle(filterMuscle === muscle ? null : muscle)}
-                    style={filterMuscle === muscle && brandColor ? { backgroundColor: brandColor } : undefined}
+                    onClick={() =>
+                      setFilterMuscle(filterMuscle === muscle ? null : muscle)
+                    }
+                    style={
+                      filterMuscle === muscle && brandColor
+                        ? { backgroundColor: brandColor }
+                        : undefined
+                    }
                   >
                     {muscle}
                   </Badge>
@@ -270,12 +275,18 @@ export function SessionBuilderDialog({
         {/* Selected count */}
         {selectedExercises.length > 0 && (
           <div className="px-4 pb-2">
-            <div 
+            <div
               className="flex items-center justify-between px-3 py-2 rounded-lg"
-              style={{ backgroundColor: brandColor ? `${brandColor}15` : "hsl(var(--primary) / 0.1)" }}
+              style={{
+                backgroundColor: brandColor
+                  ? `${brandColor}15`
+                  : "hsl(var(--primary) / 0.1)",
+              }}
             >
               <span className="text-sm font-medium">
-                {selectedExercises.length} eserciz{selectedExercises.length === 1 ? "io" : "i"} selezionat{selectedExercises.length === 1 ? "o" : "i"}
+                {selectedExercises.length} eserciz
+                {selectedExercises.length === 1 ? "io" : "i"} selezionat
+                {selectedExercises.length === 1 ? "o" : "i"}
               </span>
               <Button
                 variant="ghost"
@@ -312,9 +323,16 @@ export function SessionBuilderDialog({
                       "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all",
                       selected
                         ? "bg-primary/10 border border-primary/30"
-                        : "hover:bg-muted/50 border border-transparent"
+                        : "hover:bg-muted/50 border border-transparent",
                     )}
-                    style={selected && brandColor ? { backgroundColor: `${brandColor}15`, borderColor: `${brandColor}50` } : undefined}
+                    style={
+                      selected && brandColor
+                        ? {
+                            backgroundColor: `${brandColor}15`,
+                            borderColor: `${brandColor}50`,
+                          }
+                        : undefined
+                    }
                   >
                     <Checkbox
                       checked={selected}
@@ -322,7 +340,9 @@ export function SessionBuilderDialog({
                       className="pointer-events-none"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{exercise.name}</p>
+                      <p className="font-medium text-sm truncate">
+                        {exercise.name}
+                      </p>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         {exercise.muscles.slice(0, 2).map((muscle) => (
                           <Badge
@@ -351,7 +371,9 @@ export function SessionBuilderDialog({
         <DialogFooter className="px-4 py-3 border-t bg-muted/30">
           <Button
             onClick={handleStartSession}
-            disabled={selectedExercises.length === 0 || createSessionMutation.isPending}
+            disabled={
+              selectedExercises.length === 0 || createSessionMutation.isPending
+            }
             className="w-full gap-2"
             style={{ backgroundColor: brandColor || undefined }}
           >

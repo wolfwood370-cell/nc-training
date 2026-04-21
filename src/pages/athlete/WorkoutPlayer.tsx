@@ -1,17 +1,17 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
+import { useState, useEffect, useCallback, useRef, useMemo } from"react";
+import { useParams, useNavigate } from"react-router-dom";
+import { useMutation, useQuery } from"@tanstack/react-query";
+import { Button } from"@/components/ui/button";
+import { Input } from"@/components/ui/input";
+import { Badge } from"@/components/ui/badge";
+import { Slider } from"@/components/ui/slider";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
+} from"@/components/ui/dialog";
 import {
   CheckCircle2,
   Timer,
@@ -23,49 +23,49 @@ import {
   AlertTriangle,
   Activity,
   ChevronRight,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { useOfflineSync, type WorkoutLogPayload } from "@/hooks/useOfflineSync";
-import { useHapticFeedback, triggerHaptic } from "@/hooks/useHapticFeedback";
-import { useWorkoutStreak } from "@/hooks/useWorkoutStreak";
-import { usePersonalRecords } from "@/hooks/usePersonalRecords";
-import { useExerciseHistory } from "@/hooks/useExerciseHistory";
-import { triggerConfetti, triggerPRConfetti } from "@/utils/ux";
-import useEmblaCarousel from "embla-carousel-react";
-import { useWakeLock } from "@/hooks/useWakeLock";
-import { unlockAudio } from "@/lib/audioFeedback";
+} from"lucide-react";
+import { cn } from"@/lib/utils";
+import { supabase } from"@/integrations/supabase/client";
+import { useToast } from"@/hooks/use-toast";
+import { useOfflineSync, type WorkoutLogPayload } from"@/hooks/useOfflineSync";
+import { useHapticFeedback, triggerHaptic } from"@/hooks/useHapticFeedback";
+import { useWorkoutStreak } from"@/hooks/useWorkoutStreak";
+import { usePersonalRecords } from"@/hooks/usePersonalRecords";
+import { useExerciseHistory } from"@/hooks/useExerciseHistory";
+import { triggerConfetti, triggerPRConfetti } from"@/utils/ux";
+import useEmblaCarousel from"embla-carousel-react";
+import { useWakeLock } from"@/hooks/useWakeLock";
+import { unlockAudio } from"@/lib/audioFeedback";
 
 // Components
-import { ActiveSessionShell } from "@/components/athlete/workout/ActiveSessionShell";
-import { ExerciseCard, type ExerciseData, type SetData } from "@/components/athlete/workout/ExerciseCard";
-import { RestTimerPill } from "@/components/athlete/workout/RestTimerPill";
-import { AthleteLayout } from "@/components/athlete/AthleteLayout";
-import { useActiveSessionStore } from "@/stores/useActiveSessionStore";
+import { ActiveSessionShell } from"@/components/athlete/workout/ActiveSessionShell";
+import { ExerciseCard, type ExerciseData, type SetData } from"@/components/athlete/workout/ExerciseCard";
+import { RestTimerPill } from"@/components/athlete/workout/RestTimerPill";
+import { AthleteLayout } from"@/components/athlete/AthleteLayout";
+import { useActiveSessionStore } from"@/stores/useActiveSessionStore";
 
 // ============================================================
 // CONSTANTS
 // ============================================================
 
 const fosterRpeScale = [
-  { value: 1, label: "Riposo", description: "Recupero attivo", color: "bg-emerald-500" },
-  { value: 2, label: "Molto Facile", description: "Sforzo minimo", color: "bg-emerald-400" },
-  { value: 3, label: "Facile", description: "Riscaldamento", color: "bg-green-400" },
-  { value: 4, label: "Moderato", description: "Lavoro leggero", color: "bg-lime-400" },
-  { value: 5, label: "Abbastanza Duro", description: "Impegnativo", color: "bg-yellow-400" },
-  { value: 6, label: "Duro", description: "Faticoso", color: "bg-amber-400" },
-  { value: 7, label: "Molto Duro", description: "Molto faticoso", color: "bg-orange-400" },
-  { value: 8, label: "Molto Duro+", description: "Al limite", color: "bg-orange-500" },
-  { value: 9, label: "Quasi Max", description: "Massimale submx", color: "bg-red-400" },
-  { value: 10, label: "Massimale", description: "Sforzo totale", color: "bg-red-500" },
+  { value: 1, label:"Riposo", description:"Recupero attivo", color:"bg-emerald-500"},
+  { value: 2, label:"Molto Facile", description:"Sforzo minimo", color:"bg-emerald-400"},
+  { value: 3, label:"Facile", description:"Riscaldamento", color:"bg-green-400"},
+  { value: 4, label:"Moderato", description:"Lavoro leggero", color:"bg-lime-400"},
+  { value: 5, label:"Abbastanza Duro", description:"Impegnativo", color:"bg-yellow-400"},
+  { value: 6, label:"Duro", description:"Faticoso", color:"bg-amber-400"},
+  { value: 7, label:"Molto Duro", description:"Molto faticoso", color:"bg-orange-400"},
+  { value: 8, label:"Molto Duro+", description:"Al limite", color:"bg-orange-500"},
+  { value: 9, label:"Quasi Max", description:"Massimale submx", color:"bg-red-400"},
+  { value: 10, label:"Massimale", description:"Sforzo totale", color:"bg-red-500"},
 ];
 
 const getRpeColor = (rpe: number): string => {
-  if (rpe <= 3) return "text-emerald-500";
-  if (rpe <= 5) return "text-yellow-500";
-  if (rpe <= 7) return "text-orange-500";
-  return "text-red-500";
+  if (rpe <= 3) return"text-emerald-500";
+  if (rpe <= 5) return"text-yellow-500";
+  if (rpe <= 7) return"text-orange-500";
+  return"text-red-500";
 };
 
 // ============================================================
@@ -77,7 +77,7 @@ function parseWorkoutStructure(structure: any[]): ExerciseData[] {
     const setsCount = ex.sets || 3;
     const targetRpe = parseInt(ex.rpe) || 8;
     return {
-      id: ex.id || `ex-${index}`,
+      id: ex.id ||`ex-${index}`,
       name: ex.name,
       videoUrl: ex.videoUrl,
       coachNotes: ex.notes || ex.coachNotes,
@@ -86,14 +86,14 @@ function parseWorkoutStructure(structure: any[]): ExerciseData[] {
       originalSetsCount: setsCount,
       originalTargetRpe: targetRpe,
       sets: Array.from({ length: setsCount }, (_, i) => ({
-        id: `${ex.id || index}-set-${i}`,
+        id:`${ex.id || index}-set-${i}`,
         setNumber: i + 1,
-        targetKg: parseFloat(ex.load?.replace(/[^0-9.]/g, "") || "0") || 0,
+        targetKg: parseFloat(ex.load?.replace(/[^0-9.]/g,"") ||"0") || 0,
         targetReps: parseInt(ex.reps) || 8,
         targetRpe: targetRpe,
-        actualKg: "",
-        actualReps: "",
-        rpe: "",
+        actualKg:"",
+        actualReps:"",
+        rpe:"",
         completed: false,
       })),
     };
@@ -102,15 +102,15 @@ function parseWorkoutStructure(structure: any[]): ExerciseData[] {
 
 // Mock data
 const mockWorkout = {
-  id: "mock-1",
-  title: "Upper Body Hypertrophy",
+  id:"mock-1",
+  title:"Upper Body Hypertrophy",
   estimatedDuration: 45,
   structure: [
-    { id: "ex1", name: "Bench Press", sets: 4, reps: "8", load: "80kg", rpe: "8", notes: "Controllare la discesa (3 secondi). Focus sulla connessione mente-muscolo.", restSeconds: 120 },
-    { id: "ex2", name: "Incline Dumbbell Press", sets: 3, reps: "10", load: "30kg", rpe: "7", notes: "Angolo 30-45 gradi. Stretch in basso.", restSeconds: 90, supersetGroup: "ss1" },
-    { id: "ex3", name: "Cable Flyes", sets: 3, reps: "12", load: "15kg", rpe: "7", notes: "Squeeze al centro per 1 secondo.", restSeconds: 60, supersetGroup: "ss1" },
-    { id: "ex4", name: "Lat Pulldown", sets: 4, reps: "10", load: "60kg", rpe: "8", notes: "Tira verso il petto. Controlla la fase eccentrica.", restSeconds: 90 },
-    { id: "ex5", name: "Seated Cable Row", sets: 3, reps: "10", load: "55kg", rpe: "7", notes: "Petto in fuori, porta i gomiti indietro.", restSeconds: 90 },
+    { id:"ex1", name:"Bench Press", sets: 4, reps:"8", load:"80kg", rpe:"8", notes:"Controllare la discesa (3 secondi). Focus sulla connessione mente-muscolo.", restSeconds: 120 },
+    { id:"ex2", name:"Incline Dumbbell Press", sets: 3, reps:"10", load:"30kg", rpe:"7", notes:"Angolo 30-45 gradi. Stretch in basso.", restSeconds: 90, supersetGroup:"ss1"},
+    { id:"ex3", name:"Cable Flyes", sets: 3, reps:"12", load:"15kg", rpe:"7", notes:"Squeeze al centro per 1 secondo.", restSeconds: 60, supersetGroup:"ss1"},
+    { id:"ex4", name:"Lat Pulldown", sets: 4, reps:"10", load:"60kg", rpe:"8", notes:"Tira verso il petto. Controlla la fase eccentrica.", restSeconds: 90 },
+    { id:"ex5", name:"Seated Cable Row", sets: 3, reps:"10", load:"55kg", rpe:"7", notes:"Petto in fuori, porta i gomiti indietro.", restSeconds: 90 },
   ],
 };
 
@@ -137,7 +137,7 @@ export default function WorkoutPlayer() {
 
   // Embla Carousel
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    align: "center",
+    align:"center",
     containScroll: false,
     watchDrag: true,
   });
@@ -229,21 +229,21 @@ export default function WorkoutPlayer() {
     );
     setIsRecoveryMode(true);
     setShowAutoRegDialog(false);
-    toast({ title: "📉 Recovery Mode attivato", description: "Volume e intensità ridotti." });
+    toast({ title:"Recovery Mode attivato", description:"Volume e intensità ridotti."});
   }, [toast]);
 
   const ignoreAutoReg = useCallback(() => {
     unlockAudio();
     setShowAutoRegDialog(false);
-    toast({ title: "Procedi con cautela", description: "Ascolta il tuo corpo.", variant: "destructive" });
+    toast({ title:"Procedi con cautela", description:"Ascolta il tuo corpo.", variant:"destructive"});
   }, [toast]);
 
   // Fetch workout
   const { data: workoutData, isLoading } = useQuery({
     queryKey: ["workout", id],
     queryFn: async () => {
-      if (!id || id === "mock" || id.startsWith("mock-") || id.startsWith("free-session-")) {
-        return { id: id || "free", title: "Allenamento Libero", structure: [], estimatedDuration: 60 };
+      if (!id || id ==="mock"|| id.startsWith("mock-") || id.startsWith("free-session-")) {
+        return { id: id ||"free", title:"Allenamento Libero", structure: [], estimatedDuration: 60 };
       }
       const { data, error } = await supabase.from("workouts").select("*").eq("id", id).single();
       if (error) throw error;
@@ -299,7 +299,7 @@ export default function WorkoutPlayer() {
         })
       );
       // Persist every field change to localStorage via store
-      const setIndex = parseInt(setId.split("-set-")[1] ?? "0");
+      const setIndex = parseInt(setId.split("-set-")[1] ??"0");
       sessionStore.updateSetField(exerciseId, setIndex, field as any, value as any);
     },
     [sessionStore]
@@ -309,7 +309,7 @@ export default function WorkoutPlayer() {
     async (exerciseId: string, setId: string, completed: boolean) => {
       // Unlock Web Audio on first user gesture (iOS autoplay policy)
       unlockAudio();
-      handleSetUpdate(exerciseId, setId, "completed", completed);
+      handleSetUpdate(exerciseId, setId,"completed", completed);
 
       if (completed) {
         triggerHaptic("medium");
@@ -351,16 +351,13 @@ export default function WorkoutPlayer() {
             if (nextIndex < exercises.length) {
               triggerHaptic("success");
               toast({
-                title: "✅ Esercizio completato!",
-                description: `Prossimo: ${exercises[nextIndex].name}`,
+                title:"Esercizio completato!",
+                description:`Prossimo: ${exercises[nextIndex].name}`,
                 action: (
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 text-xs gap-1"
-                    onClick={() => setActiveExerciseIndex(nextIndex)}
+                    variant="outline"                    size="sm"                    className="h-7 text-xs gap-1"                    onClick={() => setActiveExerciseIndex(nextIndex)}
                   >
-                    Vai <ChevronRight className="h-3 w-3" />
+                    Vai <ChevronRight className="h-3 w-3"/>
                   </Button>
                 ),
               });
@@ -387,13 +384,12 @@ export default function WorkoutPlayer() {
     const durationMinutes = Math.round(elapsedSeconds / 60);
     const sessionLoad = durationMinutes * sessionRpe;
     const finalNotes = isRecoveryMode
-      ? `${workoutNotes}${workoutNotes ? "\n" : ""}[Auto-Regulated: Readiness ${readinessScore}%]`
-      : workoutNotes;
+      ?`${workoutNotes}${workoutNotes ?"\n":""}[Auto-Regulated: Readiness ${readinessScore}%]`      : workoutNotes;
 
-    const workoutLogInput: Omit<WorkoutLogPayload, "type"> = {
-      local_id: `workout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      workout_id: id || "mock",
-      athlete_id: "",
+    const workoutLogInput: Omit<WorkoutLogPayload,"type"> = {
+      local_id:`workout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      workout_id: id ||"mock",
+      athlete_id:"",
       started_at: workoutStartTime.toISOString(),
       completed_at: new Date().toISOString(),
       srpe: sessionRpe,
@@ -419,10 +415,10 @@ export default function WorkoutPlayer() {
     logWorkout(workoutLogInput, {
       onSuccess: () => {
         sessionStore.endSession();
-        toast({ title: "Allenamento salvato!", description: `Carico sessione: ${sessionLoad} UA` });
+        toast({ title:"Allenamento salvato!", description:`Carico sessione: ${sessionLoad} UA`});
         // Trigger achievement check in background
         supabase.functions.invoke("check-achievements").catch(console.warn);
-        navigate(`/athlete/workout/summary/${id || "mock"}`);
+        navigate(`/athlete/workout/summary/${id ||"mock"}`);
       },
     });
   };
@@ -440,7 +436,7 @@ export default function WorkoutPlayer() {
     return (
       <AthleteLayout>
         <div className="flex items-center justify-center h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary"/>
         </div>
       </AthleteLayout>
     );
@@ -451,14 +447,14 @@ export default function WorkoutPlayer() {
       <AthleteLayout>
         <div className="flex flex-col items-center justify-center h-[70vh] px-6 text-center">
           <div className="h-20 w-20 rounded-full bg-amber-500/15 flex items-center justify-center mb-6">
-            <AlertTriangle className="h-10 w-10 text-amber-500" />
+            <AlertTriangle className="h-10 w-10 text-amber-500"/>
           </div>
           <h2 className="text-xl font-bold mb-2">Check-in Richiesto</h2>
           <p className="text-muted-foreground mb-6 max-w-xs">
             Prima di iniziare l'allenamento, completa il check-in giornaliero.
           </p>
           <Button onClick={() => navigate("/athlete")} className="bg-primary text-primary-foreground">
-            <Activity className="h-4 w-4 mr-2" />
+            <Activity className="h-4 w-4 mr-2"/>
             Vai al Check-in
           </Button>
         </div>
@@ -490,7 +486,7 @@ export default function WorkoutPlayer() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-amber-600">
-              <AlertTriangle className="h-5 w-5" />
+              <AlertTriangle className="h-5 w-5"/>
               Low Readiness ({readinessScore}%)
             </DialogTitle>
             <DialogDescription className="pt-2">
@@ -501,14 +497,14 @@ export default function WorkoutPlayer() {
           <div className="py-4 space-y-4">
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
               <div className="flex items-center gap-3">
-                <Activity className="h-8 w-8 text-amber-500" />
+                <Activity className="h-8 w-8 text-amber-500"/>
                 <div className="flex-1">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-sm font-medium">Readiness Score</span>
                     <span className="text-lg font-bold text-amber-600">{readinessScore}%</span>
                   </div>
                   <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-red-500 to-amber-500" style={{ width: `${readinessScore}%` }} />
+                    <div className="h-full bg-gradient-to-r from-red-500 to-amber-500"style={{ width:`${readinessScore}%`}} />
                   </div>
                 </div>
               </div>
@@ -531,10 +527,10 @@ export default function WorkoutPlayer() {
 
           <div className="flex flex-col gap-2">
             <Button onClick={applyAutoRegulation} className="w-full bg-amber-500 hover:bg-amber-600 text-white">
-              <Activity className="h-4 w-4 mr-2" />
+              <Activity className="h-4 w-4 mr-2"/>
               Applica Auto-Reg
             </Button>
-            <Button variant="outline" onClick={ignoreAutoReg} className="w-full">
+            <Button variant="outline"onClick={ignoreAutoReg} className="w-full">
               Mi sento bene (Ignora)
             </Button>
           </div>
@@ -573,11 +569,8 @@ export default function WorkoutPlayer() {
                 className={cn(
                   "h-2 rounded-full transition-all duration-300",
                   i === activeExerciseIndex
-                    ? "w-6 bg-primary"
-                    : allDone
-                    ? "w-2 bg-primary/40"
-                    : "w-2 bg-muted-foreground/30"
-                )}
+                    ?"w-6 bg-primary"                    : allDone
+                    ?"w-2 bg-primary/40"                    :"w-2 bg-muted-foreground/30"                )}
               />
             );
           })}
@@ -591,7 +584,7 @@ export default function WorkoutPlayer() {
         </div>
 
         {/* Embla Carousel — one exercise at a time */}
-        <div className="overflow-hidden pb-32" ref={emblaRef}>
+        <div className="overflow-hidden pb-32"ref={emblaRef}>
           <div className="flex">
             {exercises.map((exercise, i) => (
               <div key={exercise.id} className="flex-[0_0_100%] min-w-0 px-4">
@@ -616,7 +609,7 @@ export default function WorkoutPlayer() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-primary" />
+              <Trophy className="h-5 w-5 text-primary"/>
               Sessione Completata!
             </DialogTitle>
             <DialogDescription>Come è andato l'allenamento?</DialogDescription>
@@ -627,14 +620,14 @@ export default function WorkoutPlayer() {
             {currentStreak > 1 && (
               <div className="flex items-center justify-center gap-3 p-4 rounded-xl bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/30">
                 <div className="relative">
-                  <Flame className="h-8 w-8 text-orange-500 animate-pulse" />
+                  <Flame className="h-8 w-8 text-orange-500 animate-pulse"/>
                   <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {currentStreak}
                   </span>
                 </div>
                 <div>
                   <p className="font-bold text-orange-600 dark:text-orange-400">
-                    🔥 {currentStreak} giorni consecutivi!
+                     {currentStreak} giorni consecutivi!
                   </p>
                   <p className="text-xs text-muted-foreground">Stai costruendo un'abitudine solida!</p>
                 </div>
@@ -644,17 +637,17 @@ export default function WorkoutPlayer() {
             {/* Session Stats */}
             <div className="grid grid-cols-3 gap-3">
               <div className="text-center p-3 rounded-xl bg-secondary">
-                <Clock className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
+                <Clock className="h-4 w-4 mx-auto mb-1 text-muted-foreground"/>
                 <p className="text-lg font-bold tabular-nums">{durationMinutes}</p>
                 <p className="text-[10px] text-muted-foreground uppercase">Minuti</p>
               </div>
               <div className="text-center p-3 rounded-xl bg-secondary">
-                <CheckCircle2 className="h-4 w-4 mx-auto mb-1 text-primary" />
+                <CheckCircle2 className="h-4 w-4 mx-auto mb-1 text-primary"/>
                 <p className="text-lg font-bold tabular-nums">{getCompletedSets()}</p>
                 <p className="text-[10px] text-muted-foreground uppercase">Set</p>
               </div>
               <div className="text-center p-3 rounded-xl bg-primary/10">
-                <TrendingUp className="h-4 w-4 mx-auto mb-1 text-primary" />
+                <TrendingUp className="h-4 w-4 mx-auto mb-1 text-primary"/>
                 <p className="text-lg font-bold tabular-nums">{sessionLoad}</p>
                 <p className="text-[10px] text-muted-foreground uppercase">Carico UA</p>
               </div>
@@ -670,7 +663,7 @@ export default function WorkoutPlayer() {
                 </div>
               </div>
               {rpeInfo && (
-                <div className={cn("p-3 rounded-xl", rpeInfo.color, "text-white")}>
+                <div className={cn("p-3 rounded-xl", rpeInfo.color,"text-white")}>
                   <p className="font-semibold">{rpeInfo.label}</p>
                   <p className="text-sm opacity-90">{rpeInfo.description}</p>
                 </div>
@@ -699,23 +692,21 @@ export default function WorkoutPlayer() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Note (opzionale)</label>
               <Input
-                placeholder="Come ti sei sentito?"
-                value={workoutNotes}
+                placeholder="Come ti sei sentito?"                value={workoutNotes}
                 onChange={(e) => setWorkoutNotes(e.target.value)}
               />
             </div>
           </div>
 
           <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" onClick={() => setShowRecapDialog(false)}>
+            <Button variant="outline"className="flex-1"onClick={() => setShowRecapDialog(false)}>
               Modifica
             </Button>
             <Button
-              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-              onClick={handleSaveWorkoutLog}
+              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"              onClick={handleSaveWorkoutLog}
               disabled={isLoggingWorkout}
             >
-              {isLoggingWorkout ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trophy className="h-4 w-4 mr-2" />}
+              {isLoggingWorkout ? <Loader2 className="h-4 w-4 animate-spin mr-2"/> : <Trophy className="h-4 w-4 mr-2"/>}
               Salva
             </Button>
           </div>

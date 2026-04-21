@@ -3,8 +3,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+} from"@/components/ui/dialog";
+import { cn } from"@/lib/utils";
 
 interface PlateCalculatorProps {
   open: boolean;
@@ -16,13 +16,13 @@ interface PlateCalculatorProps {
 const AVAILABLE_PLATES = [25, 20, 15, 10, 5, 2.5, 1.25];
 
 const PLATE_COLORS: Record<number, string> = {
-  25: "bg-red-500 text-white",
-  20: "bg-blue-500 text-white",
-  15: "bg-yellow-400 text-black",
-  10: "bg-green-500 text-white",
-  5: "bg-white text-black border border-border",
-  2.5: "bg-red-300 text-white",
-  1.25: "bg-zinc-400 text-white",
+  25:"bg-red-500 text-white",
+  20:"bg-blue-500 text-white",
+  15:"bg-yellow-400 text-black",
+  10:"bg-green-500 text-white",
+  5:"bg-white text-black border border-border",
+  2.5:"bg-red-300 text-white",
+  1.25:"bg-zinc-400 text-white",
 };
 
 function calculatePlates(totalWeight: number, barWeight: number): { plate: number; count: number }[] {
@@ -55,7 +55,7 @@ export function PlateCalculator({
       <DialogContent className="max-w-xs">
         <DialogHeader>
           <DialogTitle className="text-center">
-            🏋️ {weightKg}kg
+             {weightKg}kg
           </DialogTitle>
         </DialogHeader>
 
@@ -70,21 +70,20 @@ export function PlateCalculator({
             <>
               {/* Bar info */}
               <div className="text-center text-sm text-muted-foreground">
-                Bilanciere {barWeightKg}kg + {perSide > 0 ? `${perSide}kg per lato` : "nessun disco"}
+                Bilanciere {barWeightKg}kg + {perSide > 0 ?`${perSide}kg per lato`:"nessun disco"}
               </div>
 
               {/* Visual plate stack */}
               {plates.length > 0 ? (
                 <div className="flex flex-col items-center gap-2">
-                  <div className="w-full h-3 bg-zinc-300 dark:bg-zinc-600 rounded-full" />
+                  <div className="w-full h-3 bg-zinc-300 dark:bg-zinc-600 rounded-full"/>
                   <div className="flex flex-wrap justify-center gap-2">
                     {plates.map(({ plate, count }) => (
                       <div key={plate} className="flex items-center gap-1.5">
                         <div
                           className={cn(
                             "h-10 w-10 rounded-full flex items-center justify-center text-xs font-bold shadow-md",
-                            PLATE_COLORS[plate] || "bg-muted text-foreground"
-                          )}
+                            PLATE_COLORS[plate] ||"bg-muted text-foreground"                          )}
                         >
                           {plate}
                         </div>

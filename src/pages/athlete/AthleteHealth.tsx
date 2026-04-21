@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { AthleteLayout } from "@/components/athlete/AthleteLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import { useState } from"react";
+import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
+import { AthleteLayout } from"@/components/athlete/AthleteLayout";
+import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
+import { Button } from"@/components/ui/button";
+import { Input } from"@/components/ui/input";
+import { Label } from"@/components/ui/label";
+import { Textarea } from"@/components/ui/textarea";
+import { Badge } from"@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -14,14 +14,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from"@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from"@/components/ui/select";
 import {
   Plus,
   Activity,
@@ -30,13 +30,13 @@ import {
   Clock,
   HeartPulse,
   Bone,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
-import { format } from "date-fns";
-import { it } from "date-fns/locale";
+} from"lucide-react";
+import { cn } from"@/lib/utils";
+import { supabase } from"@/integrations/supabase/client";
+import { useAuth } from"@/hooks/useAuth";
+import { toast } from"sonner";
+import { format } from"date-fns";
+import { it } from"date-fns/locale";
 
 // Body zones for injury tracking
 const bodyZones = [
@@ -60,13 +60,13 @@ const bodyZones = [
 
 // FMS test definitions
 const fmsTests = [
-  { key: "deep_squat", name: "Deep Squat", bilateral: true },
-  { key: "hurdle_step", name: "Hurdle Step", bilateral: false },
-  { key: "inline_lunge", name: "Inline Lunge", bilateral: false },
-  { key: "shoulder_mobility", name: "Shoulder Mobility", bilateral: false },
-  { key: "active_straight_leg", name: "Active Straight Leg", bilateral: false },
-  { key: "trunk_stability", name: "Trunk Stability", bilateral: true },
-  { key: "rotary_stability", name: "Rotary Stability", bilateral: false },
+  { key:"deep_squat", name:"Deep Squat", bilateral: true },
+  { key:"hurdle_step", name:"Hurdle Step", bilateral: false },
+  { key:"inline_lunge", name:"Inline Lunge", bilateral: false },
+  { key:"shoulder_mobility", name:"Shoulder Mobility", bilateral: false },
+  { key:"active_straight_leg", name:"Active Straight Leg", bilateral: false },
+  { key:"trunk_stability", name:"Trunk Stability", bilateral: true },
+  { key:"rotary_stability", name:"Rotary Stability", bilateral: false },
 ] as const;
 
 interface Injury {
@@ -74,7 +74,7 @@ interface Injury {
   body_zone: string;
   description: string | null;
   injury_date: string;
-  status: "in_rehab" | "recovered" | "chronic";
+  status:"in_rehab"|"recovered"|"chronic";
   notes: string | null;
 }
 
@@ -97,23 +97,23 @@ interface FmsTest {
 }
 
 const statusConfig = {
-  in_rehab: { label: "In Riabilitazione", color: "bg-warning text-warning-foreground", icon: Clock },
-  recovered: { label: "Recuperato", color: "bg-success text-white", icon: CheckCircle2 },
-  chronic: { label: "Cronico", color: "bg-destructive text-destructive-foreground", icon: AlertTriangle },
+  in_rehab: { label:"In Riabilitazione", color:"bg-warning text-warning-foreground", icon: Clock },
+  recovered: { label:"Recuperato", color:"bg-success text-white", icon: CheckCircle2 },
+  chronic: { label:"Cronico", color:"bg-destructive text-destructive-foreground", icon: AlertTriangle },
 };
 
 const getScoreColor = (score: number | null): string => {
-  if (score === null) return "bg-secondary text-muted-foreground";
-  if (score === 3) return "bg-success text-white";
-  if (score === 2) return "bg-warning text-warning-foreground";
-  return "bg-destructive text-destructive-foreground";
+  if (score === null) return"bg-secondary text-muted-foreground";
+  if (score === 3) return"bg-success text-white";
+  if (score === 2) return"bg-warning text-warning-foreground";
+  return"bg-destructive text-destructive-foreground";
 };
 
 const getScoreBg = (score: number | null): string => {
-  if (score === null) return "bg-secondary/50";
-  if (score === 3) return "bg-success/10 border-success/30";
-  if (score === 2) return "bg-warning/10 border-warning/30";
-  return "bg-destructive/10 border-destructive/30";
+  if (score === null) return"bg-secondary/50";
+  if (score === 3) return"bg-success/10 border-success/30";
+  if (score === 2) return"bg-warning/10 border-warning/30";
+  return"bg-destructive/10 border-destructive/30";
 };
 
 export default function AthleteHealth() {
@@ -127,11 +127,11 @@ export default function AthleteHealth() {
   
   // Form states
   const [newInjury, setNewInjury] = useState({
-    body_zone: "",
-    description: "",
+    body_zone:"",
+    description:"",
     injury_date: new Date().toISOString().split("T")[0],
-    status: "in_rehab" as const,
-    notes: "",
+    status:"in_rehab"as const,
+    notes:"",
   });
   
   const [fmsScores, setFmsScores] = useState<Record<string, number | null>>({});
@@ -209,11 +209,11 @@ export default function AthleteHealth() {
       queryClient.invalidateQueries({ queryKey: ["injuries"] });
       setInjuryDialogOpen(false);
       setNewInjury({
-        body_zone: "",
-        description: "",
+        body_zone:"",
+        description:"",
         injury_date: new Date().toISOString().split("T")[0],
-        status: "in_rehab",
-        notes: "",
+        status:"in_rehab",
+        notes:"",
       });
       toast.success("Infortunio registrato");
     },
@@ -283,7 +283,7 @@ export default function AthleteHealth() {
       const { error } = await supabase
         .from("fms_tests")
         .upsert(payload, { 
-          onConflict: "athlete_id,test_date",
+          onConflict:"athlete_id,test_date",
           ignoreDuplicates: false 
         });
       
@@ -382,16 +382,13 @@ export default function AthleteHealth() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold flex items-center gap-2">
-              <Bone className="h-4 w-4 text-primary" />
+              <Bone className="h-4 w-4 text-primary"/>
               Tracker Infortuni
             </h2>
             <Button
-              size="sm"
-              variant="outline"
-              className="h-8 gap-1"
-              onClick={() => setInjuryDialogOpen(true)}
+              size="sm"              variant="outline"              className="h-8 gap-1"              onClick={() => setInjuryDialogOpen(true)}
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4"/>
               Aggiungi
             </Button>
           </div>
@@ -399,9 +396,9 @@ export default function AthleteHealth() {
           {injuries.length === 0 ? (
             <Card className="border-0">
               <CardContent className="p-6 text-center">
-                <HeartPulse className="h-10 w-10 mx-auto text-success mb-2" />
+                <HeartPulse className="h-10 w-10 mx-auto text-success mb-2"/>
                 <p className="text-sm text-muted-foreground">Nessun infortunio registrato</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">Ottimo! Continua così 💪</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">Ottimo! Continua così </p>
               </CardContent>
             </Card>
           ) : (
@@ -416,7 +413,7 @@ export default function AthleteHealth() {
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-medium text-sm">{injury.body_zone}</span>
                             <Badge className={cn("text-[10px] h-5", statusConfig[injury.status].color)}>
-                              <StatusIcon className="h-3 w-3 mr-1" />
+                              <StatusIcon className="h-3 w-3 mr-1"/>
                               {statusConfig[injury.status].label}
                             </Badge>
                           </div>
@@ -424,7 +421,7 @@ export default function AthleteHealth() {
                             <p className="text-xs text-muted-foreground line-clamp-1">{injury.description}</p>
                           )}
                           <p className="text-[10px] text-muted-foreground/70 mt-1">
-                            {format(new Date(injury.injury_date), "d MMM yyyy", { locale: it })}
+                            {format(new Date(injury.injury_date),"d MMM yyyy", { locale: it })}
                           </p>
                         </div>
                         <Select
@@ -454,31 +451,28 @@ export default function AthleteHealth() {
           <div className="flex items-center justify-between mb-3">
             <div>
               <h2 className="text-sm font-semibold flex items-center gap-2">
-                <Activity className="h-4 w-4 text-primary" />
+                <Activity className="h-4 w-4 text-primary"/>
                 Test FMS
               </h2>
               {todayFms ? (
                 <p className="text-[10px] text-success font-medium">
-                  ✓ Test di oggi salvato
+                   Test di oggi salvato
                 </p>
               ) : latestFms ? (
                 <p className="text-[10px] text-muted-foreground">
-                  Ultimo: {format(new Date(latestFms.test_date), "d MMM yyyy", { locale: it })}
+                  Ultimo: {format(new Date(latestFms.test_date),"d MMM yyyy", { locale: it })}
                 </p>
               ) : null}
             </div>
             <Button
-              size="sm"
-              variant="outline"
-              className="h-8 gap-1"
-              onClick={() => {
+              size="sm"              variant="outline"              className="h-8 gap-1"              onClick={() => {
                 setSelectedFmsTest(null);
                 setFmsScores({});
                 setFmsNotes("");
                 setFmsDialogOpen(true);
               }}
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4"/>
               Nuovo Test
             </Button>
           </div>
@@ -494,7 +488,7 @@ export default function AthleteHealth() {
               
               if (isBilateral) {
                 displayScore = score as number | null;
-              } else if (score && typeof score === "object") {
+              } else if (score && typeof score ==="object") {
                 leftScore = score.left;
                 rightScore = score.right;
                 displayScore = leftScore !== null && rightScore !== null 
@@ -519,7 +513,7 @@ export default function AthleteHealth() {
                         "w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg",
                         getScoreColor(displayScore)
                       )}>
-                        {displayScore ?? "—"}
+                        {displayScore ??"—"}
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
@@ -529,7 +523,7 @@ export default function AthleteHealth() {
                             "w-8 h-8 rounded-lg flex items-center justify-center font-semibold text-sm",
                             getScoreColor(leftScore)
                           )}>
-                            {leftScore ?? "—"}
+                            {leftScore ??"—"}
                           </div>
                         </div>
                         <div className="text-center">
@@ -538,7 +532,7 @@ export default function AthleteHealth() {
                             "w-8 h-8 rounded-lg flex items-center justify-center font-semibold text-sm",
                             getScoreColor(rightScore)
                           )}>
-                            {rightScore ?? "—"}
+                            {rightScore ??"—"}
                           </div>
                         </div>
                       </div>
@@ -579,7 +573,7 @@ export default function AthleteHealth() {
                 onValueChange={(value) => setNewInjury(prev => ({ ...prev, body_zone: value }))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleziona zona" />
+                  <SelectValue placeholder="Seleziona zona"/>
                 </SelectTrigger>
                 <SelectContent>
                   {bodyZones.map((zone) => (
@@ -592,47 +586,39 @@ export default function AthleteHealth() {
             <div className="space-y-2">
               <Label>Data Infortunio</Label>
               <Input
-                type="date"
-                value={newInjury.injury_date}
+                type="date"                value={newInjury.injury_date}
                 onChange={(e) => setNewInjury(prev => ({ ...prev, injury_date: e.target.value }))}
-                className="bg-secondary/50"
-              />
+                className="bg-secondary/50"              />
             </div>
             
             <div className="space-y-2">
               <Label>Descrizione (opzionale)</Label>
               <Input
-                placeholder="Es. Stiramento muscolare"
-                value={newInjury.description}
+                placeholder="Es. Stiramento muscolare"                value={newInjury.description}
                 onChange={(e) => setNewInjury(prev => ({ ...prev, description: e.target.value }))}
-                className="bg-secondary/50"
-              />
+                className="bg-secondary/50"              />
             </div>
             
             <div className="space-y-2">
               <Label>Note (opzionale)</Label>
               <Textarea
-                placeholder="Dettagli aggiuntivi..."
-                value={newInjury.notes}
+                placeholder="Dettagli aggiuntivi..."                value={newInjury.notes}
                 onChange={(e) => setNewInjury(prev => ({ ...prev, notes: e.target.value }))}
-                className="bg-secondary/50 min-h-[80px]"
-              />
+                className="bg-secondary/50 min-h-[80px]"              />
             </div>
           </div>
           
           <DialogFooter>
             <Button
-              variant="ghost"
-              onClick={() => setInjuryDialogOpen(false)}
+              variant="ghost"              onClick={() => setInjuryDialogOpen(false)}
             >
               Annulla
             </Button>
             <Button
               onClick={() => addInjuryMutation.mutate()}
               disabled={!newInjury.body_zone || addInjuryMutation.isPending}
-              className="gradient-primary"
-            >
-              {addInjuryMutation.isPending ? "Salvataggio..." : "Salva"}
+              className="gradient-primary"            >
+              {addInjuryMutation.isPending ?"Salvataggio...":"Salva"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -645,12 +631,11 @@ export default function AthleteHealth() {
             <DialogTitle>
               {selectedFmsTest 
                 ? fmsTests.find(t => t.key === selectedFmsTest)?.name 
-                : "Nuovo Test FMS"}
+                :"Nuovo Test FMS"}
             </DialogTitle>
             <DialogDescription>
               {selectedFmsTest 
-                ? "Aggiorna il punteggio per questo test" 
-                : "Inserisci i punteggi per tutti i test"}
+                ?"Aggiorna il punteggio per questo test"                :"Inserisci i punteggi per tutti i test"}
             </DialogDescription>
           </DialogHeader>
           
@@ -664,9 +649,7 @@ export default function AthleteHealth() {
                     {[0, 1, 2, 3].map((score) => (
                       <Button
                         key={score}
-                        type="button"
-                        variant="outline"
-                        className={cn(
+                        type="button"                        variant="outline"                        className={cn(
                           "flex-1 h-12 text-lg font-bold",
                           fmsScores[test.key] === score && getScoreColor(score)
                         )}
@@ -684,9 +667,7 @@ export default function AthleteHealth() {
                         {[0, 1, 2, 3].map((score) => (
                           <Button
                             key={score}
-                            type="button"
-                            variant="outline"
-                            className={cn(
+                            type="button"                            variant="outline"                            className={cn(
                               "flex-1 h-10 text-sm font-bold",
                               fmsScores[`${test.key}_l`] === score && getScoreColor(score)
                             )}
@@ -703,9 +684,7 @@ export default function AthleteHealth() {
                         {[0, 1, 2, 3].map((score) => (
                           <Button
                             key={score}
-                            type="button"
-                            variant="outline"
-                            className={cn(
+                            type="button"                            variant="outline"                            className={cn(
                               "flex-1 h-10 text-sm font-bold",
                               fmsScores[`${test.key}_r`] === score && getScoreColor(score)
                             )}
@@ -724,27 +703,23 @@ export default function AthleteHealth() {
             <div className="space-y-2">
               <Label>Note (opzionale)</Label>
               <Textarea
-                placeholder="Osservazioni sul test..."
-                value={fmsNotes}
+                placeholder="Osservazioni sul test..."                value={fmsNotes}
                 onChange={(e) => setFmsNotes(e.target.value)}
-                className="bg-secondary/50 min-h-[80px]"
-              />
+                className="bg-secondary/50 min-h-[80px]"              />
             </div>
           </div>
           
           <DialogFooter>
             <Button
-              variant="ghost"
-              onClick={() => setFmsDialogOpen(false)}
+              variant="ghost"              onClick={() => setFmsDialogOpen(false)}
             >
               Annulla
             </Button>
             <Button
               onClick={handleSaveFmsTest}
               disabled={addFmsMutation.isPending}
-              className="gradient-primary"
-            >
-              {addFmsMutation.isPending ? "Salvataggio..." : "Salva Test"}
+              className="gradient-primary"            >
+              {addFmsMutation.isPending ?"Salvataggio...":"Salva Test"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from"react";
 import {
   Dialog,
   DialogContent,
@@ -6,16 +6,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+} from"@/components/ui/dialog";
+import { Button } from"@/components/ui/button";
+import { Textarea } from"@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from"@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -23,25 +23,25 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { MessageSquarePlus, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+} from"@/components/ui/form";
+import { MessageSquarePlus, Loader2 } from"lucide-react";
+import { supabase } from"@/integrations/supabase/client";
+import { useAuth } from"@/hooks/useAuth";
+import { toast } from"sonner";
+import { useForm } from"react-hook-form";
+import { zodResolver } from"@hookform/resolvers/zod";
+import { z } from"zod";
 
 const CATEGORIES = [
-  { value: "bug", label: "🐛 Bug / Problema" },
-  { value: "feature_request", label: "💡 Suggerimento" },
-  { value: "billing", label: "💳 Fatturazione" },
-  { value: "other", label: "❓ Altro" },
+  { value:"bug", label:"Bug / Problema"},
+  { value:"feature_request", label:"Suggerimento"},
+  { value:"billing", label:"Fatturazione"},
+  { value:"other", label:"Altro"},
 ] as const;
 
 const feedbackSchema = z.object({
-  category: z.enum(["bug", "feature_request", "billing", "other"]),
-  message: z.string().trim().min(10, "Il messaggio deve contenere almeno 10 caratteri").max(2000, "Massimo 2000 caratteri"),
+  category: z.enum(["bug","feature_request","billing","other"]),
+  message: z.string().trim().min(10,"Il messaggio deve contenere almeno 10 caratteri").max(2000,"Massimo 2000 caratteri"),
 });
 
 type FeedbackFormValues = z.infer<typeof feedbackSchema>;
@@ -56,7 +56,7 @@ function collectMetadata() {
   return {
     url: window.location.pathname,
     userAgent: navigator.userAgent,
-    screenSize: `${window.innerWidth}x${window.innerHeight}`,
+    screenSize:`${window.innerWidth}x${window.innerHeight}`,
     pwaMode: isPwa,
     timestamp: new Date().toISOString(),
   };
@@ -68,13 +68,13 @@ export function FeedbackDialog({ trigger }: FeedbackDialogProps) {
 
   const form = useForm<FeedbackFormValues>({
     resolver: zodResolver(feedbackSchema),
-    defaultValues: { category: "bug", message: "" },
+    defaultValues: { category:"bug", message:""},
   });
 
   const isSubmitting = form.formState.isSubmitting;
 
   const COOLDOWN_MS = 60_000;
-  const LS_KEY = "last_feedback_timestamp";
+  const LS_KEY ="last_feedback_timestamp";
 
   const onSubmit = async (values: FeedbackFormValues) => {
     if (!user?.id) {
@@ -106,7 +106,7 @@ export function FeedbackDialog({ trigger }: FeedbackDialogProps) {
 
       localStorage.setItem(LS_KEY, String(Date.now()));
 
-      toast.success("Feedback inviato! Grazie per il tuo contributo 🙏");
+      toast.success("Feedback inviato! Grazie per il tuo contributo");
       form.reset();
       setOpen(false);
     } catch {
@@ -118,8 +118,8 @@ export function FeedbackDialog({ trigger }: FeedbackDialogProps) {
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) form.reset(); }}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button variant="outline" className="gap-2">
-            <MessageSquarePlus className="h-4 w-4" />
+          <Button variant="outline"className="gap-2">
+            <MessageSquarePlus className="h-4 w-4"/>
             Help & Feedback
           </Button>
         )}
@@ -127,7 +127,7 @@ export function FeedbackDialog({ trigger }: FeedbackDialogProps) {
       <DialogContent className="sm:max-w-md border-border bg-background">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <MessageSquarePlus className="h-5 w-5 text-primary" />
+            <MessageSquarePlus className="h-5 w-5 text-primary"/>
             Invia Feedback
           </DialogTitle>
           <DialogDescription>
@@ -139,8 +139,7 @@ export function FeedbackDialog({ trigger }: FeedbackDialogProps) {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-2">
             <FormField
               control={form.control}
-              name="category"
-              render={({ field }) => (
+              name="category"              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Categoria</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -164,17 +163,14 @@ export function FeedbackDialog({ trigger }: FeedbackDialogProps) {
 
             <FormField
               control={form.control}
-              name="message"
-              render={({ field }) => (
+              name="message"              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Messaggio</FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
-                      placeholder="Descrivi il problema o il suggerimento (min. 10 caratteri)..."
-                      rows={4}
-                      className="resize-none"
-                    />
+                      placeholder="Descrivi il problema o il suggerimento (min. 10 caratteri)..."                      rows={4}
+                      className="resize-none"                    />
                   </FormControl>
                   <FormMessage />
                   <p className="text-[10px] text-muted-foreground">
@@ -185,14 +181,14 @@ export function FeedbackDialog({ trigger }: FeedbackDialogProps) {
             />
 
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
+              <Button type="button"variant="outline"onClick={() => setOpen(false)} disabled={isSubmitting}>
                 Annulla
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit"disabled={isSubmitting}>
                 {isSubmitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="h-4 w-4 animate-spin mr-2"/>
                 ) : (
-                  <MessageSquarePlus className="h-4 w-4 mr-2" />
+                  <MessageSquarePlus className="h-4 w-4 mr-2"/>
                 )}
                 Invia
               </Button>

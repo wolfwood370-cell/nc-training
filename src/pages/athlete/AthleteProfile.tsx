@@ -1,22 +1,22 @@
-import { useState, useRef } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import { useTheme } from "next-themes";
-import { AthleteLayout } from "@/components/athlete/AthleteLayout";
-import { ThemeCustomizationCard } from "@/components/athlete/ThemeCustomizationCard";
-import { BadgeGrid } from "@/components/athlete/gamification/BadgeGrid";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { useGamification } from "@/hooks/useGamification";
-import { useAthleteSubscription } from "@/hooks/useBillingPlans";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useState, useRef } from"react";
+import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
+import { useNavigate } from"react-router-dom";
+import { useTheme } from"next-themes";
+import { AthleteLayout } from"@/components/athlete/AthleteLayout";
+import { ThemeCustomizationCard } from"@/components/athlete/ThemeCustomizationCard";
+import { BadgeGrid } from"@/components/athlete/gamification/BadgeGrid";
+import { supabase } from"@/integrations/supabase/client";
+import { useAuth } from"@/hooks/useAuth";
+import { useGamification } from"@/hooks/useGamification";
+import { useAthleteSubscription } from"@/hooks/useBillingPlans";
+import { Card, CardContent } from"@/components/ui/card";
+import { Button } from"@/components/ui/button";
+import { Input } from"@/components/ui/input";
+import { Label } from"@/components/ui/label";
+import { Switch } from"@/components/ui/switch";
+import { Badge } from"@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from"@/components/ui/avatar";
+import { Skeleton } from"@/components/ui/skeleton";
 import {
   Drawer,
   DrawerClose,
@@ -26,8 +26,8 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer";
-import { toast } from "sonner";
+} from"@/components/ui/drawer";
+import { toast } from"sonner";
 import {
   Camera,
   Flame,
@@ -47,9 +47,9 @@ import {
   CheckCircle,
   XCircle,
   MessageSquarePlus,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { FeedbackDialog } from "@/components/common/FeedbackDialog";
+} from"lucide-react";
+import { cn } from"@/lib/utils";
+import { FeedbackDialog } from"@/components/common/FeedbackDialog";
 import {
   LineChart,
   Line,
@@ -57,7 +57,7 @@ import {
   YAxis,
   ResponsiveContainer,
   Tooltip,
-} from "recharts";
+} from"recharts";
 
 // PR Card component
 function PRCard({
@@ -70,9 +70,9 @@ function PRCard({
   rank: 1 | 2 | 3;
 }) {
   const colors = {
-    1: "from-amber-400 to-yellow-500",
-    2: "from-slate-300 to-slate-400",
-    3: "from-amber-600 to-amber-700",
+    1:"from-amber-400 to-yellow-500",
+    2:"from-slate-300 to-slate-400",
+    3:"from-amber-600 to-amber-700",
   };
   const icons = {
     1: Trophy,
@@ -87,11 +87,10 @@ function PRCard({
         "relative overflow-hidden rounded-2xl p-4",
         "bg-gradient-to-br",
         colors[rank],
-        "shadow-lg"
-      )}
+        "shadow-lg"      )}
     >
       <div className="absolute top-2 right-2 opacity-20">
-        <Icon className="h-12 w-12 text-white" />
+        <Icon className="h-12 w-12 text-white"/>
       </div>
       <div className="relative z-10">
         <p className="text-xs font-medium text-white/80 uppercase tracking-wide">
@@ -129,22 +128,20 @@ function SettingsRow({
       className={cn(
         "w-full flex items-center gap-3 p-4 rounded-xl transition-colors",
         "bg-card/50 backdrop-blur-sm border border-border/50",
-        !toggle && "active:bg-muted/50",
-        danger && "text-destructive"
-      )}
+        !toggle &&"active:bg-muted/50",
+        danger &&"text-destructive"      )}
     >
       <div
         className={cn(
           "p-2 rounded-lg",
-          danger ? "bg-destructive/10" : "bg-primary/10"
-        )}
+          danger ?"bg-destructive/10":"bg-primary/10"        )}
       >
         <Icon
-          className={cn("h-5 w-5", danger ? "text-destructive" : "text-primary")}
+          className={cn("h-5 w-5", danger ?"text-destructive":"text-primary")}
         />
       </div>
       <div className="flex-1 text-left">
-        <p className={cn("font-medium", danger && "text-destructive")}>
+        <p className={cn("font-medium", danger &&"text-destructive")}>
           {label}
         </p>
         {value && (
@@ -154,7 +151,7 @@ function SettingsRow({
       {toggle ? (
         <Switch checked={checked} onCheckedChange={onToggle} />
       ) : (
-        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        <ChevronRight className="h-5 w-5 text-muted-foreground"/>
       )}
     </button>
   );
@@ -228,8 +225,8 @@ export default function AthleteProfile() {
         .filter((d) => d.weight_kg)
         .map((d) => ({
           date: new Date(d.date).toLocaleDateString("it-IT", {
-            day: "numeric",
-            month: "short",
+            day:"numeric",
+            month:"short",
           }),
           weight: Number(d.weight_kg),
         }));
@@ -247,12 +244,10 @@ export default function AthleteProfile() {
       const { data: exercises } = await supabase
         .from("workout_exercises")
         .select(
-          `
-          exercise_name,
+          `          exercise_name,
           sets_data,
           workout_logs!inner(athlete_id)
-        `
-        )
+        `        )
         .eq("workout_logs.athlete_id", user.id);
 
       if (!exercises || exercises.length === 0) return [];
@@ -301,7 +296,7 @@ export default function AthleteProfile() {
       if (!avatarFile || !user?.id) return;
 
       const fileExt = avatarFile.name.split(".").pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const fileName =`${user.id}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("coach-avatars")
@@ -347,7 +342,7 @@ export default function AthleteProfile() {
             date: today,
             weight_kg: parseFloat(tempWeight),
           },
-          { onConflict: "user_id,date" }
+          { onConflict:"user_id,date"}
         );
       }
 
@@ -385,8 +380,8 @@ export default function AthleteProfile() {
 
   // Open edit drawer with current values
   const openEditDrawer = () => {
-    setTempWeight(bioData?.weight?.toString() || "");
-    setTempHeight(bioData?.height?.toString() || "");
+    setTempWeight(bioData?.weight?.toString() ||"");
+    setTempHeight(bioData?.height?.toString() ||"");
     setEditDrawerOpen(true);
   };
 
@@ -399,15 +394,14 @@ export default function AthleteProfile() {
   // Calculate streak text
   const streakText =
     gamification.currentStreak > 0
-      ? `🔥 ${gamification.currentStreak} Settimane`
-      : "Inizia la tua streak!";
+      ?`${gamification.currentStreak} Settimane`      :"Inizia la tua streak!";
 
   const avatarUrl = avatarPreview || profile?.avatar_url;
   const initials = profile?.full_name
-    ?.split(" ")
+    ?.split("")
     .map((n) => n[0])
     .join("")
-    .toUpperCase() || "?";
+    .toUpperCase() ||"?";
 
   return (
     <AthleteLayout title="Profilo">
@@ -425,28 +419,23 @@ export default function AthleteProfile() {
               </Avatar>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-0 right-0 p-2 rounded-full bg-primary text-primary-foreground shadow-lg"
-              >
-                <Camera className="h-4 w-4" />
+                className="absolute bottom-0 right-0 p-2 rounded-full bg-primary text-primary-foreground shadow-lg"              >
+                <Camera className="h-4 w-4"/>
               </button>
               <input
                 ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarChange}
+                type="file"                accept="image/*"                className="hidden"                onChange={handleAvatarChange}
               />
             </div>
 
             {/* Upload button if file selected */}
             {avatarFile && (
               <Button
-                size="sm"
-                onClick={() => uploadAvatarMutation.mutate()}
+                size="sm"                onClick={() => uploadAvatarMutation.mutate()}
                 disabled={uploadAvatarMutation.isPending}
               >
                 {uploadAvatarMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="h-4 w-4 animate-spin mr-2"/>
                 ) : null}
                 Salva Foto
               </Button>
@@ -454,7 +443,7 @@ export default function AthleteProfile() {
 
             {/* Name */}
             <div>
-              <h1 className="text-2xl font-bold">{profile?.full_name || "Atleta"}</h1>
+              <h1 className="text-2xl font-bold">{profile?.full_name ||"Atleta"}</h1>
               <p className="text-muted-foreground text-sm">
                 {user?.email}
               </p>
@@ -462,7 +451,7 @@ export default function AthleteProfile() {
 
             {/* Streak Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground font-medium shadow-lg">
-              <Flame className="h-5 w-5" />
+              <Flame className="h-5 w-5"/>
               <span>{streakText}</span>
             </div>
 
@@ -471,31 +460,30 @@ export default function AthleteProfile() {
               <DrawerTrigger asChild>
                 <button
                   onClick={openEditDrawer}
-                  className="flex items-center gap-6 p-4 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50"
-                >
+                  className="flex items-center gap-6 p-4 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50"                >
                   <div className="flex items-center gap-2">
-                    <Scale className="h-5 w-5 text-primary" />
+                    <Scale className="h-5 w-5 text-primary"/>
                     <div className="text-left">
                       <p className="text-xs text-muted-foreground">Peso</p>
                       {bioLoading ? (
-                        <Skeleton className="h-5 w-12" />
+                        <Skeleton className="h-5 w-12"/>
                       ) : (
                         <p className="font-semibold">
-                          {bioData?.weight ? `${bioData.weight} kg` : "—"}
+                          {bioData?.weight ?`${bioData.weight} kg`:"—"}
                         </p>
                       )}
                     </div>
                   </div>
-                  <div className="h-8 w-px bg-border" />
+                  <div className="h-8 w-px bg-border"/>
                   <div className="flex items-center gap-2">
-                    <Ruler className="h-5 w-5 text-primary" />
+                    <Ruler className="h-5 w-5 text-primary"/>
                     <div className="text-left">
                       <p className="text-xs text-muted-foreground">Altezza</p>
                       {bioLoading ? (
-                        <Skeleton className="h-5 w-12" />
+                        <Skeleton className="h-5 w-12"/>
                       ) : (
                         <p className="font-semibold">
-                          {bioData?.height ? `${bioData.height} cm` : "—"}
+                          {bioData?.height ?`${bioData.height} cm`:"—"}
                         </p>
                       )}
                     </div>
@@ -513,23 +501,16 @@ export default function AthleteProfile() {
                   <div className="space-y-2">
                     <Label htmlFor="weight">Peso (kg)</Label>
                     <Input
-                      id="weight"
-                      type="number"
-                      step="0.1"
-                      value={tempWeight}
+                      id="weight"                      type="number"                      step="0.1"                      value={tempWeight}
                       onChange={(e) => setTempWeight(e.target.value)}
-                      placeholder="Es. 75.5"
-                    />
+                      placeholder="Es. 75.5"                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="height">Altezza (cm)</Label>
                     <Input
-                      id="height"
-                      type="number"
-                      value={tempHeight}
+                      id="height"                      type="number"                      value={tempHeight}
                       onChange={(e) => setTempHeight(e.target.value)}
-                      placeholder="Es. 180"
-                    />
+                      placeholder="Es. 180"                    />
                   </div>
                 </div>
                 <DrawerFooter>
@@ -538,7 +519,7 @@ export default function AthleteProfile() {
                     disabled={saveBioMutation.isPending}
                   >
                     {saveBioMutation.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <Loader2 className="h-4 w-4 animate-spin mr-2"/>
                     ) : null}
                     Salva
                   </Button>
@@ -554,16 +535,13 @@ export default function AthleteProfile() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-primary" />
+                <Trophy className="h-5 w-5 text-primary"/>
                 <h2 className="text-lg font-semibold">Bacheca Trofei</h2>
               </div>
               <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs gap-1"
-                onClick={() => navigate("/athlete/leaderboard")}
+                variant="ghost"                size="sm"                className="text-xs gap-1"                onClick={() => navigate("/athlete/leaderboard")}
               >
-                <Trophy className="h-3.5 w-3.5" />
+                <Trophy className="h-3.5 w-3.5"/>
                 Classifica
               </Button>
             </div>
@@ -575,7 +553,7 @@ export default function AthleteProfile() {
           {/* Trophy Room Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
+              <TrendingUp className="h-5 w-5 text-primary"/>
               <h2 className="text-lg font-semibold">Record Personali</h2>
             </div>
 
@@ -584,22 +562,21 @@ export default function AthleteProfile() {
               <Card className="overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    <TrendingUp className="h-4 w-4 text-muted-foreground"/>
                     <p className="text-sm font-medium text-muted-foreground">
                       Peso ultimi 30 giorni
                     </p>
                   </div>
                   <div className="h-32">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%"height="100%">
                       <LineChart data={weightHistory}>
                         <XAxis
-                          dataKey="date"
-                          tick={{ fontSize: 10 }}
+                          dataKey="date"                          tick={{ fontSize: 10 }}
                           tickLine={false}
                           axisLine={false}
                         />
                         <YAxis
-                          domain={["dataMin - 1", "dataMax + 1"]}
+                          domain={["dataMin - 1","dataMax + 1"]}
                           tick={{ fontSize: 10 }}
                           tickLine={false}
                           axisLine={false}
@@ -607,17 +584,14 @@ export default function AthleteProfile() {
                         />
                         <Tooltip
                           contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "8px",
+                            backgroundColor:"hsl(var(--card))",
+                            border:"1px solid hsl(var(--border))",
+                            borderRadius:"8px",
                           }}
-                          formatter={(value: number) => [`${value} kg`, "Peso"]}
+                          formatter={(value: number) => [`${value} kg`,"Peso"]}
                         />
                         <Line
-                          type="monotone"
-                          dataKey="weight"
-                          stroke="hsl(var(--primary))"
-                          strokeWidth={2}
+                          type="monotone"                          dataKey="weight"                          stroke="hsl(var(--primary))"                          strokeWidth={2}
                           dot={false}
                         />
                       </LineChart>
@@ -630,7 +604,7 @@ export default function AthleteProfile() {
             {weightLoading && (
               <Card className="border-border/50 bg-card/50">
                 <CardContent className="p-4">
-                  <Skeleton className="h-32 w-full" />
+                  <Skeleton className="h-32 w-full"/>
                 </CardContent>
               </Card>
             )}
@@ -638,9 +612,9 @@ export default function AthleteProfile() {
             {/* Personal Records */}
             {prsLoading ? (
               <div className="grid grid-cols-3 gap-3">
-                <Skeleton className="h-24 rounded-2xl" />
-                <Skeleton className="h-24 rounded-2xl" />
-                <Skeleton className="h-24 rounded-2xl" />
+                <Skeleton className="h-24 rounded-2xl"/>
+                <Skeleton className="h-24 rounded-2xl"/>
+                <Skeleton className="h-24 rounded-2xl"/>
               </div>
             ) : personalRecords && personalRecords.length > 0 ? (
               <div className="grid grid-cols-3 gap-3">
@@ -656,7 +630,7 @@ export default function AthleteProfile() {
             ) : (
               <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
                 <CardContent className="p-6 text-center">
-                  <Dumbbell className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
+                  <Dumbbell className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2"/>
                   <p className="text-sm text-muted-foreground">
                     Completa i tuoi allenamenti per sbloccare i record personali!
                   </p>
@@ -677,16 +651,14 @@ export default function AthleteProfile() {
 
             <SettingsRow
               icon={Moon}
-              label="Tema Scuro"
-              toggle
-              checked={theme === "dark"}
-              onToggle={(checked) => setTheme(checked ? "dark" : "light")}
+              label="Tema Scuro"              toggle
+              checked={theme ==="dark"}
+              onToggle={(checked) => setTheme(checked ?"dark":"light")}
             />
 
             <SettingsRow
               icon={Bell}
-              label="Notifiche"
-              toggle
+              label="Notifiche"              toggle
               checked={notifications}
               onToggle={setNotifications}
             />
@@ -696,9 +668,7 @@ export default function AthleteProfile() {
                 <button className="w-full">
                   <SettingsRow
                     icon={MessageSquarePlus}
-                    label="Segnala un Problema"
-                    value="Bug, suggerimenti, supporto"
-                  />
+                    label="Segnala un Problema"                    value="Bug, suggerimenti, supporto"                  />
                 </button>
               }
             />
@@ -706,8 +676,7 @@ export default function AthleteProfile() {
             <div className="pt-4">
               <SettingsRow
                 icon={LogOut}
-                label="Esci"
-                danger
+                label="Esci"                danger
                 onClick={handleLogout}
               />
             </div>
@@ -730,10 +699,10 @@ function SubscriptionSection() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       if (data?.url) {
-        window.open(data.url, "_blank");
+        window.open(data.url,"_blank");
       }
     } catch (e: any) {
-      toast.error(e.message || "Errore nell'apertura del portale");
+      toast.error(e.message ||"Errore nell'apertura del portale");
     } finally {
       setPortalLoading(false);
     }
@@ -743,40 +712,39 @@ function SubscriptionSection() {
     return (
       <Card className="border-border/50 bg-card/50">
         <CardContent className="p-4">
-          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full"/>
         </CardContent>
       </Card>
     );
   }
 
-  const isActive = subscription?.status === "active";
+  const isActive = subscription?.status ==="active";
   const plan = subscription?.billing_plans;
 
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <CreditCard className="h-5 w-5 text-primary" />
+        <CreditCard className="h-5 w-5 text-primary"/>
         <h2 className="text-lg font-semibold">Abbonamento</h2>
       </div>
 
       <Card className={cn(
         "border-border/50 bg-card/50 backdrop-blur-sm",
-        isActive && "border-primary/30"
-      )}>
+        isActive &&"border-primary/30"      )}>
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {isActive ? (
-                <CheckCircle className="h-5 w-5 text-primary" />
+                <CheckCircle className="h-5 w-5 text-primary"/>
               ) : (
-                <XCircle className="h-5 w-5 text-muted-foreground" />
+                <XCircle className="h-5 w-5 text-muted-foreground"/>
               )}
               <span className="font-medium">
-                {isActive ? "Attivo" : "Nessun abbonamento"}
+                {isActive ?"Attivo":"Nessun abbonamento"}
               </span>
             </div>
             {isActive && (
-              <Badge variant="default" className="bg-primary/20 text-primary border-primary/30">
+              <Badge variant="default"className="bg-primary/20 text-primary border-primary/30">
                 Attivo
               </Badge>
             )}
@@ -786,14 +754,14 @@ function SubscriptionSection() {
             <div className="text-sm text-muted-foreground space-y-1">
               <p>Piano: <span className="text-foreground font-medium">{plan.name}</span></p>
               <p>
-                €{(plan.price_amount / 100).toFixed(2)} / {plan.billing_interval === "month" ? "mese" : plan.billing_interval === "year" ? "anno" : "una tantum"}
+                €{(plan.price_amount / 100).toFixed(2)} / {plan.billing_interval ==="month"?"mese": plan.billing_interval ==="year"?"anno":"una tantum"}
               </p>
               {subscription?.current_period_end && (
                 <p>
                   Scadenza: {new Date(subscription.current_period_end).toLocaleDateString("it-IT", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
+                    day:"numeric",
+                    month:"long",
+                    year:"numeric",
                   })}
                 </p>
               )}
@@ -802,17 +770,15 @@ function SubscriptionSection() {
 
           {isActive && (
             <Button
-              variant="outline"
-              className="w-full mt-2"
-              onClick={handleManageSubscription}
+              variant="outline"              className="w-full mt-2"              onClick={handleManageSubscription}
               disabled={portalLoading}
             >
               {portalLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <Loader2 className="h-4 w-4 animate-spin mr-2"/>
               ) : (
-                <CreditCard className="h-4 w-4 mr-2" />
+                <CreditCard className="h-4 w-4 mr-2"/>
               )}
-              ⚙️ Gestisci Abbonamento
+               Gestisci Abbonamento
             </Button>
           )}
 

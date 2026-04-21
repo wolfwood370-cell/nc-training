@@ -1,16 +1,16 @@
-import { useState, useCallback, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
-import { subDays, format } from "date-fns";
+import { useState, useCallback, useMemo } from"react";
+import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
+import { supabase } from"@/integrations/supabase/client";
+import { useAuth } from"@/hooks/useAuth";
+import { toast } from"sonner";
+import { subDays, format } from"date-fns";
 import {
   mean,
   standardDeviation,
   computeReadiness,
   type MetricStatus,
   type ReadinessBreakdown,
-} from "@/lib/math/readinessMath";
+} from"@/lib/math/readinessMath";
 
 type SorenessLevel = 0 | 1 | 2 | 3;
 
@@ -68,12 +68,12 @@ interface BaselineData {
 interface ScorePenalty {
   label: string;
   points: number;
-  type: "sleep" | "hrv" | "subjective";
+  type:"sleep"|"hrv"|"subjective";
 }
 
 export interface ReadinessResult {
   score: number;
-  level: "high" | "moderate" | "low";
+  level:"high"|"moderate"|"low";
   color: string;
   bgColor: string;
   label: string;
@@ -93,7 +93,7 @@ export function useReadiness() {
   const [tempReadiness, setTempReadiness] = useState<ReadinessData>(initialReadiness);
 
   const today = new Date().toISOString().split("T")[0];
-  const thirtyDaysAgo = format(subDays(new Date(), 30), "yyyy-MM-dd");
+  const thirtyDaysAgo = format(subDays(new Date(), 30),"yyyy-MM-dd");
 
   // Fetch last 30 days of daily_metrics for baseline calculation
   const { data: metricsHistory } = useQuery({
@@ -238,42 +238,42 @@ export function useReadiness() {
     const penalties: ScorePenalty[] = [];
     if (hasBaseline && data.hrvRmssd !== null && breakdown.hrvZ < -1) {
       penalties.push({
-        label: `HRV z=${breakdown.hrvZ.toFixed(1)} (sotto baseline)`,
+        label:`HRV z=${breakdown.hrvZ.toFixed(1)} (sotto baseline)`,
         points: -(60 - breakdown.hrvComponent),
-        type: "hrv",
+        type:"hrv",
       });
     }
     if (data.sleepHours < 7) {
       const deficit = Math.round(7 - data.sleepHours);
       penalties.push({
-        label: `Solo ${data.sleepHours}h di sonno (-${deficit * 5}pts)`,
+        label:`Solo ${data.sleepHours}h di sonno (-${deficit * 5}pts)`,
         points: -deficit * 5,
-        type: "sleep",
+        type:"sleep",
       });
     }
 
     // Determine primary reason
-    let reason = "Tutti i parametri ottimali";
+    let reason ="Tutti i parametri ottimali";
     if (!hasBaseline) {
-      reason = `Accumula ${3 - baseline.dataPoints} giorni di dati per baseline personalizzata`;
-    } else if (breakdown.hrvStatus === "low") {
-      reason = `HRV sotto baseline (z=${breakdown.hrvZ.toFixed(1)})`;
-    } else if (breakdown.rhrStatus === "low") {
-      reason = "Frequenza cardiaca a riposo elevata";
+      reason =`Accumula ${3 - baseline.dataPoints} giorni di dati per baseline personalizzata`;
+    } else if (breakdown.hrvStatus ==="low") {
+      reason =`HRV sotto baseline (z=${breakdown.hrvZ.toFixed(1)})`;
+    } else if (breakdown.rhrStatus ==="low") {
+      reason ="Frequenza cardiaca a riposo elevata";
     } else if (data.stress > 6) {
-      reason = "Livello di stress elevato";
+      reason ="Livello di stress elevato";
     } else if (data.sleepHours < 7) {
-      reason = `Solo ${data.sleepHours}h di sonno`;
+      reason =`Solo ${data.sleepHours}h di sonno`;
     } else if (totalScore >= 80) {
-      reason = "Prime to Perform 🚀";
+      reason ="Prime to Perform";
     }
 
     return {
       score: totalScore,
-      level: totalScore >= 75 ? "high" : totalScore >= 50 ? "moderate" : "low",
-      color: totalScore >= 75 ? "text-success" : totalScore >= 50 ? "text-warning" : "text-destructive",
-      bgColor: totalScore >= 75 ? "bg-success" : totalScore >= 50 ? "bg-warning" : "bg-destructive",
-      label: totalScore >= 75 ? "Alta Prontezza" : totalScore >= 50 ? "Prontezza Moderata" : "Bassa Prontezza",
+      level: totalScore >= 75 ?"high": totalScore >= 50 ?"moderate":"low",
+      color: totalScore >= 75 ?"text-success": totalScore >= 50 ?"text-warning":"text-destructive",
+      bgColor: totalScore >= 75 ?"bg-success": totalScore >= 50 ?"bg-warning":"bg-destructive",
+      label: totalScore >= 75 ?"Alta Prontezza": totalScore >= 50 ?"Prontezza Moderata":"Bassa Prontezza",
       reason,
       penalties,
       isNewUser: !hasBaseline,

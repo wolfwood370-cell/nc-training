@@ -3,7 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CoachLayout } from "@/components/coach/CoachLayout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,8 +62,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  ArrowLeft, 
+import {
+  ArrowLeft,
   MoreHorizontal,
   Activity,
   Dumbbell,
@@ -121,34 +127,73 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { format, formatDistanceToNow, startOfWeek, endOfWeek, addDays, subDays, isAfter, isBefore, isSameDay, differenceInDays, differenceInWeeks, subMonths } from "date-fns";
+import {
+  format,
+  formatDistanceToNow,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  subDays,
+  isAfter,
+  isBefore,
+  isSameDay,
+  differenceInDays,
+  differenceInWeeks,
+  subMonths,
+} from "date-fns";
 import { it } from "date-fns/locale";
 import { useAthleteAcwrData } from "@/hooks/useAthleteAcwrData";
-import { 
-  ChartContainer, 
-  ChartTooltip, 
-  ChartTooltipContent 
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
 } from "@/components/ui/chart";
-import { AreaChart, Area, XAxis, YAxis, LineChart, Line, ResponsiveContainer, BarChart, Bar, ReferenceLine, ComposedChart } from "recharts";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  LineChart,
+  Line,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  ReferenceLine,
+  ComposedChart,
+} from "recharts";
 import { Tooltip } from "@/components/ui/tooltip";
-import { TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Info, ShieldAlert, ShieldCheck, Gauge } from "lucide-react";
 import { toast } from "sonner";
 import { StrategyContent } from "@/components/coach/athlete/StrategyContent";
-import { useAthleteExerciseList, useAthleteStrengthProgression, useAthleteVolumeIntensity } from "@/hooks/useAthleteAnalytics";
+import {
+  useAthleteExerciseList,
+  useAthleteStrengthProgression,
+  useAthleteVolumeIntensity,
+} from "@/hooks/useAthleteAnalytics";
 import { useRealtimeAnalytics } from "@/hooks/useRealtimeAnalytics";
 import { VelocityTrendChart } from "@/components/coach/analytics/VelocityTrendChart";
 import { BarPathGallery } from "@/components/coach/video/BarPathGallery";
 import { AiInsightCard } from "@/components/coach/analytics/AiInsightCard";
 import { AthleteViewerDialog } from "@/components/coach/AthleteViewerDialog";
 
-
 // Exercise Stats Content Component - uses REAL data from workout_exercises
-function ExerciseStatsContent({ athleteId }: { athleteId: string | undefined }) {
-  const { data: exerciseNames = [], isLoading: namesLoading } = useAthleteExerciseList(athleteId);
+function ExerciseStatsContent({
+  athleteId,
+}: {
+  athleteId: string | undefined;
+}) {
+  const { data: exerciseNames = [], isLoading: namesLoading } =
+    useAthleteExerciseList(athleteId);
   const [selectedExercise, setSelectedExercise] = useState("");
   const [comboboxOpen, setComboboxOpen] = useState(false);
-  const [chartView, setChartView] = useState<"1rm" | "weight" | "volume">("1rm");
+  const [chartView, setChartView] = useState<"1rm" | "weight" | "volume">(
+    "1rm",
+  );
 
   // Live realtime updates
   useRealtimeAnalytics(athleteId);
@@ -160,13 +205,17 @@ function ExerciseStatsContent({ athleteId }: { athleteId: string | undefined }) 
     }
   }, [exerciseNames, selectedExercise]);
 
-  const { data: strengthData = [], isLoading: strengthLoading } = useAthleteStrengthProgression(athleteId, selectedExercise);
-  const { data: volumeData = [], isLoading: volumeLoading } = useAthleteVolumeIntensity(athleteId);
+  const { data: strengthData = [], isLoading: strengthLoading } =
+    useAthleteStrengthProgression(athleteId, selectedExercise);
+  const { data: volumeData = [], isLoading: volumeLoading } =
+    useAthleteVolumeIntensity(athleteId);
 
   // Transform strength data for display
   const exerciseData = useMemo(() => {
     return strengthData.map((d, idx, arr) => {
-      const prevMax = arr.slice(0, idx).reduce((max, p) => Math.max(max, p.estimated1RM), 0);
+      const prevMax = arr
+        .slice(0, idx)
+        .reduce((max, p) => Math.max(max, p.estimated1RM), 0);
       return {
         date: new Date(d.date),
         dateFormatted: d.dateFormatted,
@@ -182,18 +231,30 @@ function ExerciseStatsContent({ athleteId }: { athleteId: string | undefined }) 
 
   // KPIs
   const kpis = useMemo(() => {
-    if (exerciseData.length === 0) return { estimated1RM: 0, maxVolume: 0, frequency: 0 };
-    const estimated1RM = Math.max(...exerciseData.map(d => d.estimated1RM));
-    const maxVolume = volumeData.length > 0 ? Math.max(...volumeData.map(d => d.totalTonnage)) : 0;
-    return { estimated1RM: Math.round(estimated1RM), maxVolume, frequency: exerciseData.length };
+    if (exerciseData.length === 0)
+      return { estimated1RM: 0, maxVolume: 0, frequency: 0 };
+    const estimated1RM = Math.max(...exerciseData.map((d) => d.estimated1RM));
+    const maxVolume =
+      volumeData.length > 0
+        ? Math.max(...volumeData.map((d) => d.totalTonnage))
+        : 0;
+    return {
+      estimated1RM: Math.round(estimated1RM),
+      maxVolume,
+      frequency: exerciseData.length,
+    };
   }, [exerciseData, volumeData]);
 
   // Chart data
   const chartData = useMemo(() => {
     if (chartView === "volume") {
-      return volumeData.map(d => ({ date: d.dateFormatted, value: d.totalTonnage, isPR: false }));
+      return volumeData.map((d) => ({
+        date: d.dateFormatted,
+        value: d.totalTonnage,
+        isPR: false,
+      }));
     }
-    return exerciseData.map(d => ({
+    return exerciseData.map((d) => ({
       date: d.dateFormatted,
       value: chartView === "1rm" ? d.estimated1RM : d.bestWeight,
       isPR: d.isPR,
@@ -207,7 +268,9 @@ function ExerciseStatsContent({ athleteId }: { athleteId: string | undefined }) 
       <div className="space-y-6">
         <Skeleton className="h-20 w-full" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Skeleton className="h-28" /><Skeleton className="h-28" /><Skeleton className="h-28" />
+          <Skeleton className="h-28" />
+          <Skeleton className="h-28" />
+          <Skeleton className="h-28" />
         </div>
         <Skeleton className="h-[300px] w-full" />
       </div>
@@ -219,7 +282,9 @@ function ExerciseStatsContent({ athleteId }: { athleteId: string | undefined }) 
       <Card className="p-12 text-center">
         <Dumbbell className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
         <h3 className="text-lg font-semibold mb-1">Nessun Dato Esercizi</h3>
-        <p className="text-sm text-muted-foreground">Questo atleta non ha ancora completato allenamenti.</p>
+        <p className="text-sm text-muted-foreground">
+          Questo atleta non ha ancora completato allenamenti.
+        </p>
       </Card>
     );
   }
@@ -236,10 +301,12 @@ function ExerciseStatsContent({ athleteId }: { athleteId: string | undefined }) 
               </div>
               <div>
                 <CardTitle className="text-lg">Prestazioni Esercizio</CardTitle>
-                <p className="text-sm text-muted-foreground">Progressione forza per esercizio</p>
+                <p className="text-sm text-muted-foreground">
+                  Progressione forza per esercizio
+                </p>
               </div>
             </div>
-            
+
             {/* Exercise Combobox */}
             <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
               <PopoverTrigger asChild>
@@ -250,7 +317,9 @@ function ExerciseStatsContent({ athleteId }: { athleteId: string | undefined }) 
                   className="w-full sm:w-[240px] justify-between"
                 >
                   <Dumbbell className="h-4 w-4 mr-2 shrink-0" />
-                  <span className="truncate">{selectedExercise || "Seleziona esercizio"}</span>
+                  <span className="truncate">
+                    {selectedExercise || "Seleziona esercizio"}
+                  </span>
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -272,7 +341,9 @@ function ExerciseStatsContent({ athleteId }: { athleteId: string | undefined }) 
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              selectedExercise === name ? "opacity-100" : "opacity-0"
+                              selectedExercise === name
+                                ? "opacity-100"
+                                : "opacity-0",
                             )}
                           />
                           {name}
@@ -293,9 +364,15 @@ function ExerciseStatsContent({ athleteId }: { athleteId: string | undefined }) 
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">1RM Stimato</p>
-                <p className="text-3xl font-bold text-foreground">{kpis.estimated1RM} kg</p>
-                <p className="text-xs text-muted-foreground mt-1">Calcolato dalla serie migliore</p>
+                <p className="text-sm text-muted-foreground mb-1">
+                  1RM Stimato
+                </p>
+                <p className="text-3xl font-bold text-foreground">
+                  {kpis.estimated1RM} kg
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Calcolato dalla serie migliore
+                </p>
               </div>
               <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Trophy className="h-7 w-7 text-primary" />
@@ -308,8 +385,12 @@ function ExerciseStatsContent({ athleteId }: { athleteId: string | undefined }) 
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Volume Max</p>
-                <p className="text-3xl font-bold text-foreground">{kpis.maxVolume.toLocaleString()} kg</p>
-                <p className="text-xs text-muted-foreground mt-1">Sessione singola più alta</p>
+                <p className="text-3xl font-bold text-foreground">
+                  {kpis.maxVolume.toLocaleString()} kg
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Sessione singola più alta
+                </p>
               </div>
               <div className="h-14 w-14 rounded-xl bg-chart-2/10 flex items-center justify-center">
                 <Weight className="h-7 w-7 text-chart-2" />
@@ -322,8 +403,12 @@ function ExerciseStatsContent({ athleteId }: { athleteId: string | undefined }) 
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Frequenza</p>
-                <p className="text-3xl font-bold text-foreground">{kpis.frequency}x</p>
-                <p className="text-xs text-muted-foreground mt-1">Sessioni con questo esercizio</p>
+                <p className="text-3xl font-bold text-foreground">
+                  {kpis.frequency}x
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Sessioni con questo esercizio
+                </p>
               </div>
               <div className="h-14 w-14 rounded-xl bg-chart-3/10 flex items-center justify-center">
                 <Repeat className="h-7 w-7 text-chart-3" />
@@ -339,9 +424,30 @@ function ExerciseStatsContent({ athleteId }: { athleteId: string | undefined }) 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <CardTitle className="text-base">Progressione nel Tempo</CardTitle>
             <div className="flex items-center gap-2">
-              <Button variant={chartView === "1rm" ? "default" : "outline"} size="sm" onClick={() => setChartView("1rm")} className="text-xs">1RM Stimato</Button>
-              <Button variant={chartView === "weight" ? "default" : "outline"} size="sm" onClick={() => setChartView("weight")} className="text-xs">Carico Max</Button>
-              <Button variant={chartView === "volume" ? "default" : "outline"} size="sm" onClick={() => setChartView("volume")} className="text-xs">Volume</Button>
+              <Button
+                variant={chartView === "1rm" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setChartView("1rm")}
+                className="text-xs"
+              >
+                1RM Stimato
+              </Button>
+              <Button
+                variant={chartView === "weight" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setChartView("weight")}
+                className="text-xs"
+              >
+                Carico Max
+              </Button>
+              <Button
+                variant={chartView === "volume" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setChartView("volume")}
+                className="text-xs"
+              >
+                Volume
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -349,31 +455,62 @@ function ExerciseStatsContent({ athleteId }: { athleteId: string | undefined }) 
           {chartData.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Activity className="h-8 w-8 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">Nessun dato per questo esercizio</p>
+              <p className="text-sm text-muted-foreground">
+                Nessun dato per questo esercizio
+              </p>
             </div>
           ) : (
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
-                  <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false}
-                    tickFormatter={(value) => chartView === "volume" ? `${(value / 1000).toFixed(1)}k` : `${value}`}
+                <LineChart
+                  data={chartData}
+                  margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
+                >
+                  <XAxis
+                    dataKey="date"
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
                   />
-                  <ChartTooltip 
+                  <YAxis
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) =>
+                      chartView === "volume"
+                        ? `${(value / 1000).toFixed(1)}k`
+                        : `${value}`
+                    }
+                  />
+                  <ChartTooltip
                     content={({ active, payload }) => {
                       if (!active || !payload?.length) return null;
                       const data = payload[0].payload;
                       return (
                         <div className="bg-popover border border-border rounded-lg p-3 shadow-lg">
-                          <p className="text-sm font-medium text-foreground">{data.date}</p>
+                          <p className="text-sm font-medium text-foreground">
+                            {data.date}
+                          </p>
                           <p className="text-sm text-muted-foreground">
-                            {chartView === "1rm" ? "1RM Stimato" : chartView === "weight" ? "Carico Max" : "Volume"}: 
+                            {chartView === "1rm"
+                              ? "1RM Stimato"
+                              : chartView === "weight"
+                                ? "Carico Max"
+                                : "Volume"}
+                            :
                             <span className="font-semibold text-foreground ml-1">
-                              {chartView === "volume" ? `${data.value.toLocaleString()} kg` : `${data.value} kg`}
+                              {chartView === "volume"
+                                ? `${data.value.toLocaleString()} kg`
+                                : `${data.value} kg`}
                             </span>
                           </p>
                           {data.isPR && (
-                            <Badge variant="default" className="mt-1 text-xs bg-amber-500/20 text-amber-500 border-amber-500/30">
+                            <Badge
+                              variant="default"
+                              className="mt-1 text-xs bg-amber-500/20 text-amber-500 border-amber-500/30"
+                            >
                               <Trophy className="h-3 w-3 mr-1" /> PR!
                             </Badge>
                           )}
@@ -381,18 +518,40 @@ function ExerciseStatsContent({ athleteId }: { athleteId: string | undefined }) 
                       );
                     }}
                   />
-                  <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2}
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
                     dot={(props) => {
                       const { cx, cy, payload } = props;
                       if (payload.isPR) {
                         return (
                           <g key={`dot-${cx}-${cy}`}>
-                            <circle cx={cx} cy={cy} r={6} fill="hsl(var(--primary))" />
-                            <circle cx={cx} cy={cy} r={3} fill="hsl(var(--primary-foreground))" />
+                            <circle
+                              cx={cx}
+                              cy={cy}
+                              r={6}
+                              fill="hsl(var(--primary))"
+                            />
+                            <circle
+                              cx={cx}
+                              cy={cy}
+                              r={3}
+                              fill="hsl(var(--primary-foreground))"
+                            />
                           </g>
                         );
                       }
-                      return <circle key={`dot-${cx}-${cy}`} cx={cx} cy={cy} r={4} fill="hsl(var(--primary))" />;
+                      return (
+                        <circle
+                          key={`dot-${cx}-${cy}`}
+                          cx={cx}
+                          cy={cy}
+                          r={4}
+                          fill="hsl(var(--primary))"
+                        />
+                      );
                     }}
                     activeDot={{ r: 6, fill: "hsl(var(--primary))" }}
                   />
@@ -415,15 +574,16 @@ const generateMockDailyLoads = () => {
     rpe: number;
     duration: number;
   }> = [];
-  
+
   for (let i = 13; i >= 0; i--) {
     const date = new Date();
     date.setDate(date.getDate() - i);
     const dayOfWeek = date.getDay();
-    
+
     // Simulate rest days on Sunday (0) and sometimes Wednesday (3)
-    const isRestDay = dayOfWeek === 0 || (dayOfWeek === 3 && Math.random() > 0.5);
-    
+    const isRestDay =
+      dayOfWeek === 0 || (dayOfWeek === 3 && Math.random() > 0.5);
+
     if (isRestDay) {
       loads.push({
         date,
@@ -444,29 +604,30 @@ const generateMockDailyLoads = () => {
       });
     }
   }
-  
+
   return loads;
 };
 
 // Calculate risk metrics from daily loads
 const calculateRiskMetrics = (loads: Array<{ load: number }>) => {
-  const nonZeroLoads = loads.filter(l => l.load > 0).map(l => l.load);
-  
+  const nonZeroLoads = loads.filter((l) => l.load > 0).map((l) => l.load);
+
   if (nonZeroLoads.length < 3) {
     return { monotony: 0, strain: 0, weeklyLoad: 0 };
   }
-  
+
   const weeklyLoad = nonZeroLoads.slice(-7).reduce((sum, l) => sum + l, 0);
   const mean = weeklyLoad / 7;
-  
+
   // Standard deviation
-  const squaredDiffs = nonZeroLoads.slice(-7).map(l => Math.pow(l - mean, 2));
-  const avgSquaredDiff = squaredDiffs.reduce((sum, d) => sum + d, 0) / squaredDiffs.length;
+  const squaredDiffs = nonZeroLoads.slice(-7).map((l) => Math.pow(l - mean, 2));
+  const avgSquaredDiff =
+    squaredDiffs.reduce((sum, d) => sum + d, 0) / squaredDiffs.length;
   const sd = Math.sqrt(avgSquaredDiff);
-  
+
   const monotony = sd > 0 ? mean / sd : 0;
   const strain = weeklyLoad * monotony;
-  
+
   return {
     monotony: Math.round(monotony * 100) / 100,
     strain: Math.round(strain),
@@ -482,18 +643,18 @@ const generateAcwrTrendData = () => {
     chronic: number;
     ratio: number;
   }> = [];
-  
+
   let chronicBase = 350;
-  
+
   for (let i = 4; i >= 0; i--) {
     const weekStart = new Date();
-    weekStart.setDate(weekStart.getDate() - (i * 7));
-    
+    weekStart.setDate(weekStart.getDate() - i * 7);
+
     const acute = Math.floor(Math.random() * 200) + 300;
-    chronicBase = (chronicBase * 0.7) + (acute * 0.3);
+    chronicBase = chronicBase * 0.7 + acute * 0.3;
     const chronic = Math.round(chronicBase);
     const ratio = chronic > 0 ? Math.round((acute / chronic) * 100) / 100 : 0;
-    
+
     data.push({
       week: format(weekStart, "MMM d"),
       acute,
@@ -501,17 +662,25 @@ const generateAcwrTrendData = () => {
       ratio,
     });
   }
-  
+
   return data;
 };
 
 // Advanced Stats Content Component
-function AdvancedStatsContent({ athleteId }: { athleteId: string | undefined }) {
-  const { data: acwrData, isLoading: acwrLoading } = useAthleteAcwrData(athleteId);
-  
+function AdvancedStatsContent({
+  athleteId,
+}: {
+  athleteId: string | undefined;
+}) {
+  const { data: acwrData, isLoading: acwrLoading } =
+    useAthleteAcwrData(athleteId);
+
   // Mock data for visualization
   const dailyLoads = useMemo(() => generateMockDailyLoads(), []);
-  const riskMetrics = useMemo(() => calculateRiskMetrics(dailyLoads), [dailyLoads]);
+  const riskMetrics = useMemo(
+    () => calculateRiskMetrics(dailyLoads),
+    [dailyLoads],
+  );
   const acwrTrend = useMemo(() => generateAcwrTrendData(), []);
 
   // Get load zone color
@@ -524,12 +693,27 @@ function AdvancedStatsContent({ athleteId }: { athleteId: string | undefined }) 
 
   // ACWR status helpers
   const getAcwrStatus = (ratio: number) => {
-    if (ratio >= 0.8 && ratio <= 1.3) return { status: "optimal", color: "text-green-500", bgColor: "bg-green-500/10" };
-    if (ratio > 1.5) return { status: "high-risk", color: "text-destructive", bgColor: "bg-destructive/10" };
-    return { status: "warning", color: "text-amber-500", bgColor: "bg-amber-500/10" };
+    if (ratio >= 0.8 && ratio <= 1.3)
+      return {
+        status: "optimal",
+        color: "text-green-500",
+        bgColor: "bg-green-500/10",
+      };
+    if (ratio > 1.5)
+      return {
+        status: "high-risk",
+        color: "text-destructive",
+        bgColor: "bg-destructive/10",
+      };
+    return {
+      status: "warning",
+      color: "text-amber-500",
+      bgColor: "bg-amber-500/10",
+    };
   };
 
-  const currentAcwr = acwrData?.ratio ?? acwrTrend[acwrTrend.length - 1]?.ratio ?? 0;
+  const currentAcwr =
+    acwrData?.ratio ?? acwrTrend[acwrTrend.length - 1]?.ratio ?? 0;
   const acwrStatus = getAcwrStatus(currentAcwr);
 
   return (
@@ -542,8 +726,12 @@ function AdvancedStatsContent({ athleteId }: { athleteId: string | undefined }) 
               <ShieldCheck className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-lg">Monitor Sicurezza Allenamento</CardTitle>
-              <p className="text-sm text-muted-foreground">Analisi carico metodo Foster e metriche rischio infortunio</p>
+              <CardTitle className="text-lg">
+                Monitor Sicurezza Allenamento
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Analisi carico metodo Foster e metriche rischio infortunio
+              </p>
             </div>
           </div>
         </CardHeader>
@@ -566,11 +754,21 @@ function AdvancedStatsContent({ athleteId }: { athleteId: string | undefined }) 
                 </TooltipTrigger>
                 <TooltipContent side="left" className="max-w-[280px]">
                   <p className="text-sm">
-                    <strong>Foster's Session RPE</strong><br />
-                    Load = RPE × Duration (min)<br /><br />
-                    <span className="text-green-500">● Recovery:</span> &lt;300 AU<br />
-                    <span className="text-amber-500">● Maintenance:</span> 300-600 AU<br />
-                    <span className="text-destructive">● Overreaching:</span> &gt;600 AU
+                    <strong>Foster's Session RPE</strong>
+                    <br />
+                    Load = RPE × Duration (min)
+                    <br />
+                    <br />
+                    <span className="text-green-500">● Recovery:</span> &lt;300
+                    AU
+                    <br />
+                    <span className="text-amber-500">● Maintenance:</span>{" "}
+                    300-600 AU
+                    <br />
+                    <span className="text-destructive">
+                      ● Overreaching:
+                    </span>{" "}
+                    &gt;600 AU
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -580,69 +778,95 @@ function AdvancedStatsContent({ athleteId }: { athleteId: string | undefined }) 
         <CardContent className="pt-0">
           <div className="h-[280px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={dailyLoads} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
-                <XAxis 
-                  dataKey="dayLabel" 
-                  stroke="hsl(var(--muted-foreground))" 
+              <ComposedChart
+                data={dailyLoads}
+                margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
+              >
+                <XAxis
+                  dataKey="dayLabel"
+                  stroke="hsl(var(--muted-foreground))"
                   fontSize={10}
                   tickLine={false}
                   axisLine={false}
                 />
-                <YAxis 
-                  stroke="hsl(var(--muted-foreground))" 
+                <YAxis
+                  stroke="hsl(var(--muted-foreground))"
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
                   domain={[0, 800]}
                 />
                 {/* Reference zones */}
-                <ReferenceLine y={300} stroke="hsl(var(--chart-3))" strokeDasharray="3 3" strokeOpacity={0.5} />
-                <ReferenceLine y={600} stroke="hsl(var(--destructive))" strokeDasharray="3 3" strokeOpacity={0.5} />
-                <ChartTooltip 
+                <ReferenceLine
+                  y={300}
+                  stroke="hsl(var(--chart-3))"
+                  strokeDasharray="3 3"
+                  strokeOpacity={0.5}
+                />
+                <ReferenceLine
+                  y={600}
+                  stroke="hsl(var(--destructive))"
+                  strokeDasharray="3 3"
+                  strokeOpacity={0.5}
+                />
+                <ChartTooltip
                   content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
                     const data = payload[0].payload;
                     return (
                       <div className="bg-popover border border-border rounded-lg p-3 shadow-lg">
-                        <p className="text-sm font-medium text-foreground">{data.dayLabel}</p>
+                        <p className="text-sm font-medium text-foreground">
+                          {data.dayLabel}
+                        </p>
                         {data.load > 0 ? (
                           <>
                             <p className="text-sm text-muted-foreground">
-                              Load: <span className="font-semibold text-foreground">{data.load} AU</span>
+                              Load:{" "}
+                              <span className="font-semibold text-foreground">
+                                {data.load} AU
+                              </span>
                             </p>
                             <p className="text-xs text-muted-foreground">
                               RPE {data.rpe} × {data.duration} min
                             </p>
                           </>
                         ) : (
-                          <p className="text-sm text-muted-foreground">Giorno di Riposo</p>
+                          <p className="text-sm text-muted-foreground">
+                            Giorno di Riposo
+                          </p>
                         )}
                       </div>
                     );
                   }}
                 />
-                <Bar 
-                  dataKey="load" 
+                <Bar
+                  dataKey="load"
                   radius={[4, 4, 0, 0]}
                   fill="hsl(var(--primary))"
                 />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
-          
+
           {/* Zone Legend */}
           <div className="flex items-center justify-center gap-6 pt-4 border-t border-border/50">
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-chart-3" />
-              <span className="text-xs text-muted-foreground">Recupero (&lt;300)</span>
+              <span className="text-xs text-muted-foreground">
+                Recupero (&lt;300)
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-chart-2" />
-              <span className="text-xs text-muted-foreground">Mantenimento (300-600)</span>
+              <span className="text-xs text-muted-foreground">
+                Mantenimento (300-600)
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-destructive" />
-              <span className="text-xs text-muted-foreground">Sovraccarico (&gt;600)</span>
+              <span className="text-xs text-muted-foreground">
+                Sovraccarico (&gt;600)
+              </span>
             </div>
           </div>
         </CardContent>
@@ -651,10 +875,13 @@ function AdvancedStatsContent({ athleteId }: { athleteId: string | undefined }) 
       {/* Risk Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Monotony */}
-        <Card className={cn(
-          "overflow-hidden transition-colors",
-          riskMetrics.monotony > 2.0 && "border-destructive/50 bg-destructive/5"
-        )}>
+        <Card
+          className={cn(
+            "overflow-hidden transition-colors",
+            riskMetrics.monotony > 2.0 &&
+              "border-destructive/50 bg-destructive/5",
+          )}
+        >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -666,35 +893,55 @@ function AdvancedStatsContent({ athleteId }: { athleteId: string | undefined }) 
                         <Info className="h-3.5 w-3.5 text-muted-foreground/50" />
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-[220px]">
-                         <p className="text-xs">
-                          <strong>Monotonia dell'Allenamento</strong><br />
-                          Carico Medio ÷ Deviazione Standard<br /><br />
-                          Alta monotonia (&gt;2.0) = allenamento ripetitivo, maggior rischio infortunio
+                        <p className="text-xs">
+                          <strong>Monotonia dell'Allenamento</strong>
+                          <br />
+                          Carico Medio ÷ Deviazione Standard
+                          <br />
+                          <br />
+                          Alta monotonia (&gt;2.0) = allenamento ripetitivo,
+                          maggior rischio infortunio
                         </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <p className={cn(
-                  "text-3xl font-bold",
-                  riskMetrics.monotony > 2.0 ? "text-destructive" : 
-                  riskMetrics.monotony > 1.5 ? "text-amber-500" : "text-foreground"
-                )}>
+                <p
+                  className={cn(
+                    "text-3xl font-bold",
+                    riskMetrics.monotony > 2.0
+                      ? "text-destructive"
+                      : riskMetrics.monotony > 1.5
+                        ? "text-amber-500"
+                        : "text-foreground",
+                  )}
+                >
                   {riskMetrics.monotony.toFixed(2)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {riskMetrics.monotony > 2.0 ? "Alto Rischio" : 
-                   riskMetrics.monotony > 1.5 ? "Moderato" : "Sicuro"}
+                  {riskMetrics.monotony > 2.0
+                    ? "Alto Rischio"
+                    : riskMetrics.monotony > 1.5
+                      ? "Moderato"
+                      : "Sicuro"}
                 </p>
               </div>
-              <div className={cn(
-                "h-14 w-14 rounded-xl flex items-center justify-center",
-                riskMetrics.monotony > 2.0 ? "bg-destructive/10" : "bg-primary/10"
-              )}>
-                <Target className={cn(
-                  "h-7 w-7",
-                  riskMetrics.monotony > 2.0 ? "text-destructive" : "text-primary"
-                )} />
+              <div
+                className={cn(
+                  "h-14 w-14 rounded-xl flex items-center justify-center",
+                  riskMetrics.monotony > 2.0
+                    ? "bg-destructive/10"
+                    : "bg-primary/10",
+                )}
+              >
+                <Target
+                  className={cn(
+                    "h-7 w-7",
+                    riskMetrics.monotony > 2.0
+                      ? "text-destructive"
+                      : "text-primary",
+                  )}
+                />
               </div>
             </div>
           </CardContent>
@@ -713,9 +960,12 @@ function AdvancedStatsContent({ athleteId }: { athleteId: string | undefined }) 
                         <Info className="h-3.5 w-3.5 text-muted-foreground/50" />
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-[220px]">
-                         <p className="text-xs">
-                          <strong>Strain di Allenamento</strong><br />
-                          Carico Settimanale × Monotonia<br /><br />
+                        <p className="text-xs">
+                          <strong>Strain di Allenamento</strong>
+                          <br />
+                          Carico Settimanale × Monotonia
+                          <br />
+                          <br />
                           Strain elevato aumenta il rischio di sovrallenamento
                         </p>
                       </TooltipContent>
@@ -741,7 +991,9 @@ function AdvancedStatsContent({ athleteId }: { athleteId: string | undefined }) 
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Carico Settimanale</p>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Carico Settimanale
+                </p>
                 <p className="text-3xl font-bold text-foreground">
                   {riskMetrics.weeklyLoad.toLocaleString()}
                 </p>
@@ -765,12 +1017,14 @@ function AdvancedStatsContent({ athleteId }: { athleteId: string | undefined }) 
               <Activity className="h-5 w-5 text-primary" />
               Analisi Trend ACWR
             </CardTitle>
-            
+
             {/* Current ACWR Badge */}
-            <div className={cn(
-              "flex items-center gap-3 px-4 py-2 rounded-lg",
-              acwrStatus.bgColor
-            )}>
+            <div
+              className={cn(
+                "flex items-center gap-3 px-4 py-2 rounded-lg",
+                acwrStatus.bgColor,
+              )}
+            >
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">ACWR Attuale</p>
                 <p className={cn("text-2xl font-bold", acwrStatus.color)}>
@@ -788,40 +1042,89 @@ function AdvancedStatsContent({ athleteId }: { athleteId: string | undefined }) 
         <CardContent className="pt-0">
           <div className="h-[280px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={acwrTrend} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
-                <XAxis 
-                  dataKey="week" 
-                  stroke="hsl(var(--muted-foreground))" 
+              <LineChart
+                data={acwrTrend}
+                margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
+              >
+                <XAxis
+                  dataKey="week"
+                  stroke="hsl(var(--muted-foreground))"
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
                 />
-                <YAxis 
-                  stroke="hsl(var(--muted-foreground))" 
+                <YAxis
+                  stroke="hsl(var(--muted-foreground))"
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
                 />
                 {/* Optimal zone reference lines */}
-                <ReferenceLine y={0.8} stroke="hsl(var(--chart-3))" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: '0.8', position: 'right', fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
-                <ReferenceLine y={1.3} stroke="hsl(var(--chart-3))" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: '1.3', position: 'right', fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
-                <ReferenceLine y={1.5} stroke="hsl(var(--destructive))" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: '1.5', position: 'right', fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
-                <ChartTooltip 
+                <ReferenceLine
+                  y={0.8}
+                  stroke="hsl(var(--chart-3))"
+                  strokeDasharray="3 3"
+                  strokeOpacity={0.5}
+                  label={{
+                    value: "0.8",
+                    position: "right",
+                    fill: "hsl(var(--muted-foreground))",
+                    fontSize: 10,
+                  }}
+                />
+                <ReferenceLine
+                  y={1.3}
+                  stroke="hsl(var(--chart-3))"
+                  strokeDasharray="3 3"
+                  strokeOpacity={0.5}
+                  label={{
+                    value: "1.3",
+                    position: "right",
+                    fill: "hsl(var(--muted-foreground))",
+                    fontSize: 10,
+                  }}
+                />
+                <ReferenceLine
+                  y={1.5}
+                  stroke="hsl(var(--destructive))"
+                  strokeDasharray="3 3"
+                  strokeOpacity={0.5}
+                  label={{
+                    value: "1.5",
+                    position: "right",
+                    fill: "hsl(var(--muted-foreground))",
+                    fontSize: 10,
+                  }}
+                />
+                <ChartTooltip
                   content={({ active, payload }) => {
                     if (!active || !payload?.length) return null;
                     const data = payload[0].payload;
                     const status = getAcwrStatus(data.ratio);
                     return (
                       <div className="bg-popover border border-border rounded-lg p-3 shadow-lg">
-                        <p className="text-sm font-medium text-foreground mb-2">Settimana del {data.week}</p>
+                        <p className="text-sm font-medium text-foreground mb-2">
+                          Settimana del {data.week}
+                        </p>
                         <div className="space-y-1">
                           <p className="text-xs text-muted-foreground">
-                            Carico Acuto: <span className="font-semibold text-foreground">{data.acute} UA</span>
+                            Carico Acuto:{" "}
+                            <span className="font-semibold text-foreground">
+                              {data.acute} UA
+                            </span>
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Carico Cronico: <span className="font-semibold text-foreground">{data.chronic} UA</span>
+                            Carico Cronico:{" "}
+                            <span className="font-semibold text-foreground">
+                              {data.chronic} UA
+                            </span>
                           </p>
-                          <p className={cn("text-sm font-semibold", status.color)}>
+                          <p
+                            className={cn(
+                              "text-sm font-semibold",
+                              status.color,
+                            )}
+                          >
                             ACWR: {data.ratio.toFixed(2)}
                           </p>
                         </div>
@@ -840,20 +1143,26 @@ function AdvancedStatsContent({ athleteId }: { athleteId: string | undefined }) 
               </LineChart>
             </ResponsiveContainer>
           </div>
-          
+
           {/* ACWR Zone Legend */}
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 pt-4 border-t border-border/50">
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-green-500" />
-              <span className="text-xs text-muted-foreground">Ottimale (0.8-1.3)</span>
+              <span className="text-xs text-muted-foreground">
+                Ottimale (0.8-1.3)
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-amber-500" />
-              <span className="text-xs text-muted-foreground">Attenzione (&lt;0.8 o 1.3-1.5)</span>
+              <span className="text-xs text-muted-foreground">
+                Attenzione (&lt;0.8 o 1.3-1.5)
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-destructive" />
-              <span className="text-xs text-muted-foreground">Alto Rischio (&gt;1.5)</span>
+              <span className="text-xs text-muted-foreground">
+                Alto Rischio (&gt;1.5)
+              </span>
             </div>
           </div>
         </CardContent>
@@ -870,19 +1179,19 @@ const generateMockWeightData = () => {
     weight: number;
     trend: number | null;
   }> = [];
-  
+
   const today = new Date();
   let baseWeight = 82 + (Math.random() * 4 - 2); // Starting around 80-84kg
-  
+
   for (let i = 59; i >= 0; i--) {
     const date = subDays(today, i);
     // Add some natural fluctuation
-    const dailyFluctuation = (Math.random() * 1.2 - 0.6); // +/- 0.6kg daily fluctuation
+    const dailyFluctuation = Math.random() * 1.2 - 0.6; // +/- 0.6kg daily fluctuation
     const progressTrend = -0.02; // Slight downward trend (cutting phase)
-    
+
     baseWeight += progressTrend + (Math.random() * 0.1 - 0.05);
     const weight = Math.round((baseWeight + dailyFluctuation) * 10) / 10;
-    
+
     data.push({
       date,
       dateLabel: format(date, "MMM d"),
@@ -890,14 +1199,15 @@ const generateMockWeightData = () => {
       trend: null,
     });
   }
-  
+
   // Calculate 7-day moving average (trend line)
   for (let i = 6; i < data.length; i++) {
-    const windowWeights = data.slice(i - 6, i + 1).map(d => d.weight);
-    const average = windowWeights.reduce((sum, w) => sum + w, 0) / windowWeights.length;
+    const windowWeights = data.slice(i - 6, i + 1).map((d) => d.weight);
+    const average =
+      windowWeights.reduce((sum, w) => sum + w, 0) / windowWeights.length;
     data[i].trend = Math.round(average * 10) / 10;
   }
-  
+
   return data;
 };
 
@@ -910,11 +1220,11 @@ const generateMockMeasurements = () => {
     { key: "thigh", label: "Coscia", unit: "cm", baseValue: 58, change: 0.2 },
     { key: "arm", label: "Braccio", unit: "cm", baseValue: 38, change: 0.15 },
   ];
-  
-  return measurementTypes.map(type => {
+
+  return measurementTypes.map((type) => {
     const history: Array<{ date: Date; value: number }> = [];
     let value = type.baseValue;
-    
+
     for (let i = 8; i >= 0; i--) {
       const date = subDays(today, i * 7); // Weekly measurements
       value += type.change + (Math.random() * 0.4 - 0.2);
@@ -923,11 +1233,11 @@ const generateMockMeasurements = () => {
         value: Math.round(value * 10) / 10,
       });
     }
-    
+
     const latestValue = history[history.length - 1]?.value ?? type.baseValue;
     const previousValue = history[history.length - 2]?.value ?? type.baseValue;
     const weeklyChange = Math.round((latestValue - previousValue) * 10) / 10;
-    
+
     return {
       ...type,
       latestValue,
@@ -938,20 +1248,28 @@ const generateMockMeasurements = () => {
 };
 
 // Mini sparkline component for measurements
-function MiniSparkline({ data, color = "hsl(var(--primary))" }: { data: Array<{ value: number }>; color?: string }) {
+function MiniSparkline({
+  data,
+  color = "hsl(var(--primary))",
+}: {
+  data: Array<{ value: number }>;
+  color?: string;
+}) {
   if (!data.length) return null;
-  
-  const values = data.map(d => d.value);
+
+  const values = data.map((d) => d.value);
   const min = Math.min(...values);
   const max = Math.max(...values);
   const range = max - min || 1;
-  
-  const points = values.map((value, i) => {
-    const x = (i / (values.length - 1)) * 100;
-    const y = 100 - ((value - min) / range) * 80 - 10; // 10-90% range
-    return `${x},${y}`;
-  }).join(" ");
-  
+
+  const points = values
+    .map((value, i) => {
+      const x = (i / (values.length - 1)) * 100;
+      const y = 100 - ((value - min) / range) * 80 - 10; // 10-90% range
+      return `${x},${y}`;
+    })
+    .join("");
+
   return (
     <svg viewBox="0 0 100 40" className="w-full h-10 overflow-visible">
       <polyline
@@ -982,26 +1300,27 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
     thigh: "",
     arm: "",
   });
-  
+
   // Mock data (in production, fetch from daily_metrics)
   const weightData = useMemo(() => generateMockWeightData(), []);
   const measurements = useMemo(() => generateMockMeasurements(), []);
-  
+
   // Calculate weight stats
   const weightStats = useMemo(() => {
-    const recentData = weightData.filter(d => d.trend !== null);
+    const recentData = weightData.filter((d) => d.trend !== null);
     if (recentData.length < 2) return { currentTrend: 0, weeklyChange: 0 };
-    
+
     const currentTrend = recentData[recentData.length - 1]?.trend ?? 0;
-    const weekAgoTrend = recentData[recentData.length - 8]?.trend ?? currentTrend;
+    const weekAgoTrend =
+      recentData[recentData.length - 8]?.trend ?? currentTrend;
     const weeklyChange = Math.round((currentTrend - weekAgoTrend) * 10) / 10;
-    
+
     return { currentTrend, weeklyChange };
   }, [weightData]);
-  
+
   // Chart data for last 30 days
   const chartData = useMemo(() => {
-    return weightData.slice(-30).map(d => ({
+    return weightData.slice(-30).map((d) => ({
       date: d.dateLabel,
       weight: d.weight,
       trend: d.trend,
@@ -1010,7 +1329,7 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
 
   const handleAddMetric = () => {
     // In production, this would save to Supabase
-    
+
     setIsAddDialogOpen(false);
     setNewMetric({ weight: "", waist: "", chest: "", thigh: "", arm: "" });
   };
@@ -1027,10 +1346,12 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
               </div>
               <div>
                 <CardTitle className="text-lg">Composizione Corporea</CardTitle>
-                <p className="text-sm text-muted-foreground">Trend peso e misurazioni circonferenze</p>
+                <p className="text-sm text-muted-foreground">
+                  Trend peso e misurazioni circonferenze
+                </p>
               </div>
             </div>
-            
+
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2">
@@ -1055,7 +1376,12 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
                         step="0.1"
                         placeholder="82.5"
                         value={newMetric.weight}
-                        onChange={(e) => setNewMetric(prev => ({ ...prev, weight: e.target.value }))}
+                        onChange={(e) =>
+                          setNewMetric((prev) => ({
+                            ...prev,
+                            weight: e.target.value,
+                          }))
+                        }
                       />
                     </div>
                     <div className="space-y-2">
@@ -1066,7 +1392,12 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
                         step="0.1"
                         placeholder="84.0"
                         value={newMetric.waist}
-                        onChange={(e) => setNewMetric(prev => ({ ...prev, waist: e.target.value }))}
+                        onChange={(e) =>
+                          setNewMetric((prev) => ({
+                            ...prev,
+                            waist: e.target.value,
+                          }))
+                        }
                       />
                     </div>
                   </div>
@@ -1079,7 +1410,12 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
                         step="0.1"
                         placeholder="104.0"
                         value={newMetric.chest}
-                        onChange={(e) => setNewMetric(prev => ({ ...prev, chest: e.target.value }))}
+                        onChange={(e) =>
+                          setNewMetric((prev) => ({
+                            ...prev,
+                            chest: e.target.value,
+                          }))
+                        }
                       />
                     </div>
                     <div className="space-y-2">
@@ -1090,7 +1426,12 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
                         step="0.1"
                         placeholder="58.0"
                         value={newMetric.thigh}
-                        onChange={(e) => setNewMetric(prev => ({ ...prev, thigh: e.target.value }))}
+                        onChange={(e) =>
+                          setNewMetric((prev) => ({
+                            ...prev,
+                            thigh: e.target.value,
+                          }))
+                        }
                       />
                     </div>
                   </div>
@@ -1103,18 +1444,24 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
                         step="0.1"
                         placeholder="38.0"
                         value={newMetric.arm}
-                        onChange={(e) => setNewMetric(prev => ({ ...prev, arm: e.target.value }))}
+                        onChange={(e) =>
+                          setNewMetric((prev) => ({
+                            ...prev,
+                            arm: e.target.value,
+                          }))
+                        }
                       />
                     </div>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsAddDialogOpen(false)}
+                  >
                     Annulla
                   </Button>
-                  <Button onClick={handleAddMetric}>
-                    Salva Misurazioni
-                  </Button>
+                  <Button onClick={handleAddMetric}>Salva Misurazioni</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -1141,8 +1488,11 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
                   </TooltipTrigger>
                   <TooltipContent side="left" className="max-w-[280px]">
                     <p className="text-sm">
-                      <strong>Media Mobile 7 Giorni</strong><br />
-                      La linea continua mostra il trend reale del peso, eliminando le fluttuazioni giornaliere da ritenzione idrica, timing dei pasti, ecc.
+                      <strong>Media Mobile 7 Giorni</strong>
+                      <br />
+                      La linea continua mostra il trend reale del peso,
+                      eliminando le fluttuazioni giornaliere da ritenzione
+                      idrica, timing dei pasti, ecc.
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -1160,13 +1510,21 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
               </div>
               <div className="h-10 w-px bg-border" />
               <div>
-                <p className="text-sm text-muted-foreground">Variazione Settimanale</p>
-                <p className={cn(
-                  "text-2xl font-bold",
-                  weightStats.weeklyChange < 0 ? "text-green-500" : 
-                  weightStats.weeklyChange > 0 ? "text-amber-500" : "text-muted-foreground"
-                )}>
-                  {weightStats.weeklyChange > 0 ? "+" : ""}{weightStats.weeklyChange.toFixed(1)} kg
+                <p className="text-sm text-muted-foreground">
+                  Variazione Settimanale
+                </p>
+                <p
+                  className={cn(
+                    "text-2xl font-bold",
+                    weightStats.weeklyChange < 0
+                      ? "text-green-500"
+                      : weightStats.weeklyChange > 0
+                        ? "text-amber-500"
+                        : "text-muted-foreground",
+                  )}
+                >
+                  {weightStats.weeklyChange > 0 ? "+" : ""}
+                  {weightStats.weeklyChange.toFixed(1)} kg
                 </p>
               </div>
             </div>
@@ -1174,39 +1532,50 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
             {/* Chart */}
             <div className="h-[280px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="hsl(var(--muted-foreground))" 
+                <ComposedChart
+                  data={chartData}
+                  margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                >
+                  <XAxis
+                    dataKey="date"
+                    stroke="hsl(var(--muted-foreground))"
                     fontSize={10}
                     tickLine={false}
                     axisLine={false}
                     interval={4}
                   />
-                  <YAxis 
-                    stroke="hsl(var(--muted-foreground))" 
+                  <YAxis
+                    stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
-                    domain={['dataMin - 1', 'dataMax + 1']}
+                    domain={["dataMin - 1", "dataMax + 1"]}
                     tickFormatter={(value) => `${value}kg`}
                   />
-                  <ChartTooltip 
+                  <ChartTooltip
                     content={({ active, payload }) => {
                       if (!active || !payload?.length) return null;
                       const data = payload[0].payload;
                       return (
                         <div className="bg-popover border border-border rounded-lg p-3 shadow-lg">
-                          <p className="text-sm font-medium text-foreground">{data.date}</p>
+                          <p className="text-sm font-medium text-foreground">
+                            {data.date}
+                          </p>
                           <div className="space-y-1 mt-1">
                             <p className="text-sm text-muted-foreground flex items-center gap-2">
                               <CircleDot className="h-3 w-3 text-muted-foreground/50" />
-                              Effettivo: <span className="font-semibold text-foreground">{data.weight} kg</span>
+                              Effettivo:{" "}
+                              <span className="font-semibold text-foreground">
+                                {data.weight} kg
+                              </span>
                             </p>
                             {data.trend && (
                               <p className="text-sm text-muted-foreground flex items-center gap-2">
                                 <div className="w-3 h-0.5 bg-primary rounded" />
-                                Trend: <span className="font-semibold text-primary">{data.trend} kg</span>
+                                Trend:{" "}
+                                <span className="font-semibold text-primary">
+                                  {data.trend} kg
+                                </span>
                               </p>
                             )}
                           </div>
@@ -1220,7 +1589,11 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
                     dataKey="weight"
                     stroke="hsl(var(--muted-foreground))"
                     strokeWidth={0}
-                    dot={{ fill: "hsl(var(--muted-foreground))", r: 2, opacity: 0.4 }}
+                    dot={{
+                      fill: "hsl(var(--muted-foreground))",
+                      r: 2,
+                      opacity: 0.4,
+                    }}
                     activeDot={{ r: 4, fill: "hsl(var(--foreground))" }}
                   />
                   {/* Trend line (7-day MA) */}
@@ -1241,11 +1614,15 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
             <div className="flex items-center justify-center gap-6 pt-4 border-t border-border/50">
               <div className="flex items-center gap-2">
                 <CircleDot className="h-3 w-3 text-muted-foreground/50" />
-                <span className="text-xs text-muted-foreground">Peso Giornaliero</span>
+                <span className="text-xs text-muted-foreground">
+                  Peso Giornaliero
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-0.5 bg-primary rounded" />
-                <span className="text-xs text-muted-foreground">Trend 7 Giorni</span>
+                <span className="text-xs text-muted-foreground">
+                  Trend 7 Giorni
+                </span>
               </div>
             </div>
           </CardContent>
@@ -1257,7 +1634,7 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
             <Ruler className="h-4 w-4" />
             Misurazioni Corporee
           </h3>
-          
+
           {measurements.map((measurement) => (
             <Card key={measurement.key} className="overflow-hidden">
               <CardContent className="p-4">
@@ -1265,34 +1642,42 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
                   <span className="text-sm font-medium text-foreground">
                     {measurement.label}
                   </span>
-                  <Badge 
-                    variant="outline" 
+                  <Badge
+                    variant="outline"
                     className={cn(
                       "text-xs",
-                      measurement.weeklyChange < 0 && measurement.key === "waist" ? "text-green-500 border-green-500/30" :
-                      measurement.weeklyChange > 0 && measurement.key !== "waist" ? "text-green-500 border-green-500/30" :
-                      measurement.weeklyChange !== 0 ? "text-amber-500 border-amber-500/30" :
-                      ""
+                      measurement.weeklyChange < 0 &&
+                        measurement.key === "waist"
+                        ? "text-green-500 border-green-500/30"
+                        : measurement.weeklyChange > 0 &&
+                            measurement.key !== "waist"
+                          ? "text-green-500 border-green-500/30"
+                          : measurement.weeklyChange !== 0
+                            ? "text-amber-500 border-amber-500/30"
+                            : "",
                     )}
                   >
-                    {measurement.weeklyChange > 0 ? "+" : ""}{measurement.weeklyChange} {measurement.unit}
+                    {measurement.weeklyChange > 0 ? "+" : ""}
+                    {measurement.weeklyChange} {measurement.unit}
                   </Badge>
                 </div>
-                
+
                 <div className="flex items-end justify-between gap-4">
                   <div>
                     <p className="text-2xl font-bold text-foreground">
                       {measurement.latestValue}
                     </p>
-                    <p className="text-xs text-muted-foreground">{measurement.unit}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {measurement.unit}
+                    </p>
                   </div>
-                  
+
                   <div className="flex-1 max-w-[80px]">
-                    <MiniSparkline 
-                      data={measurement.history} 
+                    <MiniSparkline
+                      data={measurement.history}
                       color={
-                        measurement.key === "waist" 
-                          ? "hsl(var(--success))" 
+                        measurement.key === "waist"
+                          ? "hsl(var(--success))"
                           : "hsl(var(--primary))"
                       }
                     />
@@ -1301,20 +1686,29 @@ function BodyMetricsContent({ athleteId }: { athleteId: string | undefined }) {
               </CardContent>
             </Card>
           ))}
-          
+
           {/* Quick Summary Card */}
           <Card className="bg-muted/50">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Target className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">Riepilogo Settimanale</span>
+                <span className="text-sm font-medium">
+                  Riepilogo Settimanale
+                </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Peso in {weightStats.weeklyChange < 0 ? "calo" : "mantenimento"}, 
-                vita {(measurements.find(m => m.key === "waist")?.weeklyChange ?? 0) < 0 ? "in diminuzione" : "stabile"}. 
-                {weightStats.weeklyChange < 0 && (measurements.find(m => m.key === "waist")?.weeklyChange ?? 0) < 0 
-                  ? " Buoni progressi nella fase di taglio!" 
-                  : " Composizione in mantenimento."}
+                Peso in {weightStats.weeklyChange < 0 ? "calo" : "mantenimento"}
+                , vita{" "}
+                {(measurements.find((m) => m.key === "waist")?.weeklyChange ??
+                  0) < 0
+                  ? "in diminuzione"
+                  : "stabile"}
+                .
+                {weightStats.weeklyChange < 0 &&
+                (measurements.find((m) => m.key === "waist")?.weeklyChange ??
+                  0) < 0
+                  ? "Buoni progressi nella fase di taglio!"
+                  : "Composizione in mantenimento."}
               </p>
             </CardContent>
           </Card>
@@ -1329,12 +1723,12 @@ const generateMockProgressPhotos = () => {
   const poses = ["front", "side", "back"] as const;
   const dates = [
     new Date(2025, 0, 12), // Jan 12
-    new Date(2025, 0, 5),  // Jan 5
+    new Date(2025, 0, 5), // Jan 5
     new Date(2024, 11, 29), // Dec 29
     new Date(2024, 11, 22), // Dec 22
     new Date(2024, 11, 15), // Dec 15
   ];
-  
+
   return dates.map((date) => ({
     date,
     dateLabel: format(date, "MMM d, yyyy"),
@@ -1351,18 +1745,20 @@ const generateMockProgressPhotos = () => {
 function ProgressPicsContent({ athleteId }: { athleteId: string | undefined }) {
   const [compareMode, setCompareMode] = useState(false);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [selectedPose, setSelectedPose] = useState<"front" | "side" | "back">("front");
-  
+  const [selectedPose, setSelectedPose] = useState<"front" | "side" | "back">(
+    "front",
+  );
+
   // Mock data
   const progressData = useMemo(() => generateMockProgressPhotos(), []);
-  
+
   // Handle date selection for comparison
   const handleDateSelect = (dateLabel: string) => {
     if (!compareMode) return;
-    
-    setSelectedDates(prev => {
+
+    setSelectedDates((prev) => {
       if (prev.includes(dateLabel)) {
-        return prev.filter(d => d !== dateLabel);
+        return prev.filter((d) => d !== dateLabel);
       }
       if (prev.length >= 2) {
         return [prev[1], dateLabel];
@@ -1370,25 +1766,25 @@ function ProgressPicsContent({ athleteId }: { athleteId: string | undefined }) {
       return [...prev, dateLabel];
     });
   };
-  
+
   // Get photos for comparison
   const comparisonPhotos = useMemo(() => {
     if (selectedDates.length !== 2) return null;
-    
+
     const [date1, date2] = selectedDates;
-    const session1 = progressData.find(s => s.dateLabel === date1);
-    const session2 = progressData.find(s => s.dateLabel === date2);
-    
+    const session1 = progressData.find((s) => s.dateLabel === date1);
+    const session2 = progressData.find((s) => s.dateLabel === date2);
+
     if (!session1 || !session2) return null;
-    
+
     return {
       before: {
         date: session1.dateLabel,
-        photo: session1.photos.find(p => p.pose === selectedPose),
+        photo: session1.photos.find((p) => p.pose === selectedPose),
       },
       after: {
         date: session2.dateLabel,
-        photo: session2.photos.find(p => p.pose === selectedPose),
+        photo: session2.photos.find((p) => p.pose === selectedPose),
       },
     };
   }, [selectedDates, selectedPose, progressData]);
@@ -1411,10 +1807,12 @@ function ProgressPicsContent({ athleteId }: { athleteId: string | undefined }) {
               </div>
               <div>
                 <CardTitle className="text-lg">Foto Progresso</CardTitle>
-                <p className="text-sm text-muted-foreground">Monitoraggio visivo della trasformazione</p>
+                <p className="text-sm text-muted-foreground">
+                  Monitoraggio visivo della trasformazione
+                </p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4">
               {/* Compare Mode Toggle */}
               <div className="flex items-center gap-2">
@@ -1428,7 +1826,7 @@ function ProgressPicsContent({ athleteId }: { athleteId: string | undefined }) {
                   }}
                 />
               </div>
-              
+
               {/* Upload Button */}
               <Button className="gap-2">
                 <Upload className="h-4 w-4" />
@@ -1436,14 +1834,16 @@ function ProgressPicsContent({ athleteId }: { athleteId: string | undefined }) {
               </Button>
             </div>
           </div>
-          
+
           {/* Compare Mode Instructions */}
           {compareMode && (
             <div className="mt-4 p-3 bg-primary/5 rounded-lg border border-primary/20">
               <p className="text-sm text-foreground">
-                <strong>Modalità Confronto Attiva:</strong> Seleziona due date sotto per confrontare i progressi affiancati.
-                {selectedDates.length === 1 && " (1/2 selezionata)"}
-                {selectedDates.length === 2 && " (2/2 selezionate - visualizzazione confronto)"}
+                <strong>Modalità Confronto Attiva:</strong> Seleziona due date
+                sotto per confrontare i progressi affiancati.
+                {selectedDates.length === 1 && "(1/2 selezionata)"}
+                {selectedDates.length === 2 &&
+                  "(2/2 selezionate - visualizzazione confronto)"}
               </p>
             </div>
           )}
@@ -1459,7 +1859,7 @@ function ProgressPicsContent({ athleteId }: { athleteId: string | undefined }) {
                 <Columns2 className="h-5 w-5 text-primary" />
                 Confronto Affiancato
               </CardTitle>
-              
+
               {/* Pose Selector */}
               <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
                 {(["front", "side", "back"] as const).map((pose) => (
@@ -1481,8 +1881,12 @@ function ProgressPicsContent({ athleteId }: { athleteId: string | undefined }) {
               {/* Before */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Badge variant="secondary" className="text-xs">Prima</Badge>
-                  <span className="text-sm text-muted-foreground">{comparisonPhotos.before.date}</span>
+                  <Badge variant="secondary" className="text-xs">
+                    Prima
+                  </Badge>
+                  <span className="text-sm text-muted-foreground">
+                    {comparisonPhotos.before.date}
+                  </span>
                 </div>
                 <div className="aspect-[3/4] bg-muted rounded-lg overflow-hidden relative">
                   {comparisonPhotos.before.photo ? (
@@ -1494,15 +1898,24 @@ function ProgressPicsContent({ athleteId }: { athleteId: string | undefined }) {
                       <Image className="h-12 w-12 text-muted-foreground/30" />
                     </div>
                   )}
-                  <Badge className="absolute bottom-2 left-2 capitalize">{selectedPose}</Badge>
+                  <Badge className="absolute bottom-2 left-2 capitalize">
+                    {selectedPose}
+                  </Badge>
                 </div>
               </div>
-              
+
               {/* After */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Badge variant="default" className="text-xs bg-green-500 hover:bg-green-600">Dopo</Badge>
-                  <span className="text-sm text-muted-foreground">{comparisonPhotos.after.date}</span>
+                  <Badge
+                    variant="default"
+                    className="text-xs bg-green-500 hover:bg-green-600"
+                  >
+                    Dopo
+                  </Badge>
+                  <span className="text-sm text-muted-foreground">
+                    {comparisonPhotos.after.date}
+                  </span>
                 </div>
                 <div className="aspect-[3/4] bg-muted rounded-lg overflow-hidden relative">
                   {comparisonPhotos.after.photo ? (
@@ -1514,16 +1927,18 @@ function ProgressPicsContent({ athleteId }: { athleteId: string | undefined }) {
                       <Image className="h-12 w-12 text-muted-foreground/30" />
                     </div>
                   )}
-                  <Badge className="absolute bottom-2 left-2 capitalize">{selectedPose}</Badge>
+                  <Badge className="absolute bottom-2 left-2 capitalize">
+                    {selectedPose}
+                  </Badge>
                 </div>
               </div>
             </div>
-            
+
             {/* Clear Selection */}
             <div className="flex justify-center mt-4">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="gap-2"
                 onClick={() => setSelectedDates([])}
               >
@@ -1538,12 +1953,14 @@ function ProgressPicsContent({ athleteId }: { athleteId: string | undefined }) {
       {/* Gallery Grid by Date */}
       <div className="space-y-6">
         {progressData.map((session) => (
-          <Card 
+          <Card
             key={session.dateLabel}
             className={cn(
               "overflow-hidden transition-all cursor-pointer",
               compareMode && "hover:ring-2 hover:ring-primary/50",
-              compareMode && selectedDates.includes(session.dateLabel) && "ring-2 ring-primary"
+              compareMode &&
+                selectedDates.includes(session.dateLabel) &&
+                "ring-2 ring-primary",
             )}
             onClick={() => handleDateSelect(session.dateLabel)}
           >
@@ -1554,20 +1971,24 @@ function ProgressPicsContent({ athleteId }: { athleteId: string | undefined }) {
                     <Calendar className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <CardTitle className="text-base">{session.dateLabel}</CardTitle>
+                    <CardTitle className="text-base">
+                      {session.dateLabel}
+                    </CardTitle>
                     <p className="text-xs text-muted-foreground">
                       {formatDistanceToNow(session.date, { addSuffix: true })}
                     </p>
                   </div>
                 </div>
-                
+
                 {compareMode && (
-                  <div className={cn(
-                    "h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors",
-                    selectedDates.includes(session.dateLabel) 
-                      ? "bg-primary border-primary" 
-                      : "border-muted-foreground/30"
-                  )}>
+                  <div
+                    className={cn(
+                      "h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors",
+                      selectedDates.includes(session.dateLabel)
+                        ? "bg-primary border-primary"
+                        : "border-muted-foreground/30",
+                    )}
+                  >
                     {selectedDates.includes(session.dateLabel) && (
                       <Check className="h-4 w-4 text-primary-foreground" />
                     )}
@@ -1578,7 +1999,7 @@ function ProgressPicsContent({ athleteId }: { athleteId: string | undefined }) {
             <CardContent>
               <div className="grid grid-cols-3 gap-3">
                 {session.photos.map((photo) => (
-                  <div 
+                  <div
                     key={photo.id}
                     className="relative aspect-[3/4] bg-muted rounded-lg overflow-hidden group"
                   >
@@ -1586,15 +2007,15 @@ function ProgressPicsContent({ athleteId }: { athleteId: string | undefined }) {
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted-foreground/10">
                       <User className="h-12 w-12 text-muted-foreground/30" />
                     </div>
-                    
+
                     {/* Pose Badge */}
-                    <Badge 
-                      variant="secondary" 
+                    <Badge
+                      variant="secondary"
                       className="absolute bottom-2 left-2 text-xs capitalize"
                     >
                       {photo.pose}
                     </Badge>
-                    
+
                     {/* Hover Overlay */}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1632,9 +2053,21 @@ function ProgressPicsContent({ athleteId }: { athleteId: string | undefined }) {
 
 // Training status options
 const TRAINING_STATUS_OPTIONS = [
-  { value: "active", label: "Attivo", color: "bg-success text-success-foreground" },
-  { value: "injured", label: "Infortunato", color: "bg-destructive text-destructive-foreground" },
-  { value: "on_hold", label: "In Pausa", color: "bg-warning text-warning-foreground" },
+  {
+    value: "active",
+    label: "Attivo",
+    color: "bg-success text-success-foreground",
+  },
+  {
+    value: "injured",
+    label: "Infortunato",
+    color: "bg-destructive text-destructive-foreground",
+  },
+  {
+    value: "on_hold",
+    label: "In Pausa",
+    color: "bg-warning text-warning-foreground",
+  },
 ];
 
 // Experience level options
@@ -1647,50 +2080,73 @@ const EXPERIENCE_LEVELS = [
 
 // Neurotype options
 const NEUROTYPE_OPTIONS = [
-  { value: "1A", label: "Tipo 1A", description: "Dominante dopamina - Cercatore di novità" },
-  { value: "1B", label: "Tipo 1B", description: "Dominante dopamina - Cercatore di emozioni" },
-  { value: "2A", label: "Tipo 2A", description: "Dominante adrenalina - Flessibile" },
-  { value: "2B", label: "Tipo 2B", description: "Dominante adrenalina - Orientato alla ricompensa" },
-  { value: "3", label: "Tipo 3", description: "Dominante serotonina - Focalizzato sulla costanza" },
+  {
+    value: "1A",
+    label: "Tipo 1A",
+    description: "Dominante dopamina - Cercatore di novità",
+  },
+  {
+    value: "1B",
+    label: "Tipo 1B",
+    description: "Dominante dopamina - Cercatore di emozioni",
+  },
+  {
+    value: "2A",
+    label: "Tipo 2A",
+    description: "Dominante adrenalina - Flessibile",
+  },
+  {
+    value: "2B",
+    label: "Tipo 2B",
+    description: "Dominante adrenalina - Orientato alla ricompensa",
+  },
+  {
+    value: "3",
+    label: "Tipo 3",
+    description: "Dominante serotonina - Focalizzato sulla costanza",
+  },
 ];
 
 // Settings Content Component
-function SettingsContent({ 
-  athleteId, 
-  profile, 
-  onProfileUpdate 
-}: { 
-  athleteId: string | undefined; 
+function SettingsContent({
+  athleteId,
+  profile,
+  onProfileUpdate,
+}: {
+  athleteId: string | undefined;
   profile: any;
   onProfileUpdate: () => void;
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   // Form state
   const [neurotype, setNeurotype] = useState(profile?.neurotype || "");
   const [trainingStatus, setTrainingStatus] = useState(
-    (profile?.settings as any)?.training_status || "active"
+    (profile?.settings as any)?.training_status || "active",
   );
   const [experienceLevel, setExperienceLevel] = useState(
-    (profile?.settings as any)?.experience_level || "intermediate"
+    (profile?.settings as any)?.experience_level || "intermediate",
   );
   const [fullName, setFullName] = useState(profile?.full_name || "");
   const [coachNotes, setCoachNotes] = useState(
-    (profile?.settings as any)?.coach_notes || ""
+    (profile?.settings as any)?.coach_notes || "",
   );
   const [isSaving, setIsSaving] = useState(false);
 
   // Get status badge config
   const getStatusConfig = (status: string) => {
-    return TRAINING_STATUS_OPTIONS.find(s => s.value === status) || TRAINING_STATUS_OPTIONS[0];
+    return (
+      TRAINING_STATUS_OPTIONS.find((s) => s.value === status) ||
+      TRAINING_STATUS_OPTIONS[0]
+    );
   };
 
   // Save profile mutation
   const saveProfileMutation = useMutation({
     mutationFn: async () => {
       if (!athleteId) throw new Error("No athlete ID");
-      
+
       const updatedSettings = {
         ...(profile?.settings || {}),
         training_status: trainingStatus,
@@ -1712,7 +2168,9 @@ function SettingsContent({
     },
     onSuccess: () => {
       toast.success("Profilo salvato con successo");
-      queryClient.invalidateQueries({ queryKey: ["athlete-profile", athleteId] });
+      queryClient.invalidateQueries({
+        queryKey: ["athlete-profile", athleteId],
+      });
       onProfileUpdate();
     },
     onError: (error: any) => {
@@ -1724,7 +2182,7 @@ function SettingsContent({
   const archiveAthleteMutation = useMutation({
     mutationFn: async () => {
       if (!athleteId) throw new Error("No athlete ID");
-      
+
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -1765,7 +2223,9 @@ function SettingsContent({
             </div>
             <div>
               <CardTitle className="text-lg">Parametri Prestazione</CardTitle>
-              <CardDescription>Configura algoritmi di allenamento e classificazione atleta</CardDescription>
+              <CardDescription>
+                Configura algoritmi di allenamento e classificazione atleta
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -1785,7 +2245,9 @@ function SettingsContent({
                   <SelectItem key={option.value} value={option.value}>
                     <div className="flex flex-col">
                       <span className="font-medium">{option.label}</span>
-                      <span className="text-xs text-muted-foreground">{option.description}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {option.description}
+                      </span>
                     </div>
                   </SelectItem>
                 ))}
@@ -1798,7 +2260,10 @@ function SettingsContent({
 
           {/* Training Status */}
           <div className="grid gap-2">
-            <Label htmlFor="training-status" className="flex items-center gap-2">
+            <Label
+              htmlFor="training-status"
+              className="flex items-center gap-2"
+            >
               <Shield className="h-4 w-4 text-muted-foreground" />
               Stato Allenamento
             </Label>
@@ -1815,7 +2280,12 @@ function SettingsContent({
                   ))}
                 </SelectContent>
               </Select>
-              <Badge className={cn("shrink-0", getStatusConfig(trainingStatus).color)}>
+              <Badge
+                className={cn(
+                  "shrink-0",
+                  getStatusConfig(trainingStatus).color,
+                )}
+              >
                 {getStatusConfig(trainingStatus).label}
               </Badge>
             </div>
@@ -1852,7 +2322,9 @@ function SettingsContent({
             </div>
             <div>
               <CardTitle className="text-lg">Informazioni Profilo</CardTitle>
-              <CardDescription>Dettagli personali e informazioni di contatto</CardDescription>
+              <CardDescription>
+                Dettagli personali e informazioni di contatto
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -1862,7 +2334,11 @@ function SettingsContent({
             <Avatar className="h-20 w-20 border-2 border-border">
               <AvatarImage src={profile?.avatar_url || ""} />
               <AvatarFallback className="text-xl bg-muted">
-                {profile?.full_name?.split(" ").map((n: string) => n[0]).join("").toUpperCase() || "?"}
+                {profile?.full_name
+                  ?.split("")
+                  .map((n: string) => n[0])
+                  .join("")
+                  .toUpperCase() || "?"}
               </AvatarFallback>
             </Avatar>
             <div className="space-y-2">
@@ -1870,7 +2346,9 @@ function SettingsContent({
                 <Camera className="h-4 w-4 mr-2" />
                 Cambia Foto
               </Button>
-              <p className="text-xs text-muted-foreground">Caricamento foto in arrivo</p>
+              <p className="text-xs text-muted-foreground">
+                Caricamento foto in arrivo
+              </p>
             </div>
           </div>
 
@@ -1880,9 +2358,9 @@ function SettingsContent({
               <User className="h-4 w-4 text-muted-foreground" />
               Nome Completo
             </Label>
-            <Input 
-              id="full-name" 
-              value={fullName} 
+            <Input
+              id="full-name"
+              value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Inserisci nome completo"
             />
@@ -1894,8 +2372,8 @@ function SettingsContent({
               <Mail className="h-4 w-4 text-muted-foreground" />
               Email
             </Label>
-            <Input 
-              id="email" 
+            <Input
+              id="email"
               value={athleteId || ""}
               disabled
               className="bg-muted/50 text-muted-foreground cursor-not-allowed"
@@ -1911,8 +2389,8 @@ function SettingsContent({
               <Phone className="h-4 w-4 text-muted-foreground" />
               Note Private del Coach
             </Label>
-            <Textarea 
-              id="coach-notes" 
+            <Textarea
+              id="coach-notes"
               value={coachNotes}
               onChange={(e) => setCoachNotes(e.target.value)}
               placeholder="Telefono, contatto di emergenza, preferenze di allenamento, ecc."
@@ -1920,7 +2398,8 @@ function SettingsContent({
               className="resize-none"
             />
             <p className="text-xs text-muted-foreground">
-              Visibili solo a te. Usa per note personali e informazioni di contatto.
+              Visibili solo a te. Usa per note personali e informazioni di
+              contatto.
             </p>
           </div>
         </CardContent>
@@ -1928,8 +2407,8 @@ function SettingsContent({
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button 
-          onClick={handleSave} 
+        <Button
+          onClick={handleSave}
           disabled={saveProfileMutation.isPending}
           className="min-w-[140px]"
         >
@@ -1955,8 +2434,12 @@ function SettingsContent({
               <AlertTriangle className="h-5 w-5 text-destructive" />
             </div>
             <div>
-              <CardTitle className="text-lg text-destructive">Zona Pericolosa</CardTitle>
-              <CardDescription>Azioni irreversibili per questo atleta</CardDescription>
+              <CardTitle className="text-lg text-destructive">
+                Zona Pericolosa
+              </CardTitle>
+              <CardDescription>
+                Azioni irreversibili per questo atleta
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -1980,17 +2463,20 @@ function SettingsContent({
                 <AlertDialogHeader>
                   <AlertDialogTitle>Archiviare questo atleta?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Questo nasconderà {profile?.full_name || "questo atleta"} dal roster attivo. 
-                    Tutti i dati di allenamento saranno conservati e potranno essere ripristinati.
+                    Questo nasconderà {profile?.full_name || "questo atleta"}{" "}
+                    dal roster attivo. Tutti i dati di allenamento saranno
+                    conservati e potranno essere ripristinati.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Annulla</AlertDialogCancel>
-                  <AlertDialogAction 
+                  <AlertDialogAction
                     onClick={() => archiveAthleteMutation.mutate()}
                     disabled={archiveAthleteMutation.isPending}
                   >
-                    {archiveAthleteMutation.isPending ? "Archiviazione..." : "Archivia Atleta"}
+                    {archiveAthleteMutation.isPending
+                      ? "Archiviazione..."
+                      : "Archivia Atleta"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -2014,16 +2500,21 @@ function SettingsContent({
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle className="text-destructive">Eliminare definitivamente questo atleta?</AlertDialogTitle>
+                  <AlertDialogTitle className="text-destructive">
+                    Eliminare definitivamente questo atleta?
+                  </AlertDialogTitle>
                   <AlertDialogDescription>
-                    Questa azione non può essere annullata. Eliminerà permanentemente 
-                    {profile?.full_name ? ` il profilo di ${profile.full_name}` : " il profilo dell'atleta"}, 
-                    tutti i log di allenamento, metriche e storico.
+                    Questa azione non può essere annullata. Eliminerà
+                    permanentemente
+                    {profile?.full_name
+                      ? `il profilo di ${profile.full_name}`
+                      : "il profilo dell'atleta"}
+                    , tutti i log di allenamento, metriche e storico.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Annulla</AlertDialogCancel>
-                  <AlertDialogAction 
+                  <AlertDialogAction
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     disabled
                   >
@@ -2034,7 +2525,7 @@ function SettingsContent({
             </AlertDialog>
           </div>
           <p className="text-xs text-muted-foreground text-center">
-            ⚠️ L'eliminazione definitiva è attualmente disabilitata per sicurezza
+            L'eliminazione definitiva è attualmente disabilitata per sicurezza
           </p>
         </CardContent>
       </Card>
@@ -2146,16 +2637,16 @@ export default function AthleteDetail() {
       if (!id) return [];
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
+
       const { data, error } = await supabase
         .from("daily_metrics")
         .select("date, weight_kg")
         .eq("user_id", id)
         .gte("date", thirtyDaysAgo.toISOString().split("T")[0])
         .order("date", { ascending: true });
-      
+
       if (error) throw error;
-      return data?.filter(d => d.weight_kg !== null) || [];
+      return data?.filter((d) => d.weight_kg !== null) || [];
     },
     enabled: !!id,
   });
@@ -2167,7 +2658,7 @@ export default function AthleteDetail() {
       if (!id) return [];
       const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }); // Monday
       const weekEnd = addDays(weekStart, 6);
-      
+
       const { data, error } = await supabase
         .from("workout_logs")
         .select("completed_at, workout_id")
@@ -2175,7 +2666,7 @@ export default function AthleteDetail() {
         .not("completed_at", "is", null)
         .gte("completed_at", weekStart.toISOString())
         .lte("completed_at", addDays(weekEnd, 1).toISOString());
-      
+
       if (error) throw error;
       return data || [];
     },
@@ -2189,7 +2680,7 @@ export default function AthleteDetail() {
       if (!id) return [];
       const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
       const weekEnd = addDays(weekStart, 6);
-      
+
       const { data, error } = await supabase
         .from("workouts")
         .select("*")
@@ -2197,7 +2688,7 @@ export default function AthleteDetail() {
         .gte("scheduled_date", format(weekStart, "yyyy-MM-dd"))
         .lte("scheduled_date", format(weekEnd, "yyyy-MM-dd"))
         .order("scheduled_date", { ascending: true });
-      
+
       if (error) throw error;
       return data || [];
     },
@@ -2211,14 +2702,14 @@ export default function AthleteDetail() {
       if (!id) return [];
       const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
       const weekEnd = addDays(weekStart, 6);
-      
+
       const { data, error } = await supabase
         .from("workout_logs")
         .select("*, workout_id")
         .eq("athlete_id", id)
         .gte("created_at", weekStart.toISOString())
         .lte("created_at", addDays(weekEnd, 1).toISOString());
-      
+
       if (error) throw error;
       return data || [];
     },
@@ -2235,7 +2726,7 @@ export default function AthleteDetail() {
   // Get initials
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split("")
       .map((n) => n[0])
       .join("")
       .toUpperCase()
@@ -2257,48 +2748,54 @@ export default function AthleteDetail() {
   // Calculate readiness score (based on available data)
   const calculateReadinessScore = () => {
     if (!todayMetrics) return null;
-    
+
     // Use subjective_readiness if available, otherwise calculate from metrics
     if (todayMetrics.subjective_readiness) {
       return Math.round(todayMetrics.subjective_readiness * 10); // Scale 1-10 to 10-100
     }
-    
+
     // Simple formula based on available metrics
     let score = 70; // Base score
-    
+
     if (todayMetrics.sleep_hours) {
       if (todayMetrics.sleep_hours >= 7) score += 10;
       else if (todayMetrics.sleep_hours < 5) score -= 20;
     }
-    
+
     if (todayMetrics.hrv_rmssd) {
       // Higher HRV is generally better
       if (todayMetrics.hrv_rmssd > 50) score += 10;
       else if (todayMetrics.hrv_rmssd < 30) score -= 10;
     }
-    
+
     if (todayMetrics.resting_hr) {
       // Lower resting HR is generally better for athletes
       if (todayMetrics.resting_hr < 55) score += 5;
       else if (todayMetrics.resting_hr > 70) score -= 10;
     }
-    
+
     return Math.max(0, Math.min(100, Math.round(score)));
   };
 
   // Calculate TDEE (simplified estimation)
   const calculateTDEE = () => {
-    const onboarding = profile?.onboarding_data as Record<string, unknown> | null;
-    const weight = weightTrend?.length ? weightTrend[weightTrend.length - 1].weight_kg : (onboarding?.weight as number);
+    const onboarding = profile?.onboarding_data as Record<
+      string,
+      unknown
+    > | null;
+    const weight = weightTrend?.length
+      ? weightTrend[weightTrend.length - 1].weight_kg
+      : (onboarding?.weight as number);
     const height = onboarding?.height as number;
-    
+
     if (!weight) return null;
-    
+
     // Simplified Harris-Benedict for male (we'd need gender for accuracy)
     // BMR = 88.362 + (13.397 × weight) + (4.799 × height) - (5.677 × age)
-    const baseBMR = 88 + (13.4 * weight) + (height ? 4.8 * height : 800) - (5.7 * 30); // assuming 30 years
+    const baseBMR =
+      88 + 13.4 * weight + (height ? 4.8 * height : 800) - 5.7 * 30; // assuming 30 years
     const activityMultiplier = 1.55; // Moderately active
-    
+
     return Math.round(baseBMR * activityMultiplier);
   };
 
@@ -2307,31 +2804,34 @@ export default function AthleteDetail() {
     const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
     const today = new Date();
     const days = [];
-    
+
     for (let i = 0; i < 7; i++) {
       const day = addDays(weekStart, i);
       const dayName = format(day, "EEE", { locale: it });
       const isFuture = isAfter(day, today);
       const isToday = isSameDay(day, today);
-      
+
       // Check if workout was logged on this day
-      const hasWorkout = weeklyWorkouts?.some(w => {
+      const hasWorkout = weeklyWorkouts?.some((w) => {
         if (!w.completed_at) return false;
         return isSameDay(new Date(w.completed_at), day);
       });
-      
+
       let status: "completed" | "rest" | "missed" | "future" = "future";
       if (!isFuture) {
-        status = hasWorkout ? "completed" : (isToday ? "rest" : "missed");
+        status = hasWorkout ? "completed" : isToday ? "rest" : "missed";
       }
-      
+
       days.push({ day: dayName, date: day, status, isToday });
     }
-    
-    const completedDays = days.filter(d => d.status === "completed").length;
-    const pastDays = days.filter(d => d.status !== "future").length;
-    const adherence = pastDays > 0 ? Math.round((completedDays / Math.max(pastDays, 1)) * 100) : 0;
-    
+
+    const completedDays = days.filter((d) => d.status === "completed").length;
+    const pastDays = days.filter((d) => d.status !== "future").length;
+    const adherence =
+      pastDays > 0
+        ? Math.round((completedDays / Math.max(pastDays, 1)) * 100)
+        : 0;
+
     return { days, adherence, completedDays };
   };
 
@@ -2341,19 +2841,19 @@ export default function AthleteDetail() {
       const primaryInjury = injuries[0];
       // Map status to severity display
       const severityMap: Record<string, string> = {
-        "active": "moderate",
-        "recovering": "mild",
-        "healed": "none"
+        active: "moderate",
+        recovering: "mild",
+        healed: "none",
       };
       return {
         hasPain: true,
         location: primaryInjury.body_zone || "Unknown",
         severity: severityMap[primaryInjury.status] || "moderate",
         description: primaryInjury.description,
-        count: injuries.length
+        count: injuries.length,
       };
     }
-    
+
     return { hasPain: false };
   };
 
@@ -2364,10 +2864,29 @@ export default function AthleteDetail() {
 
   // Readiness color based on score
   const getReadinessColor = (score: number | null) => {
-    if (score === null) return { text: "text-muted-foreground", bg: "bg-muted", stroke: "stroke-muted-foreground" };
-    if (score < 40) return { text: "text-destructive", bg: "bg-destructive/10", stroke: "stroke-destructive" };
-    if (score < 70) return { text: "text-warning", bg: "bg-warning/10", stroke: "stroke-warning" };
-    return { text: "text-success", bg: "bg-success/10", stroke: "stroke-success" };
+    if (score === null)
+      return {
+        text: "text-muted-foreground",
+        bg: "bg-muted",
+        stroke: "stroke-muted-foreground",
+      };
+    if (score < 40)
+      return {
+        text: "text-destructive",
+        bg: "bg-destructive/10",
+        stroke: "stroke-destructive",
+      };
+    if (score < 70)
+      return {
+        text: "text-warning",
+        bg: "bg-warning/10",
+        stroke: "stroke-warning",
+      };
+    return {
+      text: "text-success",
+      bg: "bg-success/10",
+      stroke: "stroke-success",
+    };
   };
 
   const readinessColors = getReadinessColor(readinessScore);
@@ -2387,12 +2906,14 @@ export default function AthleteDetail() {
 
       // Find scheduled workout for this day
       const scheduledWorkout = scheduledWorkouts?.find(
-        w => w.scheduled_date === dateStr
+        (w) => w.scheduled_date === dateStr,
       );
 
       // Check if workout was completed
-      const completedLog = scheduledWorkout 
-        ? workoutLogs?.find(log => log.workout_id === scheduledWorkout.id && log.completed_at)
+      const completedLog = scheduledWorkout
+        ? workoutLogs?.find(
+            (log) => log.workout_id === scheduledWorkout.id && log.completed_at,
+          )
         : null;
 
       let status: "completed" | "scheduled" | "missed" | "rest" = "rest";
@@ -2416,7 +2937,7 @@ export default function AthleteDetail() {
         isPast,
         workout: scheduledWorkout,
         completedLog,
-        status
+        status,
       });
     }
 
@@ -2426,23 +2947,29 @@ export default function AthleteDetail() {
   // Calculate phase progress
   const getPhaseProgress = () => {
     if (!currentPhase) return null;
-    
+
     const start = new Date(currentPhase.start_date);
     const end = new Date(currentPhase.end_date);
     const today = new Date();
-    
+
     const totalDays = differenceInDays(end, start);
     const elapsedDays = differenceInDays(today, start);
-    const percentage = Math.max(0, Math.min(100, (elapsedDays / totalDays) * 100));
-    
+    const percentage = Math.max(
+      0,
+      Math.min(100, (elapsedDays / totalDays) * 100),
+    );
+
     const totalWeeks = Math.ceil(differenceInWeeks(end, start)) || 1;
-    const currentWeek = Math.min(Math.ceil(differenceInWeeks(today, start)) + 1, totalWeeks);
-    
+    const currentWeek = Math.min(
+      Math.ceil(differenceInWeeks(today, start)) + 1,
+      totalWeeks,
+    );
+
     return {
       percentage: Math.round(percentage),
       currentWeek,
       totalWeeks,
-      daysRemaining: Math.max(0, differenceInDays(end, today))
+      daysRemaining: Math.max(0, differenceInDays(end, today)),
     };
   };
 
@@ -2452,11 +2979,11 @@ export default function AthleteDetail() {
     let totalSets = 0;
     let focusTypes = new Set<string>();
 
-    schedule.forEach(day => {
+    schedule.forEach((day) => {
       if (day.workout) {
         const structure = day.workout.structure as Array<{ sets?: number }>;
         if (Array.isArray(structure)) {
-          structure.forEach(exercise => {
+          structure.forEach((exercise) => {
             totalSets += exercise.sets || 0;
           });
         }
@@ -2467,14 +2994,16 @@ export default function AthleteDetail() {
       }
     });
 
-    const workoutsPlanned = schedule.filter(d => d.workout).length;
-    const workoutsCompleted = schedule.filter(d => d.status === "completed").length;
+    const workoutsPlanned = schedule.filter((d) => d.workout).length;
+    const workoutsCompleted = schedule.filter(
+      (d) => d.status === "completed",
+    ).length;
 
     return {
       totalSets,
       focusTypes: Array.from(focusTypes),
       workoutsPlanned,
-      workoutsCompleted
+      workoutsCompleted,
     };
   };
 
@@ -2498,7 +3027,9 @@ export default function AthleteDetail() {
     return (
       <CoachLayout title="Atleta non trovato" subtitle="">
         <Card className="p-8 text-center">
-          <p className="text-muted-foreground mb-4">Questo atleta non esiste o non hai accesso.</p>
+          <p className="text-muted-foreground mb-4">
+            Questo atleta non esiste o non hai accesso.
+          </p>
           <Button onClick={() => navigate("/coach/athletes")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Torna agli Atleti
@@ -2512,9 +3043,9 @@ export default function AthleteDetail() {
     <CoachLayout title="" subtitle="">
       <div className="space-y-6 animate-fade-in">
         {/* Back Button */}
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => navigate("/coach/athletes")}
           className="-ml-2"
         >
@@ -2528,7 +3059,10 @@ export default function AthleteDetail() {
             <div className="flex flex-col md:flex-row md:items-start gap-6">
               {/* Large Avatar */}
               <Avatar className="h-24 w-24 md:h-28 md:w-28 border-4 border-background shadow-xl ring-2 ring-primary/20">
-                <AvatarImage src={profile.avatar_url || undefined} alt={profile.full_name || ""} />
+                <AvatarImage
+                  src={profile.avatar_url || undefined}
+                  alt={profile.full_name || ""}
+                />
                 <AvatarFallback className="bg-primary text-primary-foreground text-2xl md:text-3xl font-bold">
                   {getInitials(profile.full_name || "A")}
                 </AvatarFallback>
@@ -2541,11 +3075,14 @@ export default function AthleteDetail() {
                   <h1 className="text-2xl md:text-3xl font-bold text-foreground">
                     {profile.full_name || "Nome non disponibile"}
                   </h1>
-                  <Badge 
-                    variant={athleteStatus === "injured" ? "destructive" : "secondary"}
+                  <Badge
+                    variant={
+                      athleteStatus === "injured" ? "destructive" : "secondary"
+                    }
                     className={cn(
                       "text-xs font-semibold px-3 py-1 w-fit",
-                      athleteStatus === "active" && "bg-success/15 text-success border-success/30 hover:bg-success/20"
+                      athleteStatus === "active" &&
+                        "bg-success/15 text-success border-success/30 hover:bg-success/20",
                     )}
                   >
                     {athleteStatus === "injured" ? (
@@ -2568,7 +3105,9 @@ export default function AthleteDetail() {
                     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-sm">
                       <Brain className="h-3.5 w-3.5 text-primary" />
                       <span className="text-muted-foreground">Neurotype:</span>
-                      <span className="font-medium text-foreground">{getNeurotypeLabel(profile.neurotype)}</span>
+                      <span className="font-medium text-foreground">
+                        {getNeurotypeLabel(profile.neurotype)}
+                      </span>
                     </div>
                   )}
 
@@ -2584,10 +3123,12 @@ export default function AthleteDetail() {
                     <Clock className="h-3.5 w-3.5 text-primary" />
                     <span className="text-muted-foreground">Last Active:</span>
                     <span className="font-medium text-foreground">
-                      {latestWorkout?.completed_at 
-                        ? formatDistanceToNow(new Date(latestWorkout.completed_at), { addSuffix: true, locale: it })
-                        : "Mai"
-                      }
+                      {latestWorkout?.completed_at
+                        ? formatDistanceToNow(
+                            new Date(latestWorkout.completed_at),
+                            { addSuffix: true, locale: it },
+                          )
+                        : "Mai"}
                     </span>
                   </div>
                 </div>
@@ -2638,50 +3179,81 @@ export default function AthleteDetail() {
         </Card>
 
         {/* Navigation Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
           <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
             <TabsList className="bg-muted/50 p-1 h-auto flex-wrap md:flex-nowrap w-max md:w-full">
-              <TabsTrigger value="overview" className="gap-2 text-xs md:text-sm px-3 py-2">
+              <TabsTrigger
+                value="overview"
+                className="gap-2 text-xs md:text-sm px-3 py-2"
+              >
                 <Activity className="h-4 w-4" />
                 <span className="hidden sm:inline">Panoramica</span>
                 <span className="sm:hidden">Panoramica</span>
               </TabsTrigger>
-              <TabsTrigger value="program" className="gap-2 text-xs md:text-sm px-3 py-2">
+              <TabsTrigger
+                value="program"
+                className="gap-2 text-xs md:text-sm px-3 py-2"
+              >
                 <Dumbbell className="h-4 w-4" />
                 <span className="hidden sm:inline">Programma</span>
                 <span className="sm:hidden">Programma</span>
               </TabsTrigger>
-              <TabsTrigger value="exercise-stats" className="gap-2 text-xs md:text-sm px-3 py-2">
+              <TabsTrigger
+                value="exercise-stats"
+                className="gap-2 text-xs md:text-sm px-3 py-2"
+              >
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline">Statistiche Esercizi</span>
                 <span className="sm:hidden">Stat.</span>
               </TabsTrigger>
-              <TabsTrigger value="vbt-analytics" className="gap-2 text-xs md:text-sm px-3 py-2">
+              <TabsTrigger
+                value="vbt-analytics"
+                className="gap-2 text-xs md:text-sm px-3 py-2"
+              >
                 <Zap className="h-4 w-4" />
                 <span className="hidden sm:inline">Analisi VBT</span>
                 <span className="sm:hidden">VBT</span>
               </TabsTrigger>
-              <TabsTrigger value="advanced-stats" className="gap-2 text-xs md:text-sm px-3 py-2">
+              <TabsTrigger
+                value="advanced-stats"
+                className="gap-2 text-xs md:text-sm px-3 py-2"
+              >
                 <TrendingUp className="h-4 w-4" />
                 <span className="hidden sm:inline">Statistiche Avanzate</span>
                 <span className="sm:hidden">Avanzate</span>
               </TabsTrigger>
-              <TabsTrigger value="body-metrics" className="gap-2 text-xs md:text-sm px-3 py-2">
+              <TabsTrigger
+                value="body-metrics"
+                className="gap-2 text-xs md:text-sm px-3 py-2"
+              >
                 <Scale className="h-4 w-4" />
                 <span className="hidden sm:inline">Misure Corporee</span>
                 <span className="sm:hidden">Misure</span>
               </TabsTrigger>
-              <TabsTrigger value="progress-pics" className="gap-2 text-xs md:text-sm px-3 py-2">
+              <TabsTrigger
+                value="progress-pics"
+                className="gap-2 text-xs md:text-sm px-3 py-2"
+              >
                 <Camera className="h-4 w-4" />
                 <span className="hidden sm:inline">Foto Progresso</span>
                 <span className="sm:hidden">Foto</span>
               </TabsTrigger>
-              <TabsTrigger value="strategy" className="gap-2 text-xs md:text-sm px-3 py-2">
+              <TabsTrigger
+                value="strategy"
+                className="gap-2 text-xs md:text-sm px-3 py-2"
+              >
                 <Utensils className="h-4 w-4" />
                 <span className="hidden sm:inline">Strategia</span>
                 <span className="sm:hidden">Strategia</span>
               </TabsTrigger>
-              <TabsTrigger value="settings" className="gap-2 text-xs md:text-sm px-3 py-2">
+              <TabsTrigger
+                value="settings"
+                className="gap-2 text-xs md:text-sm px-3 py-2"
+              >
                 <Settings className="h-4 w-4" />
                 <span className="hidden sm:inline">Impostazioni</span>
                 <span className="sm:hidden">Impostazioni</span>
@@ -2692,7 +3264,6 @@ export default function AthleteDetail() {
           {/* Overview Tab - Bento Grid */}
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              
               {/* Card 1: Readiness & Load */}
               <Card className="md:col-span-1 lg:col-span-2 overflow-hidden">
                 <CardHeader className="pb-2">
@@ -2705,7 +3276,10 @@ export default function AthleteDetail() {
                   <div className="flex items-center gap-6">
                     {/* Circular Gauge for Readiness */}
                     <div className="relative flex-shrink-0">
-                      <svg className="w-28 h-28 -rotate-90" viewBox="0 0 100 100">
+                      <svg
+                        className="w-28 h-28 -rotate-90"
+                        viewBox="0 0 100 100"
+                      >
                         {/* Background circle */}
                         <circle
                           cx="50"
@@ -2729,7 +3303,12 @@ export default function AthleteDetail() {
                         />
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className={cn("text-2xl font-bold tabular-nums", readinessColors.text)}>
+                        <span
+                          className={cn(
+                            "text-2xl font-bold tabular-nums",
+                            readinessColors.text,
+                          )}
+                        >
                           {readinessScore ?? "—"}
                         </span>
                         <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
@@ -2741,37 +3320,62 @@ export default function AthleteDetail() {
                     {/* ACWR Display */}
                     <div className="flex-1 space-y-3">
                       <div>
-                        <p className="text-xs text-muted-foreground mb-1">ACWR (Acuto:Cronico)</p>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          ACWR (Acuto:Cronico)
+                        </p>
                         {acwrLoading ? (
                           <Skeleton className="h-10 w-20" />
                         ) : acwrData?.status === "insufficient-data" ? (
-                          <p className="text-2xl font-bold text-muted-foreground">—</p>
+                          <p className="text-2xl font-bold text-muted-foreground">
+                            —
+                          </p>
                         ) : (
                           <div className="flex items-baseline gap-2">
-                            <span className={cn(
-                              "text-3xl font-bold tabular-nums",
-                              acwrData?.status === "optimal" && "text-success",
-                              acwrData?.status === "warning" && "text-warning",
-                              acwrData?.status === "high-risk" && "text-destructive"
-                            )}>
+                            <span
+                              className={cn(
+                                "text-3xl font-bold tabular-nums",
+                                acwrData?.status === "optimal" &&
+                                  "text-success",
+                                acwrData?.status === "warning" &&
+                                  "text-warning",
+                                acwrData?.status === "high-risk" &&
+                                  "text-destructive",
+                              )}
+                            >
                               {acwrData?.ratio?.toFixed(2) || "—"}
                             </span>
-                            <Badge variant="secondary" className={cn(
-                              "text-[10px]",
-                              acwrData?.status === "optimal" && "bg-success/10 text-success",
-                              acwrData?.status === "warning" && "bg-warning/10 text-warning",
-                              acwrData?.status === "high-risk" && "bg-destructive/10 text-destructive"
-                            )}>
+                            <Badge
+                              variant="secondary"
+                              className={cn(
+                                "text-[10px]",
+                                acwrData?.status === "optimal" &&
+                                  "bg-success/10 text-success",
+                                acwrData?.status === "warning" &&
+                                  "bg-warning/10 text-warning",
+                                acwrData?.status === "high-risk" &&
+                                  "bg-destructive/10 text-destructive",
+                              )}
+                            >
                               {acwrData?.label || "N/A"}
                             </Badge>
                           </div>
                         )}
                       </div>
-                      
+
                       {acwrData && acwrData.status !== "insufficient-data" && (
                         <div className="flex gap-4 text-xs text-muted-foreground">
-                          <span>Acuto: <strong className="text-foreground">{acwrData.acuteLoad}</strong></span>
-                          <span>Cronico: <strong className="text-foreground">{acwrData.chronicLoad}</strong></span>
+                          <span>
+                            Acuto:{" "}
+                            <strong className="text-foreground">
+                              {acwrData.acuteLoad}
+                            </strong>
+                          </span>
+                          <span>
+                            Cronico:{" "}
+                            <strong className="text-foreground">
+                              {acwrData.chronicLoad}
+                            </strong>
+                          </span>
                         </div>
                       )}
                     </div>
@@ -2791,7 +3395,9 @@ export default function AthleteDetail() {
                   <div className="flex items-center gap-4">
                     {/* TDEE Big Metric */}
                     <div className="flex-shrink-0 text-center">
-                      <p className="text-xs text-muted-foreground mb-1">Est. TDEE</p>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        Est. TDEE
+                      </p>
                       <p className="text-3xl font-bold text-foreground tabular-nums">
                         {tdeeValue ? tdeeValue.toLocaleString() : "—"}
                       </p>
@@ -2807,19 +3413,39 @@ export default function AthleteDetail() {
                       ) : (
                         <ChartContainer
                           config={{
-                            weight: { label: "Peso", color: "hsl(var(--primary))" },
+                            weight: {
+                              label: "Peso",
+                              color: "hsl(var(--primary))",
+                            },
                           }}
                           className="h-full w-full"
                         >
                           <AreaChart data={weightTrend}>
                             <defs>
-                              <linearGradient id="weightGradientOverview" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
-                                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                              <linearGradient
+                                id="weightGradientOverview"
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                              >
+                                <stop
+                                  offset="0%"
+                                  stopColor="hsl(var(--primary))"
+                                  stopOpacity={0.4}
+                                />
+                                <stop
+                                  offset="100%"
+                                  stopColor="hsl(var(--primary))"
+                                  stopOpacity={0}
+                                />
                               </linearGradient>
                             </defs>
                             <XAxis dataKey="date" hide />
-                            <YAxis hide domain={["dataMin - 1", "dataMax + 1"]} />
+                            <YAxis
+                              hide
+                              domain={["dataMin - 1", "dataMax + 1"]}
+                            />
                             <ChartTooltip content={<ChartTooltipContent />} />
                             <Area
                               type="monotone"
@@ -2833,12 +3459,27 @@ export default function AthleteDetail() {
                       )}
                     </div>
                   </div>
-                  
+
                   {weightTrend && weightTrend.length > 0 && (
                     <div className="flex justify-between text-xs text-muted-foreground mt-3 pt-3 border-t border-border/50">
-                      <span>30d Min: <strong className="text-foreground">{Math.min(...weightTrend.map(w => w.weight_kg!))} kg</strong></span>
-                      <span>Current: <strong className="text-foreground">{weightTrend[weightTrend.length - 1].weight_kg} kg</strong></span>
-                      <span>30d Max: <strong className="text-foreground">{Math.max(...weightTrend.map(w => w.weight_kg!))} kg</strong></span>
+                      <span>
+                        30d Min:{" "}
+                        <strong className="text-foreground">
+                          {Math.min(...weightTrend.map((w) => w.weight_kg!))} kg
+                        </strong>
+                      </span>
+                      <span>
+                        Current:{" "}
+                        <strong className="text-foreground">
+                          {weightTrend[weightTrend.length - 1].weight_kg} kg
+                        </strong>
+                      </span>
+                      <span>
+                        30d Max:{" "}
+                        <strong className="text-foreground">
+                          {Math.max(...weightTrend.map((w) => w.weight_kg!))} kg
+                        </strong>
+                      </span>
                     </div>
                   )}
                 </CardContent>
@@ -2856,22 +3497,40 @@ export default function AthleteDetail() {
                   {/* Week dots */}
                   <div className="flex items-center justify-between gap-2 mb-4">
                     {weeklyCompliance.days.map((day, idx) => (
-                      <div key={idx} className="flex flex-col items-center gap-1.5">
+                      <div
+                        key={idx}
+                        className="flex flex-col items-center gap-1.5"
+                      >
                         <span className="text-[10px] text-muted-foreground uppercase font-medium">
                           {day.day.slice(0, 2)}
                         </span>
-                        <div className={cn(
-                          "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-                          day.status === "completed" && "bg-success text-success-foreground",
-                          day.status === "rest" && "bg-muted text-muted-foreground",
-                          day.status === "missed" && "bg-destructive/20 text-destructive border-2 border-destructive/50",
-                          day.status === "future" && "bg-muted/30 text-muted-foreground/50 border border-dashed border-muted-foreground/30",
-                          day.isToday && "ring-2 ring-primary ring-offset-2 ring-offset-background"
-                        )}>
-                          {day.status === "completed" && <CheckCircle2 className="h-4 w-4" />}
-                          {day.status === "missed" && <XCircle className="h-4 w-4" />}
-                          {day.status === "rest" && <span className="text-xs">—</span>}
-                          {day.status === "future" && <span className="text-xs">•</span>}
+                        <div
+                          className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                            day.status === "completed" &&
+                              "bg-success text-success-foreground",
+                            day.status === "rest" &&
+                              "bg-muted text-muted-foreground",
+                            day.status === "missed" &&
+                              "bg-destructive/20 text-destructive border-2 border-destructive/50",
+                            day.status === "future" &&
+                              "bg-muted/30 text-muted-foreground/50 border border-dashed border-muted-foreground/30",
+                            day.isToday &&
+                              "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                          )}
+                        >
+                          {day.status === "completed" && (
+                            <CheckCircle2 className="h-4 w-4" />
+                          )}
+                          {day.status === "missed" && (
+                            <XCircle className="h-4 w-4" />
+                          )}
+                          {day.status === "rest" && (
+                            <span className="text-xs">—</span>
+                          )}
+                          {day.status === "future" && (
+                            <span className="text-xs">•</span>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -2879,25 +3538,33 @@ export default function AthleteDetail() {
 
                   {/* Adherence percentage */}
                   <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                    <span className="text-sm text-muted-foreground">Aderenza Settimanale</span>
+                    <span className="text-sm text-muted-foreground">
+                      Aderenza Settimanale
+                    </span>
                     <div className="flex items-center gap-2">
                       <div className="w-24 h-2 rounded-full bg-muted overflow-hidden">
-                        <div 
+                        <div
                           className={cn(
                             "h-full rounded-full transition-all",
                             weeklyCompliance.adherence >= 80 && "bg-success",
-                            weeklyCompliance.adherence >= 50 && weeklyCompliance.adherence < 80 && "bg-warning",
-                            weeklyCompliance.adherence < 50 && "bg-destructive"
+                            weeklyCompliance.adherence >= 50 &&
+                              weeklyCompliance.adherence < 80 &&
+                              "bg-warning",
+                            weeklyCompliance.adherence < 50 && "bg-destructive",
                           )}
                           style={{ width: `${weeklyCompliance.adherence}%` }}
                         />
                       </div>
-                      <span className={cn(
-                        "text-lg font-bold tabular-nums",
-                        weeklyCompliance.adherence >= 80 && "text-success",
-                        weeklyCompliance.adherence >= 50 && weeklyCompliance.adherence < 80 && "text-warning",
-                        weeklyCompliance.adherence < 50 && "text-destructive"
-                      )}>
+                      <span
+                        className={cn(
+                          "text-lg font-bold tabular-nums",
+                          weeklyCompliance.adherence >= 80 && "text-success",
+                          weeklyCompliance.adherence >= 50 &&
+                            weeklyCompliance.adherence < 80 &&
+                            "text-warning",
+                          weeklyCompliance.adherence < 50 && "text-destructive",
+                        )}
+                      >
                         {weeklyCompliance.adherence}%
                       </span>
                     </div>
@@ -2906,13 +3573,23 @@ export default function AthleteDetail() {
               </Card>
 
               {/* Card 4: Pain Status */}
-              <Card className={cn(
-                "md:col-span-1 lg:col-span-2 overflow-hidden transition-colors",
-                painStatus.hasPain && "border-destructive/50 bg-destructive/5"
-              )}>
+              <Card
+                className={cn(
+                  "md:col-span-1 lg:col-span-2 overflow-hidden transition-colors",
+                  painStatus.hasPain &&
+                    "border-destructive/50 bg-destructive/5",
+                )}
+              >
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Heart className={cn("h-4 w-4", painStatus.hasPain ? "text-destructive" : "text-success")} />
+                    <Heart
+                      className={cn(
+                        "h-4 w-4",
+                        painStatus.hasPain
+                          ? "text-destructive"
+                          : "text-success",
+                      )}
+                    />
                     Stato Dolore
                   </CardTitle>
                 </CardHeader>
@@ -2923,18 +3600,25 @@ export default function AthleteDetail() {
                         <AlertTriangle className="h-7 w-7 text-destructive" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-semibold text-destructive text-lg">Problema Attivo Rilevato</p>
+                        <p className="font-semibold text-destructive text-lg">
+                          Problema Attivo Rilevato
+                        </p>
                         <p className="text-sm text-muted-foreground">
-                          {'location' in painStatus && String(painStatus.location)}:{' '}
+                          {"location" in painStatus &&
+                            String(painStatus.location)}
+                          :{""}
                           <span className="capitalize font-medium text-foreground">
-                            {'severity' in painStatus && String(painStatus.severity)}
+                            {"severity" in painStatus &&
+                              String(painStatus.severity)}
                           </span>
                         </p>
-                        {'count' in painStatus && typeof painStatus.count === 'number' && painStatus.count > 1 && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            +{painStatus.count - 1} altri infortuni attivi
-                          </p>
-                        )}
+                        {"count" in painStatus &&
+                          typeof painStatus.count === "number" &&
+                          painStatus.count > 1 && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              +{painStatus.count - 1} altri infortuni attivi
+                            </p>
+                          )}
                       </div>
                     </div>
                   ) : (
@@ -2943,7 +3627,9 @@ export default function AthleteDetail() {
                         <CheckCircle2 className="h-7 w-7 text-success" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-semibold text-success text-lg">All Clear ✅</p>
+                        <p className="font-semibold text-success text-lg">
+                          All Clear{" "}
+                        </p>
                         <p className="text-sm text-muted-foreground">
                           Nessun infortunio o dolore segnalato
                         </p>
@@ -2952,7 +3638,6 @@ export default function AthleteDetail() {
                   )}
                 </CardContent>
               </Card>
-
             </div>
 
             {/* AI Insight Card */}
@@ -2975,12 +3660,20 @@ export default function AthleteDetail() {
                       </CardTitle>
                       {currentPhase && (
                         <p className="text-sm text-muted-foreground">
-                          {format(new Date(currentPhase.start_date), "d MMM", { locale: it })} - {format(new Date(currentPhase.end_date), "d MMM yyyy", { locale: it })}
+                          {format(new Date(currentPhase.start_date), "d MMM", {
+                            locale: it,
+                          })}{" "}
+                          -{" "}
+                          {format(
+                            new Date(currentPhase.end_date),
+                            "d MMM yyyy",
+                            { locale: it },
+                          )}
                         </p>
                       )}
                     </div>
                   </div>
-                  <Button 
+                  <Button
                     onClick={() => navigate(`/coach/programs?athlete=${id}`)}
                     className="gap-2"
                   >
@@ -2995,14 +3688,15 @@ export default function AthleteDetail() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">
-                        Settimana {phaseProgress.currentWeek} di {phaseProgress.totalWeeks}
+                        Settimana {phaseProgress.currentWeek} di{" "}
+                        {phaseProgress.totalWeeks}
                       </span>
                       <span className="font-medium text-foreground">
                         {phaseProgress.daysRemaining} giorni rimanenti
                       </span>
                     </div>
                     <div className="h-2 rounded-full bg-muted overflow-hidden">
-                      <div 
+                      <div
                         className="h-full rounded-full bg-primary transition-all duration-500"
                         style={{ width: `${phaseProgress.percentage}%` }}
                       />
@@ -3013,7 +3707,8 @@ export default function AthleteDetail() {
               {!currentPhase && (
                 <CardContent className="pt-0">
                   <p className="text-sm text-muted-foreground">
-                    Nessuna fase di allenamento attiva. Crea un programma per questo atleta.
+                    Nessuna fase di allenamento attiva. Crea un programma per
+                    questo atleta.
                   </p>
                 </CardContent>
               )}
@@ -3024,30 +3719,35 @@ export default function AthleteDetail() {
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                 Settimana Corrente
               </h3>
-              
+
               {/* Desktop Grid */}
               <div className="hidden md:grid md:grid-cols-7 gap-3">
                 {weeklySchedule.map((day, idx) => (
-                  <div 
+                  <div
                     key={idx}
                     className={cn(
                       "rounded-xl border transition-all",
-                      day.isToday && "ring-2 ring-primary ring-offset-2 ring-offset-background",
-                      day.isFuture && "opacity-60"
+                      day.isToday &&
+                        "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                      day.isFuture && "opacity-60",
                     )}
                   >
                     {/* Day Header */}
-                    <div className={cn(
-                      "px-3 py-2 border-b text-center",
-                      day.isToday ? "bg-primary/10" : "bg-muted/30"
-                    )}>
+                    <div
+                      className={cn(
+                        "px-3 py-2 border-b text-center",
+                        day.isToday ? "bg-primary/10" : "bg-muted/30",
+                      )}
+                    >
                       <p className="text-xs font-medium text-muted-foreground uppercase">
                         {day.dayName}
                       </p>
-                      <p className={cn(
-                        "text-lg font-bold",
-                        day.isToday ? "text-primary" : "text-foreground"
-                      )}>
+                      <p
+                        className={cn(
+                          "text-lg font-bold",
+                          day.isToday ? "text-primary" : "text-foreground",
+                        )}
+                      >
                         {day.dayNumber}
                       </p>
                     </div>
@@ -3057,15 +3757,26 @@ export default function AthleteDetail() {
                       {day.workout ? (
                         <div className="space-y-2">
                           {/* Status Indicator */}
-                          <div className={cn(
-                            "w-6 h-6 rounded-full flex items-center justify-center mx-auto",
-                            day.status === "completed" && "bg-success text-success-foreground",
-                            day.status === "missed" && "bg-destructive text-destructive-foreground",
-                            day.status === "scheduled" && "bg-primary/20 text-primary"
-                          )}>
-                            {day.status === "completed" && <CheckCircle2 className="h-4 w-4" />}
-                            {day.status === "missed" && <XCircle className="h-4 w-4" />}
-                            {day.status === "scheduled" && <Dumbbell className="h-3 w-3" />}
+                          <div
+                            className={cn(
+                              "w-6 h-6 rounded-full flex items-center justify-center mx-auto",
+                              day.status === "completed" &&
+                                "bg-success text-success-foreground",
+                              day.status === "missed" &&
+                                "bg-destructive text-destructive-foreground",
+                              day.status === "scheduled" &&
+                                "bg-primary/20 text-primary",
+                            )}
+                          >
+                            {day.status === "completed" && (
+                              <CheckCircle2 className="h-4 w-4" />
+                            )}
+                            {day.status === "missed" && (
+                              <XCircle className="h-4 w-4" />
+                            )}
+                            {day.status === "scheduled" && (
+                              <Dumbbell className="h-3 w-3" />
+                            )}
                           </div>
 
                           {/* Workout Info */}
@@ -3078,14 +3789,20 @@ export default function AthleteDetail() {
                           {/* Badges */}
                           <div className="flex flex-wrap justify-center gap-1">
                             {day.workout.estimated_duration && (
-                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px] px-1.5 py-0"
+                              >
                                 <Clock className="h-2.5 w-2.5 mr-0.5" />
                                 {day.workout.estimated_duration}m
                               </Badge>
                             )}
                             {currentPhase?.focus_type && (
-                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
-                                {currentPhase.focus_type.replace('_', ' ')}
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] px-1.5 py-0 capitalize"
+                              >
+                                {currentPhase.focus_type.replace("_", "")}
                               </Badge>
                             )}
                           </div>
@@ -3104,24 +3821,30 @@ export default function AthleteDetail() {
               {/* Mobile Stack */}
               <div className="md:hidden space-y-2">
                 {weeklySchedule.map((day, idx) => (
-                  <Card 
+                  <Card
                     key={idx}
                     className={cn(
                       "overflow-hidden transition-all",
                       day.isToday && "ring-2 ring-primary",
-                      day.isFuture && "opacity-60"
+                      day.isFuture && "opacity-60",
                     )}
                   >
                     <div className="flex items-center gap-3 p-3">
                       {/* Date Column */}
-                      <div className={cn(
-                        "w-14 h-14 rounded-lg flex flex-col items-center justify-center flex-shrink-0",
-                        day.isToday ? "bg-primary text-primary-foreground" : "bg-muted"
-                      )}>
+                      <div
+                        className={cn(
+                          "w-14 h-14 rounded-lg flex flex-col items-center justify-center flex-shrink-0",
+                          day.isToday
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted",
+                        )}
+                      >
                         <span className="text-[10px] uppercase font-medium">
                           {day.dayName}
                         </span>
-                        <span className="text-xl font-bold">{day.dayNumber}</span>
+                        <span className="text-xl font-bold">
+                          {day.dayNumber}
+                        </span>
                       </div>
 
                       {/* Content */}
@@ -3129,7 +3852,9 @@ export default function AthleteDetail() {
                         {day.workout ? (
                           <div>
                             <div className="flex items-center gap-2">
-                              <p className="font-medium truncate">{day.workout.title}</p>
+                              <p className="font-medium truncate">
+                                {day.workout.title}
+                              </p>
                               {day.status === "completed" && (
                                 <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
                               )}
@@ -3144,8 +3869,11 @@ export default function AthleteDetail() {
                                 </span>
                               )}
                               {currentPhase?.focus_type && (
-                                <Badge variant="outline" className="text-[10px] capitalize">
-                                  {currentPhase.focus_type.replace('_', ' ')}
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] capitalize"
+                                >
+                                  {currentPhase.focus_type.replace("_", "")}
                                 </Badge>
                               )}
                             </div>
@@ -3169,29 +3897,40 @@ export default function AthleteDetail() {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-6">
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-foreground">{weeklyStats.totalSets}</p>
-                      <p className="text-xs text-muted-foreground">Serie Totali</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {weeklyStats.totalSets}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Serie Totali
+                      </p>
                     </div>
                     <div className="h-8 w-px bg-border" />
                     <div className="text-center">
                       <p className="text-2xl font-bold text-foreground">
-                        {weeklyStats.workoutsCompleted}/{weeklyStats.workoutsPlanned}
+                        {weeklyStats.workoutsCompleted}/
+                        {weeklyStats.workoutsPlanned}
                       </p>
                       <p className="text-xs text-muted-foreground">Workouts</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Focus:</span>
+                    <span className="text-sm text-muted-foreground">
+                      Focus:
+                    </span>
                     {weeklyStats.focusTypes.length > 0 ? (
                       weeklyStats.focusTypes.map((focus, idx) => (
-                        <Badge key={idx} variant="secondary" className="capitalize">
-                          {focus.replace('_', ' ')}
+                        <Badge
+                          key={idx}
+                          variant="secondary"
+                          className="capitalize"
+                        >
+                          {focus.replace("_", "")}
                         </Badge>
                       ))
                     ) : currentPhase?.focus_type ? (
                       <Badge variant="secondary" className="capitalize">
-                        {currentPhase.focus_type.replace('_', ' ')}
+                        {currentPhase.focus_type.replace("_", "")}
                       </Badge>
                     ) : (
                       <Badge variant="outline">None</Badge>
@@ -3228,8 +3967,8 @@ export default function AthleteDetail() {
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
-            <SettingsContent 
-              athleteId={id} 
+            <SettingsContent
+              athleteId={id}
               profile={profile}
               onProfileUpdate={() => {}}
             />

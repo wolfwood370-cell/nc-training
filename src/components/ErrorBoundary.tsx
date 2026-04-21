@@ -1,5 +1,5 @@
-import { Component, type ErrorInfo, type ReactNode } from "react";
-import { Button } from "@/components/ui/button";
+import { Component, type ErrorInfo, type ReactNode } from"react";
+import { Button } from"@/components/ui/button";
 
 interface Props {
   children: ReactNode;
@@ -33,7 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="flex min-h-screen items-center justify-center bg-background p-6">
           <div className="text-center max-w-md space-y-6">
-            <span className="text-6xl" role="img" aria-label="error">🔧</span>
+            <span className="text-6xl"role="img"aria-label="error"></span>
             <h1 className="text-2xl font-bold text-foreground">
               Qualcosa è andato storto
             </h1>

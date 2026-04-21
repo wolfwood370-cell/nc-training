@@ -39,7 +39,10 @@ interface InviteAthleteDialogProps {
   trigger?: React.ReactNode;
 }
 
-export function InviteAthleteDialog({ onAthleteInvited, trigger }: InviteAthleteDialogProps) {
+export function InviteAthleteDialog({
+  onAthleteInvited,
+  trigger,
+}: InviteAthleteDialogProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -79,20 +82,21 @@ export function InviteAthleteDialog({ onAthleteInvited, trigger }: InviteAthlete
       }
 
       // 2. Send invitation email via edge function
-      const { data: emailResult, error: emailError } = await supabase.functions.invoke("send-email", {
-        body: {
-          to: data.email.toLowerCase().trim(),
-          type: "invite",
-          data: { coachName: profile?.full_name || "Il tuo Coach" },
-        },
-      });
+      const { data: emailResult, error: emailError } =
+        await supabase.functions.invoke("send-email", {
+          body: {
+            to: data.email.toLowerCase().trim(),
+            type: "invite",
+            data: { coachName: profile?.full_name || "Il tuo Coach" },
+          },
+        });
 
       if (emailError) {
         console.warn("Email send failed, but invite was created:", emailError);
       }
 
       toast({
-        title: "Invito inviato! ✉️",
+        title: "Invito inviato!",
         description: `Email di invito inviata a ${data.email}.`,
       });
 
@@ -128,11 +132,15 @@ export function InviteAthleteDialog({ onAthleteInvited, trigger }: InviteAthlete
             Invita Atleta
           </DialogTitle>
           <DialogDescription>
-            Invia un invito a un nuovo atleta per unirsi al tuo programma di coaching.
+            Invia un invito a un nuovo atleta per unirsi al tuo programma di
+            coaching.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 pt-4"
+          >
             <FormField
               control={form.control}
               name="firstName"
@@ -166,7 +174,11 @@ export function InviteAthleteDialog({ onAthleteInvited, trigger }: InviteAthlete
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="mario.rossi@email.com" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="mario.rossi@email.com"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -181,7 +193,11 @@ export function InviteAthleteDialog({ onAthleteInvited, trigger }: InviteAthlete
               >
                 Annulla
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="gradient-primary">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="gradient-primary"
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />

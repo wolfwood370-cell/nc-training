@@ -1,9 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
+import { supabase } from"@/integrations/supabase/client";
+import { useAuth } from"@/hooks/useAuth";
+import { toast } from"sonner";
 
-export type ContentType = "video" | "pdf" | "link" | "text" | "ai_knowledge";
+export type ContentType ="video"|"pdf"|"link"|"text"|"ai_knowledge";
 
 export interface ContentItem {
   id: string;
@@ -53,7 +53,7 @@ export function useContentLibrary() {
 
       const tags = [...(payload.tags || [])];
       // Store AI category as a special tag for display
-      if (payload.type === "ai_knowledge" && payload.aiCategory) {
+      if (payload.type ==="ai_knowledge"&& payload.aiCategory) {
         tags.unshift(`cat:${payload.aiCategory}`);
       }
 
@@ -72,16 +72,16 @@ export function useContentLibrary() {
       if (error) throw error;
 
       // If ai_knowledge, trigger ingestion automatically
-      if (payload.type === "ai_knowledge" && payload.aiContent) {
+      if (payload.type ==="ai_knowledge"&& payload.aiContent) {
         try {
           const { error: fnError } = await supabase.functions.invoke("ingest-knowledge", {
             body: {
               content: payload.aiContent,
               metadata: {
                 source: payload.title,
-                type: "ai_knowledge",
+                type:"ai_knowledge",
                 resource_id: data.id,
-                category: payload.aiCategory || "altro",
+                category: payload.aiCategory ||"altro",
               },
             },
           });
@@ -99,14 +99,14 @@ export function useContentLibrary() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["content-library"] });
-      if (variables.type === "ai_knowledge") {
-        toast.success("Risorsa salvata e AI aggiornata (Training avviato...) 🧠");
+      if (variables.type ==="ai_knowledge") {
+        toast.success("Risorsa salvata e AI aggiornata (Training avviato...)");
       } else {
         toast.success("Risorsa aggiunta con successo");
       }
     },
     onError: (error) => {
-      toast.error("Errore nell'aggiunta: " + error.message);
+      toast.error("Errore nell'aggiunta:"+ error.message);
     },
   });
 
@@ -124,7 +124,7 @@ export function useContentLibrary() {
       toast.success("Risorsa eliminata");
     },
     onError: (error) => {
-      toast.error("Errore nell'eliminazione: " + error.message);
+      toast.error("Errore nell'eliminazione:"+ error.message);
     },
   });
 

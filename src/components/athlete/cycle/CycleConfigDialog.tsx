@@ -53,23 +53,29 @@ export function CycleConfigDialog({
   const [date, setDate] = useState<Date | undefined>(
     defaultValues?.lastPeriodStart
       ? new Date(defaultValues.lastPeriodStart)
-      : undefined
+      : undefined,
   );
   const [cycleLength, setCycleLength] = useState(
-    defaultValues?.cycleLength?.toString() || "28"
+    defaultValues?.cycleLength?.toString() || "28",
   );
   const [contraceptive, setContraceptive] = useState(
-    defaultValues?.contraceptiveType || "none"
+    defaultValues?.contraceptiveType || "none",
   );
 
   const handleSubmit = async () => {
     if (!date) {
-      toast({ title: "Seleziona la data di inizio dell'ultimo ciclo", variant: "destructive" });
+      toast({
+        title: "Seleziona la data di inizio dell'ultimo ciclo",
+        variant: "destructive",
+      });
       return;
     }
     const len = parseInt(cycleLength);
     if (isNaN(len) || len < 20 || len > 45) {
-      toast({ title: "La durata del ciclo deve essere tra 20 e 45 giorni", variant: "destructive" });
+      toast({
+        title: "La durata del ciclo deve essere tra 20 e 45 giorni",
+        variant: "destructive",
+      });
       return;
     }
     try {
@@ -78,7 +84,7 @@ export function CycleConfigDialog({
         cycleLength: len,
         contraceptiveType: contraceptive,
       });
-      toast({ title: "Impostazioni ciclo salvate ✓" });
+      toast({ title: "Impostazioni ciclo salvate" });
       onOpenChange(false);
     } catch {
       toast({ title: "Errore nel salvataggio", variant: "destructive" });
@@ -94,21 +100,24 @@ export function CycleConfigDialog({
             Configurazione Ciclo
           </DialogTitle>
           <DialogDescription>
-            Configura il tuo ciclo mestruale per sbloccare gli aggiustamenti di allenamento basati sulla fase.
+            Configura il tuo ciclo mestruale per sbloccare gli aggiustamenti di
+            allenamento basati sulla fase.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 pt-2">
           {/* Last Period Start */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Data Inizio Ultimo Ciclo</Label>
+            <Label className="text-sm font-medium">
+              Data Inizio Ultimo Ciclo
+            </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   className={cn(
                     "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
+                    !date && "text-muted-foreground",
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -130,7 +139,9 @@ export function CycleConfigDialog({
 
           {/* Cycle Length */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Durata Media del Ciclo (giorni)</Label>
+            <Label className="text-sm font-medium">
+              Durata Media del Ciclo (giorni)
+            </Label>
             <Input
               type="number"
               value={cycleLength}
@@ -139,7 +150,9 @@ export function CycleConfigDialog({
               max={45}
               className="tabular-nums"
             />
-            <p className="text-xs text-muted-foreground">Intervallo tipico: 24–35 giorni</p>
+            <p className="text-xs text-muted-foreground">
+              Intervallo tipico: 24–35 giorni
+            </p>
           </div>
 
           {/* Contraceptive Type */}
@@ -161,11 +174,7 @@ export function CycleConfigDialog({
             </Select>
           </div>
 
-          <Button
-            onClick={handleSubmit}
-            disabled={isSaving}
-            className="w-full"
-          >
+          <Button onClick={handleSubmit} disabled={isSaving} className="w-full">
             {isSaving ? "Salvataggio..." : "Attiva Sincronizzazione Ciclo"}
           </Button>
         </div>

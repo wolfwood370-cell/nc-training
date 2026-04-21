@@ -1,19 +1,19 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { triggerConfetti } from "@/utils/ux";
-import { StepIndicator } from "@/components/onboarding/StepIndicator";
-import { LegalStep } from "@/components/onboarding/steps/LegalStep";
-import { BiometricsStep } from "@/components/onboarding/steps/BiometricsStep";
-import { LifestyleStep } from "@/components/onboarding/steps/LifestyleStep";
-import { TrainingStep } from "@/components/onboarding/steps/TrainingStep";
-import { NeurotypStep } from "@/components/onboarding/steps/NeurotypStep";
-import { NeurotypResult } from "@/components/onboarding/NeurotypResult";
+import { useState, useEffect, useCallback } from"react";
+import { useNavigate } from"react-router-dom";
+import { motion, AnimatePresence } from"framer-motion";
+import { Button } from"@/components/ui/button";
+import { ArrowLeft, ArrowRight, Loader2 } from"lucide-react";
+import { useToast } from"@/hooks/use-toast";
+import { supabase } from"@/integrations/supabase/client";
+import { useAuth } from"@/hooks/useAuth";
+import { triggerConfetti } from"@/utils/ux";
+import { StepIndicator } from"@/components/onboarding/StepIndicator";
+import { LegalStep } from"@/components/onboarding/steps/LegalStep";
+import { BiometricsStep } from"@/components/onboarding/steps/BiometricsStep";
+import { LifestyleStep } from"@/components/onboarding/steps/LifestyleStep";
+import { TrainingStep } from"@/components/onboarding/steps/TrainingStep";
+import { NeurotypStep } from"@/components/onboarding/steps/NeurotypStep";
+import { NeurotypResult } from"@/components/onboarding/NeurotypResult";
 import {
   Dialog,
   DialogContent,
@@ -21,17 +21,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from"@/components/ui/dialog";
 import {
   OnboardingData,
   defaultOnboardingData,
   NeurotypType,
   neurotypQuestions,
   answerScores,
-} from "@/types/onboarding";
+} from"@/types/onboarding";
 
-const STEP_LABELS = ["Legale", "Biometria", "Lifestyle", "Training", "Neurotype"];
-const STORAGE_KEY = "onboarding_state_draft";
+const STEP_LABELS = ["Legale","Biometria","Lifestyle","Training","Neurotype"];
+const STORAGE_KEY ="onboarding_state_draft";
 
 interface SavedDraft {
   currentStep: number;
@@ -48,7 +48,7 @@ export default function OnboardingWizard() {
   const [showResult, setShowResult] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dominantType, setDominantType] = useState<NeurotypType | null>(null);
-  const [scores, setScores] = useState<Record<NeurotypType, number>>({ '1A': 0, '1B': 0, '2A': 0, '2B': 0, '3': 0 });
+  const [scores, setScores] = useState<Record<NeurotypType, number>>({'1A': 0,'1B': 0,'2A': 0,'2B': 0,'3': 0 });
   const [showResumeDialog, setShowResumeDialog] = useState(false);
   const [pendingDraft, setPendingDraft] = useState<SavedDraft | null>(null);
   const [initialized, setInitialized] = useState(false);
@@ -96,13 +96,13 @@ export default function OnboardingWizard() {
   };
 
   const calculateNeurotype = (): { dominant: NeurotypType; scores: Record<NeurotypType, number> } => {
-    const typeScores: Record<NeurotypType, number> = { '1A': 0, '1B': 0, '2A': 0, '2B': 0, '3': 0 };
+    const typeScores: Record<NeurotypType, number> = {'1A': 0,'1B': 0,'2A': 0,'2B': 0,'3': 0 };
 
     data.neurotypAnswers.forEach((answer) => {
       const question = neurotypQuestions[answer.questionIndex];
       if (question) {
         const scoreValues = answerScores[answer.value];
-        const score = question.weight === 'A' ? scoreValues.A : scoreValues.B;
+        const score = question.weight ==='A'? scoreValues.A : scoreValues.B;
         typeScores[question.type] += score;
       }
     });
@@ -163,10 +163,10 @@ export default function OnboardingWizard() {
       localStorage.removeItem(STORAGE_KEY);
 
       triggerConfetti();
-      toast({ title: "Onboarding completato! 🎉", description: "Benvenuto nel tuo programma personalizzato." });
+      toast({ title:"Onboarding completato!", description:"Benvenuto nel tuo programma personalizzato."});
       navigate("/athlete");
     } catch (error) {
-      toast({ title: "Errore", description: "Si è verificato un errore. Riprova.", variant: "destructive" });
+      toast({ title:"Errore", description:"Si è verificato un errore. Riprova.", variant:"destructive"});
     } finally {
       setIsSubmitting(false);
     }
@@ -184,7 +184,7 @@ export default function OnboardingWizard() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={handleStartFresh}>Ricomincia</Button>
+            <Button variant="outline"onClick={handleStartFresh}>Ricomincia</Button>
             <Button onClick={handleResume} className="gradient-primary">Riprendi</Button>
           </DialogFooter>
         </DialogContent>
@@ -203,7 +203,7 @@ export default function OnboardingWizard() {
           <div className="mt-12">
             <AnimatePresence mode="wait">
               {showResult && dominantType ? (
-                <NeurotypResult key="result" dominantType={dominantType} scores={scores} onContinue={handleComplete} isSubmitting={isSubmitting} />
+                <NeurotypResult key="result"dominantType={dominantType} scores={scores} onContinue={handleComplete} isSubmitting={isSubmitting} />
               ) : (
                 <motion.div key={currentStep}>
                   {currentStep === 1 && <LegalStep data={data.legal} onUpdate={(legal) => setData({ ...data, legal })} />}
@@ -221,11 +221,11 @@ export default function OnboardingWizard() {
       {!showResult && (
         <footer className="p-6 border-t border-border bg-card/50">
           <div className="max-w-4xl mx-auto flex justify-between">
-            <Button variant="outline" onClick={handleBack} disabled={currentStep === 1}>
-              <ArrowLeft className="h-4 w-4 mr-2" /> Indietro
+            <Button variant="outline"onClick={handleBack} disabled={currentStep === 1}>
+              <ArrowLeft className="h-4 w-4 mr-2"/> Indietro
             </Button>
             <Button onClick={handleNext} disabled={!canProceed()} className="gradient-primary">
-              {currentStep === 5 ? "Calcola Neurotipo" : "Avanti"} <ArrowRight className="h-4 w-4 ml-2" />
+              {currentStep === 5 ?"Calcola Neurotipo":"Avanti"} <ArrowRight className="h-4 w-4 ml-2"/>
             </Button>
           </div>
         </footer>

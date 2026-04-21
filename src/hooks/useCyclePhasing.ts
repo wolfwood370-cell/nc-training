@@ -1,10 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { differenceInDays, addDays, format } from "date-fns";
+import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
+import { supabase } from"@/integrations/supabase/client";
+import { differenceInDays, addDays, format } from"date-fns";
 
 // ── Types ──────────────────────────────────────────────
 
-export type CyclePhase = "menstrual" | "follicular" | "ovulatory" | "luteal";
+export type CyclePhase ="menstrual"|"follicular"|"ovulatory"|"luteal";
 
 export interface TrainingModifiers {
   volume_suggestion: string;
@@ -33,64 +33,64 @@ export interface CycleSettings {
 // ── Phase Algorithm ────────────────────────────────────
 
 function calculatePhase(dayInCycle: number, cycleLength: number): CyclePhase {
-  if (dayInCycle <= 5) return "menstrual";
-  if (dayInCycle <= 12) return "follicular";
-  if (dayInCycle <= 15) return "ovulatory";
-  return "luteal";
+  if (dayInCycle <= 5) return"menstrual";
+  if (dayInCycle <= 12) return"follicular";
+  if (dayInCycle <= 15) return"ovulatory";
+  return"luteal";
 }
 
 function getTrainingModifiers(phase: CyclePhase, dayInCycle: number): TrainingModifiers {
   switch (phase) {
-    case "menstrual":
+    case"menstrual":
       return {
-        volume_suggestion: "Deload",
+        volume_suggestion:"Deload",
         strength_potential: 35,
-        injury_risk: "Low",
-        nutrition_focus: "Iron & Hydration",
+        injury_risk:"Low",
+        nutrition_focus:"Iron & Hydration",
       };
-    case "follicular":
+    case"follicular":
       return {
-        volume_suggestion: "Push Hard",
+        volume_suggestion:"Push Hard",
         strength_potential: 80,
-        injury_risk: "Low",
-        nutrition_focus: "Carbs for intensity",
+        injury_risk:"Low",
+        nutrition_focus:"Carbs for intensity",
       };
-    case "ovulatory":
+    case"ovulatory":
       return {
-        volume_suggestion: "Peak Performance",
+        volume_suggestion:"Peak Performance",
         strength_potential: 95,
-        injury_risk: "High — Protect Knees",
-        nutrition_focus: "Protein & Antioxidants",
+        injury_risk:"High — Protect Knees",
+        nutrition_focus:"Protein & Antioxidants",
       };
-    case "luteal":
+    case"luteal":
       return {
-        volume_suggestion: "Maintenance",
+        volume_suggestion:"Maintenance",
         strength_potential: 55,
-        injury_risk: "Moderate",
-        nutrition_focus: "Hydration & Magnesium",
+        injury_risk:"Moderate",
+        nutrition_focus:"Hydration & Magnesium",
       };
   }
 }
 
 function getPowerTip(phase: CyclePhase): string {
   switch (phase) {
-    case "menstrual":
-      return "Rest is productive. Focus on mobility and low-intensity work.";
-    case "follicular":
-      return "Estrogen is rising. Go for a PR today! 💪";
-    case "ovulatory":
-      return "Peak strength window — but warm up thoroughly to protect joints.";
-    case "luteal":
-      return "Body temp is higher. Focus on steady-state aerobic work.";
+    case"menstrual":
+      return"Rest is productive. Focus on mobility and low-intensity work.";
+    case"follicular":
+      return"Estrogen is rising. Go for a PR today!";
+    case"ovulatory":
+      return"Peak strength window — but warm up thoroughly to protect joints.";
+    case"luteal":
+      return"Body temp is higher. Focus on steady-state aerobic work.";
   }
 }
 
 function getPhaseLabel(phase: CyclePhase): string {
   switch (phase) {
-    case "menstrual": return "Menstrual Phase";
-    case "follicular": return "Follicular Phase";
-    case "ovulatory": return "Ovulatory Phase";
-    case "luteal": return "Luteal Phase";
+    case"menstrual": return"Menstrual Phase";
+    case"follicular": return"Follicular Phase";
+    case"ovulatory": return"Ovulatory Phase";
+    case"luteal": return"Luteal Phase";
   }
 }
 
@@ -154,13 +154,13 @@ export function useCyclePhasing(userId: string | undefined) {
         athlete_id: userId,
         last_period_start_date: input.lastPeriodStart,
         cycle_length_days: input.cycleLength,
-        contraceptive_type: input.contraceptiveType || "none",
+        contraceptive_type: input.contraceptiveType ||"none",
         auto_regulation_enabled: true,
       };
 
       const { error } = await supabase
         .from("athlete_cycle_settings")
-        .upsert(payload, { onConflict: "athlete_id" });
+        .upsert(payload, { onConflict:"athlete_id"});
 
       if (error) throw error;
     },
@@ -173,8 +173,8 @@ export function useCyclePhasing(userId: string | undefined) {
   const logSymptomsMutation = useMutation({
     mutationFn: async (symptoms: string[]) => {
       if (!userId) throw new Error("No user");
-      const today = format(new Date(), "yyyy-MM-dd");
-      const phase = cycleStatus?.currentPhase || "follicular";
+      const today = format(new Date(),"yyyy-MM-dd");
+      const phase = cycleStatus?.currentPhase ||"follicular";
 
       const { error } = await supabase
         .from("daily_cycle_logs")
@@ -185,7 +185,7 @@ export function useCyclePhasing(userId: string | undefined) {
             current_phase: phase,
             symptom_tags: symptoms,
           },
-          { onConflict: "athlete_id,date" }
+          { onConflict:"athlete_id,date"}
         );
 
       if (error) throw error;

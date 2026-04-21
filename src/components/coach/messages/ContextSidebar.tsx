@@ -16,12 +16,7 @@ import { cn } from "@/lib/utils";
 import { format, addDays } from "date-fns";
 import { it } from "date-fns/locale";
 import { Conversation } from "./ChatList";
-import {
-  LineChart,
-  Line,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+import { LineChart, Line, ResponsiveContainer, Tooltip } from "recharts";
 
 interface ContextSidebarProps {
   conversation: Conversation | null;
@@ -99,7 +94,7 @@ export function ContextSidebar({
           "fixed inset-y-0 right-0 z-50 w-80 transition-all duration-300 lg:relative lg:w-full",
           isOpen
             ? "translate-x-0 opacity-100"
-            : "translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100"
+            : "translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100",
         )}
       >
         <div className="flex-1 flex items-center justify-center p-6 text-center text-muted-foreground">
@@ -116,7 +111,7 @@ export function ContextSidebar({
         "fixed inset-y-0 right-0 z-50 w-80 transition-all duration-300 lg:relative lg:w-full",
         isOpen
           ? "translate-x-0 opacity-100"
-          : "translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100"
+          : "translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100",
       )}
     >
       {/* Header */}
@@ -157,14 +152,14 @@ export function ContextSidebar({
                       {workout.time ? (
                         <Dumbbell className="h-4 w-4 text-primary" />
                       ) : (
-                        <span className="text-xs">😴</span>
+                        <span className="text-xs"></span>
                       )}
                     </div>
                     <div>
                       <p className="text-sm font-medium">{workout.name}</p>
                       <p className="text-[10px] text-muted-foreground">
                         {format(workout.date, "EEEE d", { locale: it })}
-                        {workout.time && ` • ${workout.time}`}
+                        {workout.time && `• ${workout.time}`}
                       </p>
                     </div>
                   </div>
@@ -185,15 +180,20 @@ export function ContextSidebar({
             <div className="p-3 rounded-lg border bg-card">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <p className="text-sm font-semibold">{mockLastWorkout.name}</p>
+                  <p className="text-sm font-semibold">
+                    {mockLastWorkout.name}
+                  </p>
                   <p className="text-xs text-muted-foreground">
-                    {format(mockLastWorkout.date, "d MMMM", { locale: it })} •{" "}
+                    {format(mockLastWorkout.date, "d MMMM", { locale: it })} •
+                    {""}
                     {mockLastWorkout.duration} min
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Badge
-                    variant={mockLastWorkout.rpe > 8 ? "destructive" : "secondary"}
+                    variant={
+                      mockLastWorkout.rpe > 8 ? "destructive" : "secondary"
+                    }
                     className="text-xs"
                   >
                     RPE {mockLastWorkout.rpe}
@@ -205,7 +205,7 @@ export function ContextSidebar({
               </div>
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <span>{mockLastWorkout.exercises} esercizi</span>
-                <span className="text-green-500">✓ Completato</span>
+                <span className="text-green-500"> Completato</span>
               </div>
             </div>
           </div>
@@ -227,7 +227,10 @@ export function ContextSidebar({
                     Peso Corporeo (30gg)
                   </span>
                   <span className="text-sm font-semibold">
-                    {mockWeightData[mockWeightData.length - 1].weight.toFixed(1)} kg
+                    {mockWeightData[mockWeightData.length - 1].weight.toFixed(
+                      1,
+                    )}{" "}
+                    kg
                   </span>
                 </div>
                 <MiniSparkline
@@ -245,7 +248,8 @@ export function ContextSidebar({
                   </span>
                   <span className="text-sm font-semibold text-green-500">
                     {Math.round(
-                      mockComplianceData[mockComplianceData.length - 1].compliance
+                      mockComplianceData[mockComplianceData.length - 1]
+                        .compliance,
                     )}
                     %
                   </span>

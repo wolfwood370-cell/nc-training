@@ -14,34 +14,34 @@ interface BiometricsStepProps {
 }
 
 const wearableOptions = [
-  { id: 'oura', label: 'Oura Ring', autoSync: true },
-  { id: 'garmin', label: 'Garmin', autoSync: true },
-  { id: 'apple_watch', label: 'Apple Watch', autoSync: false },
-  { id: 'whoop', label: 'Whoop', autoSync: true },
-  { id: 'polar', label: 'Polar/Fascia Cardio', autoSync: false },
-  { id: 'none', label: 'Nessuno', autoSync: false },
+  { id: "oura", label: "Oura Ring", autoSync: true },
+  { id: "garmin", label: "Garmin", autoSync: true },
+  { id: "apple_watch", label: "Apple Watch", autoSync: false },
+  { id: "whoop", label: "Whoop", autoSync: true },
+  { id: "polar", label: "Polar/Fascia Cardio", autoSync: false },
+  { id: "none", label: "Nessuno", autoSync: false },
 ];
 
 export function BiometricsStep({ data, onUpdate }: BiometricsStepProps) {
   const handleWearableToggle = (wearableId: string) => {
     let newWearables: string[];
-    
-    if (wearableId === 'none') {
-      newWearables = data.wearables.includes('none') ? [] : ['none'];
+
+    if (wearableId === "none") {
+      newWearables = data.wearables.includes("none") ? [] : ["none"];
     } else {
-      const filtered = data.wearables.filter(w => w !== 'none');
+      const filtered = data.wearables.filter((w) => w !== "none");
       if (filtered.includes(wearableId)) {
-        newWearables = filtered.filter(w => w !== wearableId);
+        newWearables = filtered.filter((w) => w !== wearableId);
       } else {
         newWearables = [...filtered, wearableId];
       }
     }
-    
+
     onUpdate({ ...data, wearables: newWearables });
   };
 
-  const hasAutoSyncDevice = data.wearables.some(w => 
-    wearableOptions.find(opt => opt.id === w)?.autoSync
+  const hasAutoSyncDevice = data.wearables.some(
+    (w) => wearableOptions.find((opt) => opt.id === w)?.autoSync,
   );
 
   return (
@@ -66,14 +66,16 @@ export function BiometricsStep({ data, onUpdate }: BiometricsStepProps) {
         <div className="space-y-3">
           <Label className="text-sm font-medium">Genere</Label>
           <RadioGroup
-            value={data.gender || ''}
-            onValueChange={(value) => onUpdate({ ...data, gender: value as BiometricsData['gender'] })}
+            value={data.gender || ""}
+            onValueChange={(value) =>
+              onUpdate({ ...data, gender: value as BiometricsData["gender"] })
+            }
             className="flex gap-3"
           >
             {[
-              { value: 'male', label: 'Maschio' },
-              { value: 'female', label: 'Femmina' },
-              { value: 'other', label: 'Altro' },
+              { value: "male", label: "Maschio" },
+              { value: "female", label: "Femmina" },
+              { value: "other", label: "Altro" },
             ].map((option) => (
               <div key={option.value} className="flex-1">
                 <RadioGroupItem
@@ -86,7 +88,7 @@ export function BiometricsStep({ data, onUpdate }: BiometricsStepProps) {
                   className={cn(
                     "flex items-center justify-center px-4 py-3 rounded-lg border-2 cursor-pointer transition-all",
                     "peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5",
-                    "hover:border-primary/50"
+                    "hover:border-primary/50",
                   )}
                 >
                   {option.label}
@@ -98,11 +100,13 @@ export function BiometricsStep({ data, onUpdate }: BiometricsStepProps) {
 
         {/* Date of Birth */}
         <div className="space-y-2">
-          <Label htmlFor="dob" className="text-sm font-medium">Data di nascita</Label>
+          <Label htmlFor="dob" className="text-sm font-medium">
+            Data di nascita
+          </Label>
           <Input
             id="dob"
             type="date"
-            value={data.dateOfBirth || ''}
+            value={data.dateOfBirth || ""}
             onChange={(e) => onUpdate({ ...data, dateOfBirth: e.target.value })}
             className="bg-card"
           />
@@ -111,25 +115,39 @@ export function BiometricsStep({ data, onUpdate }: BiometricsStepProps) {
         {/* Height & Weight */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="height" className="text-sm font-medium">Altezza (cm)</Label>
+            <Label htmlFor="height" className="text-sm font-medium">
+              Altezza (cm)
+            </Label>
             <Input
               id="height"
               type="number"
               placeholder="175"
-              value={data.heightCm || ''}
-              onChange={(e) => onUpdate({ ...data, heightCm: e.target.value ? parseInt(e.target.value) : null })}
+              value={data.heightCm || ""}
+              onChange={(e) =>
+                onUpdate({
+                  ...data,
+                  heightCm: e.target.value ? parseInt(e.target.value) : null,
+                })
+              }
               className="bg-card"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="weight" className="text-sm font-medium">Peso (kg)</Label>
+            <Label htmlFor="weight" className="text-sm font-medium">
+              Peso (kg)
+            </Label>
             <Input
               id="weight"
               type="number"
               step="0.1"
               placeholder="70"
-              value={data.weightKg || ''}
-              onChange={(e) => onUpdate({ ...data, weightKg: e.target.value ? parseFloat(e.target.value) : null })}
+              value={data.weightKg || ""}
+              onChange={(e) =>
+                onUpdate({
+                  ...data,
+                  weightKg: e.target.value ? parseFloat(e.target.value) : null,
+                })
+              }
               className="bg-card"
             />
           </div>
@@ -139,13 +157,15 @@ export function BiometricsStep({ data, onUpdate }: BiometricsStepProps) {
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Watch className="h-4 w-4 text-muted-foreground" />
-            <Label className="text-sm font-medium">Quali dispositivi indossi quotidianamente?</Label>
+            <Label className="text-sm font-medium">
+              Quali dispositivi indossi quotidianamente?
+            </Label>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-2">
             {wearableOptions.map((wearable) => {
               const isSelected = data.wearables.includes(wearable.id);
-              
+
               return (
                 <motion.button
                   key={wearable.id}
@@ -154,20 +174,29 @@ export function BiometricsStep({ data, onUpdate }: BiometricsStepProps) {
                   onClick={() => handleWearableToggle(wearable.id)}
                   className={cn(
                     "relative flex items-center gap-2 px-3 py-2.5 rounded-lg border-2 text-left transition-all text-sm",
-                    isSelected 
-                      ? "border-primary bg-primary/5" 
-                      : "border-border hover:border-primary/50"
+                    isSelected
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50",
                   )}
                 >
-                  <div className={cn(
-                    "w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0",
-                    isSelected ? "border-primary bg-primary" : "border-muted-foreground"
-                  )}>
-                    {isSelected && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
+                  <div
+                    className={cn(
+                      "w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+                      isSelected
+                        ? "border-primary bg-primary"
+                        : "border-muted-foreground",
+                    )}
+                  >
+                    {isSelected && (
+                      <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                    )}
                   </div>
                   <span className="truncate">{wearable.label}</span>
                   {wearable.autoSync && isSelected && (
-                    <Badge variant="secondary" className="absolute -top-2 -right-2 text-[10px] px-1.5 py-0.5 bg-success text-success-foreground">
+                    <Badge
+                      variant="secondary"
+                      className="absolute -top-2 -right-2 text-[10px] px-1.5 py-0.5 bg-success text-success-foreground"
+                    >
                       Sync
                     </Badge>
                   )}
@@ -185,7 +214,7 @@ export function BiometricsStep({ data, onUpdate }: BiometricsStepProps) {
             >
               <Check className="h-5 w-5 text-success" />
               <span className="text-sm text-success font-medium">
-                ✅ Morning Readiness Auto-Sync enabled
+                Morning Readiness Auto-Sync enabled
               </span>
             </motion.div>
           )}

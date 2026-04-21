@@ -1,10 +1,10 @@
-import { useState, useMemo } from "react";
-import { CoachLayout } from "@/components/coach/CoachLayout";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter, BookOpen } from "lucide-react";
+import { useState, useMemo } from"react";
+import { CoachLayout } from"@/components/coach/CoachLayout";
+import { Input } from"@/components/ui/input";
+import { Button } from"@/components/ui/button";
+import { Badge } from"@/components/ui/badge";
+import { Skeleton } from"@/components/ui/skeleton";
+import { Search, Filter, BookOpen } from"lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,23 +12,23 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
+} from"@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { useContentLibrary, ContentType, ContentItem } from "@/hooks/useContentLibrary";
-import { AddResourceDialog } from "@/components/coach/library/AddResourceDialog";
-import { ResourceCard } from "@/components/coach/library/ResourceCard";
-import { TelestrationPlayer } from "@/components/coach/video/TelestrationPlayer";
+} from"@/components/ui/dialog";
+import { useContentLibrary, ContentType, ContentItem } from"@/hooks/useContentLibrary";
+import { AddResourceDialog } from"@/components/coach/library/AddResourceDialog";
+import { ResourceCard } from"@/components/coach/library/ResourceCard";
+import { TelestrationPlayer } from"@/components/coach/video/TelestrationPlayer";
 
 const typeLabels: Record<ContentType, string> = {
-  video: "Video",
-  pdf: "PDF",
-  link: "Link",
-  text: "Text",
-  ai_knowledge: "🧠 Conoscenza AI",
+  video:"Video",
+  pdf:"PDF",
+  link:"Link",
+  text:"Text",
+  ai_knowledge:"Conoscenza AI",
 };
 
 export default function CoachLibrary() {
@@ -98,28 +98,26 @@ export default function CoachLibrary() {
         {/* Search & Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
             <Input
-              placeholder="Cerca risorse..."
-              value={search}
+              placeholder="Cerca risorse..."              value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
+              className="pl-9"            />
           </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <Filter className="h-4 w-4" />
+              <Button variant="outline"className="gap-2">
+                <Filter className="h-4 w-4"/>
                 Filtri
                 {hasActiveFilters && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1.5">
+                  <Badge variant="secondary"className="ml-1 h-5 px-1.5">
                     {selectedTypes.length + selectedTags.length}
                   </Badge>
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end"className="w-56">
               <DropdownMenuLabel>Tipo</DropdownMenuLabel>
               {(Object.keys(typeLabels) as ContentType[]).map((type) => (
                 <DropdownMenuCheckboxItem
@@ -151,10 +149,7 @@ export default function CoachLibrary() {
                 <>
                   <DropdownMenuSeparator />
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start"
-                    onClick={clearFilters}
+                    variant="ghost"                    size="sm"                    className="w-full justify-start"                    onClick={clearFilters}
                   >
                     Rimuovi tutti i filtri
                   </Button>
@@ -168,7 +163,7 @@ export default function CoachLibrary() {
         {hasActiveFilters && (
           <div className="flex flex-wrap gap-2">
             {selectedTypes.map((type) => (
-              <Badge key={type} variant="outline" className="gap-1">
+              <Badge key={type} variant="outline"className="gap-1">
                 {typeLabels[type]}
                 <button onClick={() => toggleType(type)} className="ml-1 hover:text-destructive">
                   ×
@@ -176,7 +171,7 @@ export default function CoachLibrary() {
               </Badge>
             ))}
             {selectedTags.map((tag) => (
-              <Badge key={tag} variant="outline" className="gap-1">
+              <Badge key={tag} variant="outline"className="gap-1">
                 #{tag}
                 <button onClick={() => toggleTag(tag)} className="ml-1 hover:text-destructive">
                   ×
@@ -204,7 +199,7 @@ export default function CoachLibrary() {
         {isLoading ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
-              <Skeleton key={i} className="h-40 rounded-lg" />
+              <Skeleton key={i} className="h-40 rounded-lg"/>
             ))}
           </div>
         ) : filteredContent.length > 0 ? (
@@ -214,21 +209,19 @@ export default function CoachLibrary() {
                 key={resource.id} 
                 resource={resource} 
                 onDelete={deleteContent}
-                onOpenVideo={resource.type === "video" && resource.url ? () => setTelestrationVideo(resource) : undefined}
+                onOpenVideo={resource.type ==="video"&& resource.url ? () => setTelestrationVideo(resource) : undefined}
               />
             ))}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="p-4 rounded-full bg-muted mb-4">
-              <BookOpen className="h-8 w-8 text-muted-foreground" />
+              <BookOpen className="h-8 w-8 text-muted-foreground"/>
             </div>
             <h3 className="font-medium text-lg">Nessuna risorsa trovata</h3>
             <p className="text-muted-foreground text-sm mt-1">
               {hasActiveFilters 
-                ? "Prova a modificare i filtri o la ricerca"
-                : "Inizia a costruire la libreria aggiungendo la prima risorsa"
-              }
+                ?"Prova a modificare i filtri o la ricerca"                :"Inizia a costruire la libreria aggiungendo la prima risorsa"              }
             </p>
           </div>
         )}

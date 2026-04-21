@@ -1,6 +1,12 @@
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
-import { AlertTriangle, Zap, MessageSquare, X, ChevronRight } from "lucide-react";
+import {
+  AlertTriangle,
+  Zap,
+  MessageSquare,
+  X,
+  ChevronRight,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,7 +27,7 @@ interface RiskAlertCardProps {
 function getInitials(name: string | null): string {
   return (
     name
-      ?.split(" ")
+      ?.split("")
       .map((n) => n[0])
       .join("")
       .toUpperCase()
@@ -57,8 +63,8 @@ export function RiskAlertCard({
               )}
             </div>
             <div>
-               <CardTitle className="text-base font-bold flex items-center gap-2">
-                ⚡ Avvisi Intelligenti
+              <CardTitle className="text-base font-bold flex items-center gap-2">
+                Avvisi Intelligenti
               </CardTitle>
               <p className="text-xs text-muted-foreground">
                 Rilevamento automatico rischi dai dati di allenamento
@@ -67,7 +73,10 @@ export function RiskAlertCard({
           </div>
           <div className="flex items-center gap-2">
             {highAlerts.length > 0 && (
-              <Badge variant="destructive" className="tabular-nums text-sm px-3">
+              <Badge
+                variant="destructive"
+                className="tabular-nums text-sm px-3"
+              >
                 {highAlerts.length} critici
               </Badge>
             )}
@@ -103,29 +112,41 @@ export function RiskAlertCard({
                     alert.severity === "high"
                       ? "border-l-2 border-l-destructive"
                       : "border-l-2 border-l-warning",
-                    !alert.read && "bg-muted/10"
+                    !alert.read && "bg-muted/10",
                   )}
                 >
                   {/* Avatar */}
                   <div className="relative flex-shrink-0">
-                    <Avatar className={cn(
-                      "h-10 w-10 ring-2",
-                      alert.severity === "high" ? "ring-destructive/30" : "ring-warning/30"
-                    )}>
-                      <AvatarImage src={alert.athlete?.avatar_url || undefined} />
-                      <AvatarFallback className={cn(
-                        "text-sm font-medium",
+                    <Avatar
+                      className={cn(
+                        "h-10 w-10 ring-2",
                         alert.severity === "high"
-                          ? "bg-destructive/10 text-destructive"
-                          : "bg-warning/10 text-warning"
-                      )}>
+                          ? "ring-destructive/30"
+                          : "ring-warning/30",
+                      )}
+                    >
+                      <AvatarImage
+                        src={alert.athlete?.avatar_url || undefined}
+                      />
+                      <AvatarFallback
+                        className={cn(
+                          "text-sm font-medium",
+                          alert.severity === "high"
+                            ? "bg-destructive/10 text-destructive"
+                            : "bg-warning/10 text-warning",
+                        )}
+                      >
                         {getInitials(alert.athlete?.full_name ?? null)}
                       </AvatarFallback>
                     </Avatar>
-                    <div className={cn(
-                      "absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-card flex items-center justify-center",
-                      alert.severity === "high" ? "bg-destructive" : "bg-warning"
-                    )}>
+                    <div
+                      className={cn(
+                        "absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-card flex items-center justify-center",
+                        alert.severity === "high"
+                          ? "bg-destructive"
+                          : "bg-warning",
+                      )}
+                    >
                       <AlertTriangle className="h-2.5 w-2.5 text-white" />
                     </div>
                   </div>
@@ -135,7 +156,9 @@ export function RiskAlertCard({
                     className="flex-1 min-w-0 cursor-pointer"
                     onClick={() => alert.link && onNavigate(alert.link)}
                   >
-                    <p className="text-sm font-medium truncate">{alert.message}</p>
+                    <p className="text-sm font-medium truncate">
+                      {alert.message}
+                    </p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(alert.created_at), {
@@ -149,7 +172,7 @@ export function RiskAlertCard({
                           "text-[10px] px-1.5 py-0 h-4",
                           alert.severity === "high"
                             ? "border-destructive/50 text-destructive"
-                            : "border-warning/50 text-warning"
+                            : "border-warning/50 text-warning",
                         )}
                       >
                         {alert.severity === "high" ? "Critico" : "Attenzione"}

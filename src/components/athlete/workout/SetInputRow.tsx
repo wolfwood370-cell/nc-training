@@ -30,7 +30,7 @@ const PLATE_COLORS: Record<number, string> = {
 
 function calculatePlates(
   totalWeight: number,
-  barWeight: number
+  barWeight: number,
 ): { plate: number; count: number }[] {
   let remaining = (totalWeight - barWeight) / 2;
   if (remaining <= 0) return [];
@@ -93,15 +93,13 @@ function InlinePlateDrawer({
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[50dvh]">
         <DrawerHeader className="pb-2">
-          <DrawerTitle className="text-center">
-            🏋️ {weightKg}kg
-          </DrawerTitle>
+          <DrawerTitle className="text-center">{weightKg}kg</DrawerTitle>
         </DrawerHeader>
 
         <div className="space-y-4 px-6 pb-6">
           {/* Bar info */}
           <div className="text-center text-sm text-muted-foreground">
-            Bilanciere {barWeightKg}kg +{" "}
+            Bilanciere {barWeightKg}kg +{""}
             {perSide > 0 ? `${perSide}kg per lato` : "nessun disco"}
           </div>
 
@@ -118,7 +116,7 @@ function InlinePlateDrawer({
                     <div
                       className={cn(
                         "h-10 w-10 rounded-full flex items-center justify-center text-xs font-bold shadow-md",
-                        PLATE_COLORS[plate] || "bg-muted text-foreground"
+                        PLATE_COLORS[plate] || "bg-muted text-foreground",
                       )}
                     >
                       {plate}
@@ -172,7 +170,12 @@ export const SetInputRow = memo(function SetInputRow({
 
   const handleComplete = (checked: boolean) => {
     onComplete(checked);
-    syncSet({ exerciseId, setIndex: setNumber - 1, field: "completed", value: checked });
+    syncSet({
+      exerciseId,
+      setIndex: setNumber - 1,
+      field: "completed",
+      value: checked,
+    });
   };
 
   // Determine the weight to show in plate calc: prefer actual, fall back to target
@@ -185,7 +188,7 @@ export const SetInputRow = memo(function SetInputRow({
           "grid grid-cols-[2.5rem_1fr_1fr_1fr_2.5rem] gap-2 items-center p-2.5 rounded-xl transition-all duration-300",
           completed
             ? "bg-primary/10 ring-1 ring-primary/20"
-            : "bg-[hsl(var(--m3-surface-container,var(--secondary)))]"
+            : "bg-[hsl(var(--m3-surface-container,var(--secondary)))]",
         )}
       >
         {/* Set Number */}
@@ -193,7 +196,7 @@ export const SetInputRow = memo(function SetInputRow({
           <span
             className={cn(
               "text-sm font-bold",
-              completed ? "text-primary" : "text-muted-foreground"
+              completed ? "text-primary" : "text-muted-foreground",
             )}
           >
             {setNumber}
@@ -213,7 +216,7 @@ export const SetInputRow = memo(function SetInputRow({
             onChange={(e) => handleUpdate("actualKg", e.target.value)}
             className={cn(
               "h-11 text-center text-sm font-semibold rounded-lg border-0 pr-8",
-              completed ? "bg-primary/5 text-primary" : "bg-background"
+              completed ? "bg-primary/5 text-primary" : "bg-background",
             )}
           />
           {displayWeight > 0 && (
@@ -238,7 +241,7 @@ export const SetInputRow = memo(function SetInputRow({
           onChange={(e) => handleUpdate("actualReps", e.target.value)}
           className={cn(
             "h-11 text-center text-sm font-semibold rounded-lg border-0",
-            completed ? "bg-primary/5 text-primary" : "bg-background"
+            completed ? "bg-primary/5 text-primary" : "bg-background",
           )}
         />
 
@@ -254,7 +257,7 @@ export const SetInputRow = memo(function SetInputRow({
           className={cn(
             "h-11 text-center text-sm font-semibold rounded-lg border-0",
             completed ? "bg-primary/5" : "bg-background",
-            rpe && getRpeColor(parseInt(rpe))
+            rpe && getRpeColor(parseInt(rpe)),
           )}
         />
 
@@ -266,7 +269,7 @@ export const SetInputRow = memo(function SetInputRow({
             className={cn(
               "h-7 w-7 rounded-full transition-all duration-200",
               completed &&
-                "border-primary bg-primary text-primary-foreground data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                "border-primary bg-primary text-primary-foreground data-[state=checked]:bg-primary data-[state=checked]:border-primary",
             )}
           />
         </div>
