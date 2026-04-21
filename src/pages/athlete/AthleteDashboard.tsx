@@ -546,6 +546,16 @@ export default function AthleteDashboard() {
   return (
     <AthleteLayout>
       <div className="space-y-4 p-4 pb-24">
+        {/* ===== TOP HEADER: Greeting + Data Freshness ===== */}
+        <div className="flex items-center justify-between pt-1">
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              {format(new Date(), "EEEE d MMMM", { locale: it })}
+            </p>
+            <h1 className="text-xl font-bold leading-tight">Buongiorno</h1>
+          </div>
+          <SyncIndicator readinessScore={readiness.isCompleted ? displayScore : null} />
+        </div>
         {/* ===== DAY 1 EMPTY STATE: Welcome Card ===== */}
         {isDay1 && (
           <motion.div
