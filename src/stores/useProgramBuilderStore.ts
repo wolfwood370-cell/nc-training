@@ -960,19 +960,21 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
                 }
                 break;
               case 'load_percent':
-              case 'load_absolute':
+              case 'load_absolute': {
                 const parsed = parseLoadValue(sourceEx.load);
                 if (parsed) {
                   const newValue = calculateProgressedValue(parsed.value, rule, weekOffset);
                   targetEx.load = formatLoadValue(newValue, parsed.isPercent);
                 }
                 break;
-              case 'reps_increase':
+              }
+              case 'reps_increase': {
                 const baseReps = parseInt(sourceEx.reps) || 0;
                 if (baseReps > 0) {
                   targetEx.reps = String(Math.round(calculateProgressedValue(baseReps, rule, weekOffset)));
                 }
                 break;
+              }
               case 'sets_increase':
                 if (sourceEx.sets > 0) {
                   targetEx.sets = Math.round(calculateProgressedValue(sourceEx.sets, rule, weekOffset));

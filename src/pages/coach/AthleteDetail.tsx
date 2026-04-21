@@ -2977,7 +2977,7 @@ export default function AthleteDetail() {
   const getWeeklyStats = () => {
     const schedule = getWeeklySchedule();
     let totalSets = 0;
-    let focusTypes = new Set<string>();
+    const focusTypes = new Set<string>();
 
     schedule.forEach((day) => {
       if (day.workout) {

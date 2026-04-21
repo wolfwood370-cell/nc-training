@@ -123,13 +123,14 @@ export function ChatPane({
       case 'image':
         toast.info("Caricamento immagine...", { description: "Funzionalità in sviluppo" });
         break;
-      case 'link':
+      case 'link': {
         const url = prompt("Inserisci un link YouTube o Loom:");
         if (url) {
           setInputValue(url);
           inputRef.current?.focus();
         }
         break;
+      }
       case 'video':
         videoInputRef.current?.click();
         break;
