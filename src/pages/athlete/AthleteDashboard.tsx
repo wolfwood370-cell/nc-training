@@ -64,6 +64,7 @@ import { useGamification } from "@/hooks/useGamification";
 import { useNutritionTargets } from "@/hooks/useNutritionTargets";
 import { useAthleteHabits } from "@/hooks/useAthleteHabits";
 import { DailyRings } from "@/components/athlete/DailyRings";
+import { SyncIndicator } from "@/components/athlete/SyncIndicator";
 import { supabase } from "@/integrations/supabase/client";
 
 // Body parts for DOMS map
@@ -1106,6 +1107,14 @@ export default function AthleteDashboard() {
             )}
           </motion.div>
 
+          {/* === ACTION 2.5: ACWR LOAD STATUS === */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.3 }}
+          >
+            <AcwrCard />
+          </motion.div>
           {/* === ACTION 3: ACTIVE HABITS (Minimalist Toggle List) === */}
           {totalHabits > 0 && (
             <motion.div
@@ -1202,8 +1211,6 @@ export default function AthleteDashboard() {
 
         {/* ===== QUICK STATS ===== */}
         <div className="grid grid-cols-2 gap-3">
-          <AcwrCard />
-
           <Card className="border-0">
             <CardContent className="p-3.5">
               <div className="flex items-center gap-2 mb-2">
@@ -1215,22 +1222,6 @@ export default function AthleteDashboard() {
               </p>
               <p className="text-[10px] text-muted-foreground">
                 / {nutritionTargets.calories.toLocaleString()} kcal
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Additional Stats Row */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="border-0">
-            <CardContent className="p-3.5">
-              <div className="flex items-center gap-2 mb-2">
-                <Dumbbell className="h-4 w-4 text-primary" />
-                <span className="text-xs text-muted-foreground">Streak</span>
-              </div>
-              <p className="text-xl font-bold tabular-nums">{currentStreak}</p>
-              <p className="text-[10px] text-muted-foreground">
-                giorni consecutivi
               </p>
             </CardContent>
           </Card>
@@ -1247,13 +1238,6 @@ export default function AthleteDashboard() {
               <p className="text-[10px] text-muted-foreground">/ 10</p>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Debug Footer */}
-        <div className="mt-4 pt-3 border-t border-border/30 text-center">
-          <p className="text-[10px] text-muted-foreground/60">
-            {format(new Date(), "EEEE, d MMMM yyyy", { locale: it })}
-          </p>
         </div>
       </div>
 
