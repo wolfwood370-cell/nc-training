@@ -37,7 +37,7 @@ export function TrainingHeatmap({
       const since = format(subDays(new Date(), days), "yyyy-MM-dd");
       const { data, error } = await supabase
         .from("workout_logs")
-        .select("completed_at, total_volume, srpe, duration_minutes, rpe")
+        .select("completed_at, srpe, duration_minutes, rpe_global, total_load_au")
         .eq("athlete_id", athleteId)
         .gte("completed_at", since)
         .not("completed_at", "is", null);
@@ -59,8 +59,8 @@ export function TrainingHeatmap({
       const key = format(new Date(l.completed_at), "yyyy-MM-dd");
       const sRpe =
         Number(l.srpe) ||
-        (Number(l.duration_minutes) || 0) * (Number(l.rpe) || 0) ||
-        Number(l.total_volume) / 100 ||
+        (Number(l.duration_minutes) || 0) * (Number(l.rpe_global) || 0) ||
+        Number(l.total_load_au) ||
         100;
       const cur = dayMap.get(key) ?? { load: 0, sessions: 0 };
       cur.load += sRpe;
@@ -68,14 +68,22 @@ export function TrainingHeatmap({
       dayMap.set(key, cur);
     });
 
-    // Determine intensity buckets from observed loads
+    // Determine intensity buckets from observed loads.
+    // Use distinct quartiles so sparse data still renders gradation.
     const loads = Array.from(dayMap.values()).map((v) => v.load).filter((l) => l > 0);
     const sorted = [...loads].sort((a, b) => a - b);
+    const max = sorted[sorted.length - 1] ?? 0;
     const q = (p: number) =>
       sorted.length === 0 ? 0 : sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))];
-    const t1 = q(0.25);
-    const t2 = q(0.5);
-    const t3 = q(0.75);
+    // Fallback: if quartiles collapse (few data points), spread buckets across max.
+    let t1 = q(0.25);
+    let t2 = q(0.5);
+    let t3 = q(0.75);
+    if (max > 0 && (t1 === t3 || sorted.length < 4)) {
+      t1 = max * 0.25;
+      t2 = max * 0.5;
+      t3 = max * 0.75;
+    }
 
     const result: DayCell[] = [];
     for (let i = days - 1; i >= 0; i--) {

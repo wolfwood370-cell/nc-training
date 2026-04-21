@@ -158,6 +158,8 @@ export function CelebrationOverlay() {
   const [active, setActive] = useState<CelebrationDetail | null>(null);
 
   useEffect(() => {
+    let dismissTimer: number | undefined;
+
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<CelebrationDetail>).detail;
       setActive(detail);
@@ -180,13 +182,16 @@ export function CelebrationOverlay() {
         triggerConfetti();
       }
 
-      // auto-dismiss
-      const t = window.setTimeout(() => setActive(null), 2400);
-      return () => window.clearTimeout(t);
+      // auto-dismiss (clear any pending timer to avoid leaks on rapid events)
+      if (dismissTimer) window.clearTimeout(dismissTimer);
+      dismissTimer = window.setTimeout(() => setActive(null), 2400);
     };
 
     window.addEventListener(EVENT, handler);
-    return () => window.removeEventListener(EVENT, handler);
+    return () => {
+      window.removeEventListener(EVENT, handler);
+      if (dismissTimer) window.clearTimeout(dismissTimer);
+    };
   }, []);
 
   if (!active) return null;

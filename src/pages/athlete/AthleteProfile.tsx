@@ -1,4 +1,4 @@
-import { useState, useRef } from"react";
+import { useState, useRef, forwardRef } from"react";
 import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
 import { useNavigate } from"react-router-dom";
 import { useTheme } from"next-themes";
@@ -62,15 +62,11 @@ import {
 } from"recharts";
 
 // PR Card component
-function PRCard({
-  exercise,
-  weight,
-  rank,
-}: {
+const PRCard = forwardRef<HTMLDivElement, {
   exercise: string;
   weight: number;
   rank: 1 | 2 | 3;
-}) {
+}>(function PRCard({ exercise, weight, rank }, ref) {
   const colors = {
     1:"from-amber-400 to-yellow-500",
     2:"from-slate-300 to-slate-400",
@@ -85,6 +81,7 @@ function PRCard({
 
   return (
     <div
+      ref={ref}
       className={cn(
         "relative overflow-hidden rounded-2xl p-4",
         "bg-gradient-to-br",
@@ -102,19 +99,10 @@ function PRCard({
       </div>
     </div>
   );
-}
+});
 
 // Settings row component
-function SettingsRow({
-  icon: Icon,
-  label,
-  value,
-  onClick,
-  danger,
-  toggle,
-  checked,
-  onToggle,
-}: {
+const SettingsRow = forwardRef<HTMLButtonElement, {
   icon: React.ElementType;
   label: string;
   value?: string;
@@ -123,9 +111,13 @@ function SettingsRow({
   toggle?: boolean;
   checked?: boolean;
   onToggle?: (checked: boolean) => void;
-}) {
+}>(function SettingsRow(
+  { icon: Icon, label, value, onClick, danger, toggle, checked, onToggle },
+  ref
+) {
   return (
     <button
+      ref={ref}
       onClick={toggle ? undefined : onClick}
       className={cn(
         "w-full flex items-center gap-3 p-4 rounded-xl transition-colors",
@@ -157,7 +149,7 @@ function SettingsRow({
       )}
     </button>
   );
-}
+});
 
 export default function AthleteProfile() {
   const navigate = useNavigate();
@@ -400,7 +392,8 @@ export default function AthleteProfile() {
 
   const avatarUrl = avatarPreview || profile?.avatar_url;
   const initials = profile?.full_name
-    ?.split("")
+    ?.split(/\s+/)
+    .filter(Boolean)
     .map((n) => n[0])
     .join("")
     .toUpperCase() ||"?";
