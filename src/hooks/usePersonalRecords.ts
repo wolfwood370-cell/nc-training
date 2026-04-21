@@ -2,6 +2,7 @@ import { useCallback } from'react';
 import { supabase } from'@/integrations/supabase/client';
 import { useToast } from'@/hooks/use-toast';
 import { triggerHaptic } from'@/hooks/useHapticFeedback';
+import { celebrate } from '@/components/celebration/Confetti';
 
 interface SetLogData {
   exerciseName: string;
@@ -84,14 +85,21 @@ export function usePersonalRecords() {
   }, []);
 
   const showPRToast = useCallback((exerciseName: string, weight: number, improvement?: number) => {
-    // Trigger heavy haptic feedback for PR
-    triggerHaptic('success');
-    
+    // Premium celebration: visual overlay + multi-beat haptic + gold confetti
+    celebrate({
+      kind: 'pr',
+      title: 'Nuovo Record!',
+      subtitle: improvement && improvement > 0
+        ? `${exerciseName} · +${improvement}kg`
+        : `${exerciseName} · ${weight}kg`,
+    });
+
     toast({
-      title:"Nuovo Record Personale!",
+      title: "Nuovo Record Personale!",
       description: improvement && improvement > 0
-        ?`${exerciseName}: ${weight}kg (+${improvement}kg rispetto al precedente)`        :`${exerciseName}: ${weight}kg - Prima volta!`,
-      className:"bg-gradient-to-r from-amber-500 to-yellow-400 text-white border-none",
+        ? `${exerciseName}: ${weight}kg (+${improvement}kg rispetto al precedente)`
+        : `${exerciseName}: ${weight}kg - Prima volta!`,
+      className: "bg-gradient-to-r from-amber-500 to-yellow-400 text-white border-none",
     });
   }, [toast]);
 

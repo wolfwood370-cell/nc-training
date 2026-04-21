@@ -5,6 +5,8 @@ import { useTheme } from"next-themes";
 import { AthleteLayout } from"@/components/athlete/AthleteLayout";
 import { ThemeCustomizationCard } from"@/components/athlete/ThemeCustomizationCard";
 import { BadgeGrid } from"@/components/athlete/gamification/BadgeGrid";
+import { ConsistencyRings } from"@/components/athlete/gamification/ConsistencyRings";
+import { TrainingHeatmap } from"@/components/athlete/gamification/TrainingHeatmap";
 import { supabase } from"@/integrations/supabase/client";
 import { useAuth } from"@/hooks/useAuth";
 import { useGamification } from"@/hooks/useGamification";
@@ -545,6 +547,20 @@ export default function AthleteProfile() {
                 Classifica
               </Button>
             </div>
+
+            {/* Consistency Rings — premium concentric SVG */}
+            <Card className="overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm">
+              <CardContent className="p-5 flex flex-col items-center">
+                <div className="flex items-center gap-2 mb-3 self-start">
+                  <Flame className="h-4 w-4 text-warning" />
+                  <h3 className="text-sm font-semibold">Costanza</h3>
+                </div>
+                <ConsistencyRings athleteId={user?.id} size={200} />
+              </CardContent>
+            </Card>
+
+            {/* Training Heatmap — last 90 days */}
+            <TrainingHeatmap athleteId={user?.id} days={90} />
 
             {/* Badge Grid */}
             <BadgeGrid userId={user?.id} />

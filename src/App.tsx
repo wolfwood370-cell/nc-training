@@ -11,6 +11,7 @@ import { NetworkBadge } from "@/components/ui/NetworkBadge";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { SubscriptionGuard } from "@/components/auth/SubscriptionGuard";
 import { SwUpdatePrompt } from "@/components/pwa/SwUpdatePrompt";
+import { CelebrationOverlay } from "@/components/celebration/Confetti";
 
 
 // Lazy-loaded pages
@@ -54,7 +55,8 @@ const App = () => (
         <NetworkBadge />
         <InstallPrompt />
         <SwUpdatePrompt />
-        
+        <CelebrationOverlay />
+
         <BrowserRouter>
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>

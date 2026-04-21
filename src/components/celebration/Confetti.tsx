@@ -1,5 +1,7 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import confetti from 'canvas-confetti';
+import { cn } from '@/lib/utils';
+import { triggerHaptic } from '@/hooks/useHapticFeedback';
 
 interface ConfettiProps {
   trigger: boolean;
@@ -10,9 +12,7 @@ interface ConfettiProps {
 export function Confetti({ trigger, duration = 3000, onComplete }: ConfettiProps) {
   const fireConfetti = useCallback(() => {
     const end = Date.now() + duration;
-
-    // Launch confetti from both sides
-    const colors = ['#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#3b82f6'];
+    const colors = ['hsl(263, 70%, 60%)', 'hsl(160, 84%, 50%)', 'hsl(38, 92%, 55%)'];
 
     const frame = () => {
       confetti({
@@ -22,7 +22,6 @@ export function Confetti({ trigger, duration = 3000, onComplete }: ConfettiProps
         origin: { x: 0, y: 0.7 },
         colors,
       });
-
       confetti({
         particleCount: 3,
         angle: 120,
@@ -30,7 +29,6 @@ export function Confetti({ trigger, duration = 3000, onComplete }: ConfettiProps
         origin: { x: 1, y: 0.7 },
         colors,
       });
-
       if (Date.now() < end) {
         requestAnimationFrame(frame);
       } else {
@@ -38,7 +36,6 @@ export function Confetti({ trigger, duration = 3000, onComplete }: ConfettiProps
       }
     };
 
-    // Initial burst
     confetti({
       particleCount: 100,
       spread: 70,
@@ -55,53 +52,191 @@ export function Confetti({ trigger, duration = 3000, onComplete }: ConfettiProps
     }
   }, [trigger, fireConfetti]);
 
-  return null; // This component doesn't render anything
+  return null;
 }
 
-// Standalone function to trigger confetti
+// Standalone — premium confetti burst
 export function triggerConfetti() {
-  const colors = ['#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#3b82f6'];
-  
-  // Big initial burst
+  const colors = ['hsl(263, 70%, 60%)', 'hsl(160, 84%, 50%)', 'hsl(38, 92%, 55%)'];
+
   confetti({
-    particleCount: 150,
-    spread: 100,
+    particleCount: 120,
+    spread: 90,
     origin: { y: 0.6 },
     colors,
+    scalar: 1.1,
+    ticks: 150,
   });
 
-  // Follow-up bursts from sides
   setTimeout(() => {
     confetti({
-      particleCount: 50,
+      particleCount: 40,
       angle: 60,
-      spread: 80,
-      origin: { x: 0, y: 0.65 },
+      spread: 70,
+      origin: { x: 0, y: 0.7 },
       colors,
     });
   }, 150);
 
   setTimeout(() => {
     confetti({
-      particleCount: 50,
+      particleCount: 40,
       angle: 120,
-      spread: 80,
-      origin: { x: 1, y: 0.65 },
+      spread: 70,
+      origin: { x: 1, y: 0.7 },
       colors,
     });
   }, 300);
 }
 
-// Trophy/gold confetti for PRs
+// Trophy/gold confetti for PRs — refined, not gaudy
 export function triggerPRConfetti() {
-  const goldColors = ['#ffd700', '#ffb347', '#ff8c00', '#ffa500', '#ffcc00'];
-  
+  const goldColors = ['hsl(45, 95%, 60%)', 'hsl(38, 92%, 55%)', 'hsl(50, 100%, 70%)', 'hsl(0, 0%, 100%)'];
+
   confetti({
-    particleCount: 100,
-    spread: 70,
-    origin: { y: 0.6 },
+    particleCount: 80,
+    spread: 60,
+    origin: { y: 0.55 },
     colors: goldColors,
-    shapes: ['circle', 'square'],
-    scalar: 1.2,
+    shapes: ['circle'],
+    scalar: 1.1,
+    startVelocity: 38,
+    gravity: 0.85,
+    ticks: 180,
   });
+
+  // Sparkle ring
+  setTimeout(() => {
+    confetti({
+      particleCount: 30,
+      spread: 360,
+      startVelocity: 18,
+      origin: { y: 0.5 },
+      colors: goldColors,
+      ticks: 100,
+      gravity: 0.4,
+      scalar: 0.7,
+    });
+  }, 200);
+}
+
+// ============================================================
+// Premium PR Celebration Overlay (visual + haptic)
+// ============================================================
+
+type CelebrationKind = 'pr' | 'perfect-week' | 'workout';
+
+interface CelebrationDetail {
+  kind: CelebrationKind;
+  title?: string;
+  subtitle?: string;
+}
+
+const EVENT = 'elevate:celebrate';
+
+/**
+ * Fire a global premium celebration. Use this anywhere in the app.
+ * Renders the <CelebrationOverlay /> mounted in App.
+ */
+export function celebrate(detail: CelebrationDetail) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent<CelebrationDetail>(EVENT, { detail }));
+}
+
+const HAPTIC_PATTERNS: Record<CelebrationKind, number[]> = {
+  // Triumphant multi-beat — strong, pause, double-tap finale
+  pr: [80, 60, 80, 60, 200],
+  'perfect-week': [60, 40, 60, 40, 60, 40, 180],
+  workout: [50, 50, 100],
+};
+
+/**
+ * Mount once at app root. Listens for celebrate() events and renders
+ * a premium glowing burst overlay + haptic pattern + confetti.
+ */
+export function CelebrationOverlay() {
+  const [active, setActive] = useState<CelebrationDetail | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<CelebrationDetail>).detail;
+      setActive(detail);
+
+      // Haptic — multi-beat triumphant pattern
+      try {
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          navigator.vibrate(HAPTIC_PATTERNS[detail.kind] ?? HAPTIC_PATTERNS.workout);
+        } else {
+          triggerHaptic(detail.kind === 'pr' ? 'heavy' : 'success');
+        }
+      } catch {
+        /* noop */
+      }
+
+      // Confetti
+      if (detail.kind === 'pr') {
+        triggerPRConfetti();
+      } else {
+        triggerConfetti();
+      }
+
+      // auto-dismiss
+      const t = window.setTimeout(() => setActive(null), 2400);
+      return () => window.clearTimeout(t);
+    };
+
+    window.addEventListener(EVENT, handler);
+    return () => window.removeEventListener(EVENT, handler);
+  }, []);
+
+  if (!active) return null;
+
+  const isPR = active.kind === 'pr';
+  const title =
+    active.title ?? (isPR ? 'Nuovo Record!' : active.kind === 'perfect-week' ? 'Settimana Perfetta' : 'Completato');
+  const subtitle = active.subtitle ?? (isPR ? 'Hai superato il tuo limite' : 'Continua così');
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center"
+      aria-live="polite"
+      role="status"
+    >
+      {/* Radial glow */}
+      <div
+        className={cn(
+          'absolute inset-0 animate-fade-in',
+          isPR
+            ? 'bg-[radial-gradient(circle_at_center,hsl(45_95%_60%/0.25),transparent_55%)]'
+            : 'bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.22),transparent_55%)]'
+        )}
+      />
+      {/* Burst card */}
+      <div className="relative animate-scale-in">
+        <div
+          className={cn(
+            'flex flex-col items-center gap-2 px-8 py-6 rounded-2xl',
+            'bg-card/90 backdrop-blur-xl border shadow-2xl',
+            isPR ? 'border-amber-400/40 shadow-amber-500/20' : 'border-primary/30 shadow-primary/20'
+          )}
+        >
+          <div
+            className={cn(
+              'h-14 w-14 rounded-full flex items-center justify-center text-2xl font-bold',
+              isPR
+                ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-amber-950 shadow-lg shadow-amber-500/40'
+                : 'bg-gradient-to-br from-primary to-primary/70 text-primary-foreground'
+            )}
+            aria-hidden
+          >
+            {isPR ? '★' : '✓'}
+          </div>
+          <div className="text-center">
+            <div className="text-base font-bold tracking-tight">{title}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">{subtitle}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
