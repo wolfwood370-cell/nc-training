@@ -57,7 +57,8 @@ export function SyncIndicator({
     return () => window.clearInterval(id);
   }, []);
 
-  // Latest dataUpdatedAt across all queries
+  // Latest dataUpdatedAt across all queries.
+  // Recomputed when any fetch completes (isFetching transitions) or every 30s tick (now).
   const lastSyncedAt = useMemo(() => {
     const queries = queryClient.getQueryCache().getAll();
     let latest = 0;
@@ -66,6 +67,7 @@ export function SyncIndicator({
       if (t > latest) latest = t;
     }
     return latest;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryClient, isFetching, now]);
 
   const ageMs = lastSyncedAt > 0 ? now - lastSyncedAt : Infinity;

@@ -81,7 +81,7 @@ export default function AthleteMessages() {
     if (!roomId) return;
     const unsub = subscribeToMessages(() => {});
     return unsub;
-  }, [roomId]);
+  }, [roomId, subscribeToMessages]);
 
   // Auto-scroll
   useEffect(() => {
