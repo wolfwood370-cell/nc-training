@@ -5,6 +5,7 @@ import { cn } from"@/lib/utils";
 import { motion, AnimatePresence } from"framer-motion";
 import { onRestTimerEnd } from"@/utils/ux";
 import { startMediaSession, updateMediaSessionTime, stopMediaSession } from"@/lib/mediaSession";
+import { triggerHaptic } from"@/hooks/useHapticFeedback";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -129,6 +130,19 @@ export function RestTimerPill({
   const progress = totalSeconds > 0 ? remaining / totalSeconds : 0;
   const strokeDashoffset = RING_CIRCUMFERENCE * (1 - progress);
 
+  const handleAdd = (s: number) => {
+    triggerHaptic("light");
+    onAdd(s);
+  };
+  const handleReset = () => {
+    triggerHaptic("medium");
+    onReset();
+  };
+  const handleSkip = () => {
+    triggerHaptic("medium");
+    onSkip();
+  };
+
   return (
     <AnimatePresence>
       {active && (
@@ -137,49 +151,55 @@ export function RestTimerPill({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type:"spring", damping: 25, stiffness: 300 }}
-          className="fixed bottom-6 left-4 right-4 z-50"        >
+          className="fixed left-3 right-3 z-50"
+          style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
+        >
           <div className="bg-[hsl(var(--m3-surface-container-high,var(--card)))] rounded-2xl p-4 shadow-2xl border border-border/30 backdrop-blur-xl">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Timer className={cn("h-5 w-5", isUrgent ?"text-destructive":"text-primary")} />
                 <span className="text-sm font-medium">Recupero</span>
               </div>
-              <Button variant="ghost"size="icon"className="h-7 w-7"onClick={onSkip}>
+              <button
+                aria-label="Chiudi timer"
+                onClick={handleSkip}
+                className="h-11 w-11 -m-2 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
+              >
                 <X className="h-4 w-4"/>
-              </Button>
+              </button>
             </div>
 
             {/* Timer Display with SVG Progress Ring */}
             <div className="flex justify-center mb-3">
-              <div className="relative"style={{ width: RING_SIZE, height: RING_SIZE }}>
-                <svg
-                  width={RING_SIZE}
-                  height={RING_SIZE}
-                  className="rotate-[-90deg]"                >
-                  {/* Background ring */}
+              <div className="relative" style={{ width: RING_SIZE, height: RING_SIZE }}>
+                <svg width={RING_SIZE} height={RING_SIZE} className="rotate-[-90deg]">
                   <circle
                     cx={RING_SIZE / 2}
                     cy={RING_SIZE / 2}
                     r={RING_RADIUS}
-                    fill="none"                    stroke="hsl(var(--secondary))"                    strokeWidth={RING_STROKE}
-                  />
-                  {/* Progress ring */}
-                  <circle
-                    cx={RING_SIZE / 2}
-                    cy={RING_SIZE / 2}
-                    r={RING_RADIUS}
-                    fill="none"                    stroke={isUrgent ?"hsl(var(--destructive))":"hsl(var(--primary))"}
+                    fill="none"
+                    stroke="hsl(var(--secondary))"
                     strokeWidth={RING_STROKE}
-                    strokeLinecap="round"                    strokeDasharray={RING_CIRCUMFERENCE}
+                  />
+                  <circle
+                    cx={RING_SIZE / 2}
+                    cy={RING_SIZE / 2}
+                    r={RING_RADIUS}
+                    fill="none"
+                    stroke={isUrgent ?"hsl(var(--destructive))":"hsl(var(--primary))"}
+                    strokeWidth={RING_STROKE}
+                    strokeLinecap="round"
+                    strokeDasharray={RING_CIRCUMFERENCE}
                     strokeDashoffset={strokeDashoffset}
-                    className="transition-[stroke-dashoffset] duration-200 ease-linear"                  />
+                    className="transition-[stroke-dashoffset] duration-200 ease-linear"
+                  />
                 </svg>
-                {/* Centered text */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span
                     className={cn(
                       "text-4xl font-bold tabular-nums transition-colors",
-                      isUrgent ?"text-destructive animate-pulse":"text-foreground"                    )}
+                      isUrgent ?"text-destructive animate-pulse":"text-foreground"
+                    )}
                   >
                     {formatTime(remaining)}
                   </span>
@@ -187,20 +207,36 @@ export function RestTimerPill({
               </div>
             </div>
 
-            {/* Controls */}
+            {/* Controls — 48px touch targets */}
             <div className="flex items-center justify-center gap-2">
-              <Button variant="outline"size="sm"className="h-9"onClick={() => onAdd(-15)}>
-                <Minus className="h-3 w-3 mr-1"/>
+              <Button
+                variant="outline"
+                className="h-12 min-w-12 px-3 rounded-xl active:scale-95"
+                onClick={() => handleAdd(-15)}
+              >
+                <Minus className="h-3.5 w-3.5 mr-1"/>
                 15s
               </Button>
-              <Button variant="outline"size="icon"className="h-9 w-9"onClick={onReset}>
+              <Button
+                variant="outline"
+                className="h-12 w-12 rounded-xl active:scale-95"
+                onClick={handleReset}
+                aria-label="Reset timer"
+              >
                 <RotateCcw className="h-4 w-4"/>
               </Button>
-              <Button variant="outline"size="sm"className="h-9"onClick={() => onAdd(15)}>
-                <Plus className="h-3 w-3 mr-1"/>
+              <Button
+                variant="outline"
+                className="h-12 min-w-12 px-3 rounded-xl active:scale-95"
+                onClick={() => handleAdd(15)}
+              >
+                <Plus className="h-3.5 w-3.5 mr-1"/>
                 15s
               </Button>
-              <Button size="sm"className="h-9 ml-2"onClick={onSkip}>
+              <Button
+                className="h-12 px-4 rounded-xl ml-1 font-semibold active:scale-95"
+                onClick={handleSkip}
+              >
                 Salta
               </Button>
             </div>
