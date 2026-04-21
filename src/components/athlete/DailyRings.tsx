@@ -9,6 +9,8 @@ interface DailyRingsProps {
   habitsCompleted: number;
   habitsTotal: number;
   brandColor?: string;
+  /** Optional data source label, e.g. "Oura", "Garmin", "Whoop" */
+  dataSource?: string | null;
 }
 
 // Helper to determine color based on percentage
@@ -167,23 +169,23 @@ export function DailyRings({
   habitsCompleted,
   habitsTotal,
   brandColor,
+  dataSource,
 }: DailyRingsProps) {
   const fuelPercentage = fuelTarget > 0 ? (fuelValue / fuelTarget) * 100 : 0;
   const habitsPercentage = habitsTotal > 0 ? (habitsCompleted / habitsTotal) * 100 : 0;
-  
+
   // Format fuel display
-  const fuelDisplay = fuelValue >= 1000 
+  const fuelDisplay = fuelValue >= 1000
     ? `${(fuelValue / 1000).toFixed(1)}k`
     : fuelValue.toString();
-  const fuelUnit = fuelTarget >= 1000 
+  const fuelUnit = fuelTarget >= 1000
     ? `/${(fuelTarget / 1000).toFixed(1)}k`
     : `/${fuelTarget}`;
 
   return (
     <div className="relative">
-      {/* Rings Container with centered flex alignment for small screens */}
+      {/* Rings */}
       <div className="flex items-end justify-center gap-4 py-3 scale-[0.95] sm:scale-100">
-        {/* Left Ring: Fuel (Calories) */}
         <ProgressRing
           percentage={fuelPercentage}
           color={getFuelColor(fuelPercentage)}
@@ -195,7 +197,6 @@ export function DailyRings({
           unit={fuelUnit}
         />
 
-        {/* Center Ring: Training (larger, main focus) */}
         <ProgressRing
           percentage={trainingProgress}
           color={getTrainingColor(trainingProgress, brandColor)}
@@ -207,7 +208,6 @@ export function DailyRings({
           isCenter
         />
 
-        {/* Right Ring: Habits (Purple/Indigo) */}
         <ProgressRing
           percentage={habitsPercentage}
           color={getHabitsColor(habitsPercentage)}
@@ -218,6 +218,13 @@ export function DailyRings({
           value={`${habitsCompleted}/${habitsTotal}`}
         />
       </div>
+
+      {/* Data source attribution */}
+      {dataSource && (
+        <p className="text-center text-[10px] uppercase tracking-wider text-muted-foreground/60 mt-1">
+          Powered by {dataSource}
+        </p>
+      )}
     </div>
   );
 }
