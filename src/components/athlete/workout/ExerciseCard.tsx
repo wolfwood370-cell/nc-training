@@ -306,47 +306,28 @@ export const ExerciseCard = memo(function ExerciseCard({
               </Alert>
             )}
 
-            {/* Space 5: Set Input Rows */}
-            <div>
-              {/* Table Header */}
-              <div className="grid grid-cols-[2.5rem_1fr_1fr_1fr_2.5rem] gap-2 mb-2 px-1">
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground text-center">
-                  Set
-                </span>
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground text-center">
-                  Kg
-                </span>
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground text-center">
-                  Reps
-                </span>
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground text-center">
-                  RPE
-                </span>
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground text-center"></span>
-              </div>
-
-              <div className="space-y-2">
-                {exercise.sets.map((set) => (
-                  <SetInputRow
-                    key={set.id}
-                    exerciseId={exercise.id}
-                    setNumber={set.setNumber}
-                    targetKg={set.targetKg}
-                    targetReps={set.targetReps}
-                    targetRpe={set.targetRpe}
-                    actualKg={set.actualKg}
-                    actualReps={set.actualReps}
-                    rpe={set.rpe}
-                    completed={set.completed}
-                    onUpdate={(field, value) =>
-                      onSetUpdate(exercise.id, set.id, field, value)
-                    }
-                    onComplete={(completed) =>
-                      onSetComplete(exercise.id, set.id, completed)
-                    }
-                  />
-                ))}
-              </div>
+            {/* Space 5: Set Input Rows (stepper layout — no table header) */}
+            <div className="space-y-2.5">
+              {exercise.sets.map((set) => (
+                <SetInputRow
+                  key={set.id}
+                  exerciseId={exercise.id}
+                  setNumber={set.setNumber}
+                  targetKg={set.targetKg}
+                  targetReps={set.targetReps}
+                  targetRpe={set.targetRpe}
+                  actualKg={set.actualKg}
+                  actualReps={set.actualReps}
+                  rpe={set.rpe}
+                  completed={set.completed}
+                  onUpdate={(field, value) =>
+                    onSetUpdate(exercise.id, set.id, field, value)
+                  }
+                  onComplete={(completed) =>
+                    onSetComplete(exercise.id, set.id, completed)
+                  }
+                />
+              ))}
             </div>
 
             {/* Completion badge */}

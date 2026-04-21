@@ -1,10 +1,10 @@
-import { memo, useState } from "react";
+import { memo, useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSetMutation } from "@/hooks/useSetMutation";
-import { Calculator } from "lucide-react";
+import { Calculator, Check, Minus, Plus } from "lucide-react";
+import { triggerHaptic } from "@/hooks/useHapticFeedback";
 import {
   Drawer,
   DrawerContent,
@@ -97,19 +97,14 @@ function InlinePlateDrawer({
         </DrawerHeader>
 
         <div className="space-y-4 px-6 pb-6">
-          {/* Bar info */}
           <div className="text-center text-sm text-muted-foreground">
-            Bilanciere {barWeightKg}kg +{""}
+            Bilanciere {barWeightKg}kg +{" "}
             {perSide > 0 ? `${perSide}kg per lato` : "nessun disco"}
           </div>
 
-          {/* Visual plate stack */}
           {plates.length > 0 ? (
             <div className="flex flex-col items-center gap-3">
-              {/* Bar representation */}
               <div className="w-full h-3 bg-muted rounded-full" />
-
-              {/* Plates per side */}
               <div className="flex flex-wrap justify-center gap-2">
                 {plates.map(({ plate, count }) => (
                   <div key={plate} className="flex items-center gap-1.5">
@@ -127,7 +122,6 @@ function InlinePlateDrawer({
                   </div>
                 ))}
               </div>
-
               <p className="text-xs text-muted-foreground text-center">
                 Per ogni lato del bilanciere
               </p>
@@ -144,7 +138,47 @@ function InlinePlateDrawer({
 }
 
 // ---------------------------------------------------------------------------
-// SetInputRow
+// Stepper Button (square, 48px min, with haptic)
+// ---------------------------------------------------------------------------
+
+function StepperBtn({
+  onTap,
+  variant = "ghost",
+  ariaLabel,
+  children,
+  disabled,
+}: {
+  onTap: () => void;
+  variant?: "ghost" | "filled";
+  ariaLabel: string;
+  children: React.ReactNode;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={ariaLabel}
+      disabled={disabled}
+      onClick={() => {
+        triggerHaptic("light");
+        onTap();
+      }}
+      className={cn(
+        "h-12 min-w-12 rounded-xl flex items-center justify-center text-xs font-bold tabular-nums",
+        "transition-transform active:scale-90 select-none touch-manipulation",
+        "disabled:opacity-30 disabled:pointer-events-none",
+        variant === "filled"
+          ? "bg-primary/15 text-primary hover:bg-primary/25"
+          : "bg-background/80 text-foreground hover:bg-background",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// SetInputRow — One-thumb mobile layout
 // ---------------------------------------------------------------------------
 
 export const SetInputRow = memo(function SetInputRow({
@@ -163,115 +197,199 @@ export const SetInputRow = memo(function SetInputRow({
   const { mutate: syncSet } = useSetMutation();
   const [plateOpen, setPlateOpen] = useState(false);
 
-  const handleUpdate = (field: string, value: string | boolean) => {
-    onUpdate(field, value);
-    syncSet({ exerciseId, setIndex: setNumber - 1, field, value });
+  const handleUpdate = useCallback(
+    (field: string, value: string | boolean) => {
+      onUpdate(field, value);
+      syncSet({ exerciseId, setIndex: setNumber - 1, field, value });
+    },
+    [onUpdate, syncSet, exerciseId, setNumber],
+  );
+
+  const handleComplete = useCallback(
+    (checked: boolean) => {
+      triggerHaptic(checked ? "success" : "light");
+      onComplete(checked);
+      syncSet({
+        exerciseId,
+        setIndex: setNumber - 1,
+        field: "completed",
+        value: checked,
+      });
+    },
+    [onComplete, syncSet, exerciseId, setNumber],
+  );
+
+  // Numeric helpers — fall back to target when input is empty
+  const currentKg = actualKg === "" ? targetKg || 0 : parseFloat(actualKg) || 0;
+  const currentReps =
+    actualReps === "" ? targetReps || 0 : parseInt(actualReps, 10) || 0;
+
+  const adjustKg = (delta: number) => {
+    const next = Math.max(0, +(currentKg + delta).toFixed(2));
+    handleUpdate("actualKg", next.toString());
   };
 
-  const handleComplete = (checked: boolean) => {
-    onComplete(checked);
-    syncSet({
-      exerciseId,
-      setIndex: setNumber - 1,
-      field: "completed",
-      value: checked,
-    });
+  const adjustReps = (delta: number) => {
+    const next = Math.max(0, currentReps + delta);
+    handleUpdate("actualReps", next.toString());
   };
 
-  // Determine the weight to show in plate calc: prefer actual, fall back to target
-  const displayWeight = parseFloat(actualKg) || targetKg;
+  const displayWeight = currentKg;
 
   return (
     <>
       <div
         className={cn(
-          "grid grid-cols-[2.5rem_1fr_1fr_1fr_2.5rem] gap-2 items-center p-2.5 rounded-xl transition-all duration-300",
+          "rounded-2xl p-3 transition-all duration-300",
           completed
-            ? "bg-primary/10 ring-1 ring-primary/20"
+            ? "bg-primary/10 ring-1 ring-primary/30"
             : "bg-[hsl(var(--m3-surface-container,var(--secondary)))]",
         )}
       >
-        {/* Set Number */}
-        <div className="text-center">
-          <span
+        {/* Row header: set number + target hint + RPE inline */}
+        <div className="flex items-center justify-between mb-2.5 px-1">
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                "inline-flex items-center justify-center h-7 w-7 rounded-full text-xs font-bold",
+                completed
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-background text-muted-foreground",
+              )}
+            >
+              {setNumber}
+            </span>
+            <span className="text-[11px] text-muted-foreground">
+              Target:{" "}
+              <span className="font-medium text-foreground">
+                {targetKg > 0 ? `${targetKg}kg` : "—"} × {targetReps || "—"}
+                {targetRpe ? ` @${targetRpe}` : ""}
+              </span>
+            </span>
+          </div>
+
+          {/* RPE inline — small input, optional */}
+          <div className="flex items-center gap-1">
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              RPE
+            </label>
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={10}
+              placeholder={targetRpe ? targetRpe.toString() : "—"}
+              value={rpe}
+              onChange={(e) => handleUpdate("rpe", e.target.value)}
+              className={cn(
+                "h-9 w-12 text-center text-sm font-semibold rounded-lg border-0 px-1",
+                "bg-background",
+                rpe && getRpeColor(parseInt(rpe)),
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Steppers Row: Weight (kg) */}
+        <div className="grid grid-cols-[auto_auto_1fr_auto_auto] gap-1.5 items-center mb-2">
+          <StepperBtn ariaLabel="Riduci peso 5kg" onTap={() => adjustKg(-5)}>
+            −5
+          </StepperBtn>
+          <StepperBtn ariaLabel="Riduci peso 2.5kg" onTap={() => adjustKg(-2.5)}>
+            <Minus className="h-3.5 w-3.5" />
+          </StepperBtn>
+
+          <button
+            type="button"
+            onClick={() => displayWeight > 0 && setPlateOpen(true)}
             className={cn(
-              "text-sm font-bold",
-              completed ? "text-primary" : "text-muted-foreground",
+              "h-12 rounded-xl flex items-center justify-center gap-1.5 px-3",
+              "bg-background border border-border/50",
+              "active:scale-[0.98] transition-transform select-none touch-manipulation",
+              completed && "border-primary/40",
             )}
           >
-            {setNumber}
-          </span>
-          <p className="text-[9px] text-muted-foreground leading-none mt-0.5">
-            {targetKg > 0 ? `${targetKg}kg` : "—"}
-          </p>
-        </div>
-
-        {/* Weight Input + Plate Calc trigger */}
-        <div className="relative">
-          <Input
-            type="number"
-            inputMode="decimal"
-            placeholder={targetKg > 0 ? targetKg.toString() : "kg"}
-            value={actualKg}
-            onChange={(e) => handleUpdate("actualKg", e.target.value)}
-            className={cn(
-              "h-11 text-center text-sm font-semibold rounded-lg border-0 pr-8",
-              completed ? "bg-primary/5 text-primary" : "bg-background",
-            )}
-          />
-          {displayWeight > 0 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-0.5 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-primary"
-              onClick={() => setPlateOpen(true)}
-              type="button"
+            <span
+              className={cn(
+                "text-xl font-bold tabular-nums",
+                completed ? "text-primary" : "text-foreground",
+              )}
             >
-              <Calculator className="h-3.5 w-3.5" />
-            </Button>
-          )}
+              {currentKg > 0 ? currentKg : "—"}
+            </span>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              kg
+            </span>
+            {displayWeight > 0 && (
+              <Calculator className="h-3 w-3 text-muted-foreground/60 ml-0.5" />
+            )}
+          </button>
+
+          <StepperBtn ariaLabel="Aumenta peso 2.5kg" onTap={() => adjustKg(2.5)}>
+            <Plus className="h-3.5 w-3.5" />
+          </StepperBtn>
+          <StepperBtn ariaLabel="Aumenta peso 5kg" onTap={() => adjustKg(5)}>
+            +5
+          </StepperBtn>
         </div>
 
-        {/* Reps Input */}
-        <Input
-          type="number"
-          inputMode="numeric"
-          placeholder={targetReps.toString()}
-          value={actualReps}
-          onChange={(e) => handleUpdate("actualReps", e.target.value)}
-          className={cn(
-            "h-11 text-center text-sm font-semibold rounded-lg border-0",
-            completed ? "bg-primary/5 text-primary" : "bg-background",
-          )}
-        />
+        {/* Steppers Row: Reps + big Check button */}
+        <div className="grid grid-cols-[auto_auto_1fr_auto_auto_1fr] gap-1.5 items-center">
+          <StepperBtn ariaLabel="Riduci reps" onTap={() => adjustReps(-1)}>
+            <Minus className="h-3.5 w-3.5" />
+          </StepperBtn>
+          <StepperBtn ariaLabel="Riduci 5 reps" onTap={() => adjustReps(-5)}>
+            −5
+          </StepperBtn>
 
-        {/* RPE Input */}
-        <Input
-          type="number"
-          inputMode="numeric"
-          min={1}
-          max={10}
-          placeholder={targetRpe ? targetRpe.toString() : "RPE"}
-          value={rpe}
-          onChange={(e) => handleUpdate("rpe", e.target.value)}
-          className={cn(
-            "h-11 text-center text-sm font-semibold rounded-lg border-0",
-            completed ? "bg-primary/5" : "bg-background",
-            rpe && getRpeColor(parseInt(rpe)),
-          )}
-        />
-
-        {/* Complete Checkbox */}
-        <div className="flex justify-center">
-          <Checkbox
-            checked={completed}
-            onCheckedChange={(checked) => handleComplete(checked as boolean)}
+          <div
             className={cn(
-              "h-7 w-7 rounded-full transition-all duration-200",
-              completed &&
-                "border-primary bg-primary text-primary-foreground data-[state=checked]:bg-primary data-[state=checked]:border-primary",
+              "h-12 rounded-xl flex items-center justify-center gap-1.5 px-3",
+              "bg-background border border-border/50",
+              completed && "border-primary/40",
             )}
-          />
+          >
+            <span
+              className={cn(
+                "text-xl font-bold tabular-nums",
+                completed ? "text-primary" : "text-foreground",
+              )}
+            >
+              {currentReps > 0 ? currentReps : "—"}
+            </span>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              reps
+            </span>
+          </div>
+
+          <StepperBtn ariaLabel="Aumenta reps" onTap={() => adjustReps(1)}>
+            <Plus className="h-3.5 w-3.5" />
+          </StepperBtn>
+          <StepperBtn ariaLabel="Aumenta 5 reps" onTap={() => adjustReps(5)}>
+            +5
+          </StepperBtn>
+
+          {/* Big Complete button */}
+          <Button
+            type="button"
+            onClick={() => handleComplete(!completed)}
+            aria-label={completed ? "Annulla completamento" : "Completa serie"}
+            className={cn(
+              "h-12 min-w-12 rounded-xl ml-1 px-3",
+              "transition-all active:scale-95 touch-manipulation",
+              completed
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "bg-background text-muted-foreground hover:bg-primary/15 hover:text-primary border border-border/50",
+            )}
+          >
+            <Check
+              className={cn(
+                "h-5 w-5 transition-transform",
+                completed && "scale-110",
+              )}
+              strokeWidth={3}
+            />
+          </Button>
         </div>
       </div>
 
