@@ -2019,7 +2019,8 @@ export default function AthleteDetail() {
     enabled: !!id,
   });
 
-  // Fetch latest workout for"Last Active"  const { data: latestWorkout } = useQuery({
+  // Fetch latest workout for "Last Active"
+  const { data: latestWorkout } = useQuery({
     queryKey: ["athlete-latest-workout", id],
     queryFn: async () => {
       if (!id) return null;

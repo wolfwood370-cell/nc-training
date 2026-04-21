@@ -144,7 +144,8 @@ interface QuickAddFormState {
   caloriesOverride: string;
 }
 
-// Metabolic Status Card Component - Enhanced"Coaching Card"function MetabolicStatusCard({ 
+// Metabolic Status Card Component - Enhanced "Coaching Card"
+function MetabolicStatusCard({
   tdee, 
   confidence,
   weightChange,
