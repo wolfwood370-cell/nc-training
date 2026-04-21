@@ -7,6 +7,7 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { SyncIndicator } from "@/components/athlete/SyncIndicator";
 import { ResponsivePhoneWrapper } from "./PhoneMockup";
 
+
 interface AthleteLayoutProps {
   children: React.ReactNode;
   title?: string;
@@ -14,10 +15,13 @@ interface AthleteLayoutProps {
 
 export function AthleteLayout({ children, title }: AthleteLayoutProps) {
   const appContent = (
-    <div className="theme-athlete h-[100dvh] lg:h-full flex flex-col bg-white dark:bg-black text-foreground relative">
+    <div
+      className="theme-athlete relative flex flex-col bg-white dark:bg-black text-foreground overflow-hidden"
+      style={{ height: "100dvh", width: "100%" }}
+    >
       {/* Status bar safe area */}
-      <div className="safe-top flex-shrink-0" />
-      
+      <div style={{ paddingTop: "env(safe-area-inset-top)" }} className="flex-shrink-0" />
+
       {/* Header */}
       {title && (
         <header className="flex-shrink-0 sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md px-4 py-3 border-b border-border/20">
@@ -27,25 +31,36 @@ export function AthleteLayout({ children, title }: AthleteLayoutProps) {
             <div className="flex items-center gap-1">
               <NotificationBell />
               <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9">
-                  <Settings className="h-5 w-5 text-muted-foreground" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-72">
-                <SunThemeToggle />
-              </PopoverContent>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-11 w-11"
+                    aria-label="Impostazioni"
+                  >
+                    <Settings className="h-5 w-5 text-muted-foreground" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-72">
+                  <SunThemeToggle />
+                </PopoverContent>
               </Popover>
             </div>
           </div>
         </header>
       )}
-      
-      {/* Main content with bottom nav spacing - scrollable */}
-      <main className="flex-1 overflow-y-auto pb-24 safe-bottom bg-white dark:bg-black">
+
+      {/* Main content - scrollable, padded for bottom nav + safe area */}
+      <main
+        className="flex-1 overflow-y-auto overscroll-contain bg-white dark:bg-black"
+        style={{
+          paddingBottom: "calc(5rem + env(safe-area-inset-bottom))",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
         {children}
       </main>
-      
+
       <AthleteBottomNav />
     </div>
   );

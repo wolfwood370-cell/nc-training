@@ -1,95 +1,100 @@
-import { Home, Dumbbell, Utensils, MessageSquare, User } from "lucide-react";
+import { Home, Dumbbell, Utensils, User } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 
 const navItems = [
   { title: "Home", url: "/athlete", icon: Home },
-  { title: "Workout", url: "/athlete/workout", icon: Dumbbell },
-  { title: "Chat", url: "/athlete/messages", icon: MessageSquare },
-  { title: "Nutrizione", url: "/athlete/nutrition", icon: Utensils },
+  { title: "Training", url: "/athlete/workout", icon: Dumbbell },
+  { title: "Nutrition", url: "/athlete/nutrition", icon: Utensils },
   { title: "Profilo", url: "/athlete/profile", icon: User },
 ];
 
 export function AthleteBottomNav() {
-  const { unreadCount } = useNotifications();
+  const { light } = useHapticFeedback();
 
   // Fetch coach brand color for active state
   const { data: brandColor } = useQuery({
-    queryKey: ['athlete-brand-color'],
+    queryKey: ["athlete-brand-color"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return null;
-      
+
       const { data: profile } = await supabase
-        .from('profiles')
-        .select('coach_id')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("coach_id")
+        .eq("id", user.id)
         .single();
-      
+
       if (!profile?.coach_id) return null;
-      
+
       const { data: coach } = await supabase
-        .from('profiles')
-        .select('brand_color')
-        .eq('id', profile.coach_id)
+        .from("profiles")
+        .select("brand_color")
+        .eq("id", profile.coach_id)
         .single();
-      
+
       return coach?.brand_color || null;
     },
     staleTime: 10 * 60 * 1000,
   });
 
   return (
-    <nav className="absolute bottom-0 left-0 right-0 z-50">
-      {/* Glassmorphic nav with enhanced blur */}
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-xl border-t border-border/50" />
-      
-      <div className="relative flex items-center justify-around h-16 max-w-md mx-auto safe-bottom">
+    <nav
+      className="absolute bottom-0 left-0 right-0 z-50"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
+      {/* Glassmorphic surface */}
+      <div className="absolute inset-0 bg-background/75 backdrop-blur-xl border-t border-border/50" />
+
+      <div className="relative flex items-center justify-around h-16 max-w-md mx-auto">
         {navItems.map((item) => (
           <NavLink
             key={item.title}
             to={item.url}
             end={item.url === "/athlete"}
-            className="flex flex-col items-center justify-center gap-0.5 flex-1 py-2 text-zinc-500 transition-all active:scale-95"
+            onClick={() => light()}
+            className="relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full min-h-[44px] min-w-[44px] text-zinc-500 transition-transform duration-150 active:scale-90"
             activeClassName="text-primary"
           >
             {({ isActive }) => (
               <div className="relative flex flex-col items-center">
-                {/* Active indicator line at top */}
+                {/* Active top indicator */}
                 {isActive && (
-                  <div 
+                  <div
                     className="absolute -top-2.5 left-1/2 -translate-x-1/2 h-0.5 w-8 rounded-full"
-                    style={{ backgroundColor: brandColor || 'hsl(var(--primary))' }}
+                    style={{ backgroundColor: brandColor || "hsl(var(--primary))" }}
                   />
                 )}
-                
-                <div 
+
+                <div
                   className={cn(
                     "relative p-2 rounded-2xl transition-all duration-300 ease-out",
-                    isActive && "bg-primary/10"
+                    isActive && "bg-primary/10",
                   )}
-                  style={isActive ? { backgroundColor: brandColor ? `${brandColor}15` : undefined } : undefined}
+                  style={
+                    isActive && brandColor
+                      ? { backgroundColor: `${brandColor}15` }
+                      : undefined
+                  }
                 >
-                  <item.icon 
+                  <item.icon
                     className={cn(
                       "h-5 w-5 transition-all duration-300",
-                      isActive ? "stroke-[2.5px]" : "stroke-[1.5px]"
+                      isActive ? "stroke-[2.5px] fill-current/10" : "stroke-[1.5px]",
                     )}
                     style={isActive ? { color: brandColor || undefined } : undefined}
                   />
-                  {/* Unread dot for Chat tab */}
-                  {item.title === "Chat" && unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-destructive rounded-full" />
-                  )}
                 </div>
-                
-                <span 
+
+                <span
                   className={cn(
                     "text-[10px] font-medium transition-all duration-300",
-                    isActive && "font-semibold"
+                    isActive && "font-semibold",
                   )}
                   style={isActive ? { color: brandColor || undefined } : undefined}
                 >
