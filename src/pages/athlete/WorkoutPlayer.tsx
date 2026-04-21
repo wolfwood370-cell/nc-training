@@ -367,7 +367,7 @@ export default function WorkoutPlayer() {
         }
       }
     },
-    [exercises, handleSetUpdate, currentUserId, checkForPR, showPRToast, toast]
+    [exercises, handleSetUpdate, currentUserId, checkForPR, showPRToast, toast, sessionStore]
   );
 
   const handleFinishWorkout = () => {
