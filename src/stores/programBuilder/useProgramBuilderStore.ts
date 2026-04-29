@@ -320,8 +320,8 @@ export const useProgramBuilderStore = create<ProgramBuilderState>()(
         };
 
         state.isDirty = true;
-      })
-  ))
+      }),
+  }))
 );
 
 // ---------------------------------------------------------------------------
