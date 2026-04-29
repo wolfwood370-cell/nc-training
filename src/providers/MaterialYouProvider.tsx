@@ -404,7 +404,7 @@ export function MaterialYouProvider({
 
       const { data } = await supabase
         .from("profiles")
-        .select("neurotype, coach_id")
+        .select("neurotype, coach_id, role, brand_color")
         .eq("id", user.id)
         .single();
 
@@ -447,13 +447,19 @@ export function MaterialYouProvider({
     return NEUROTYPE_COLORS[nt].hex;
   }, [userNeurotype]);
 
-  // Determine final seed color based on preferences
+  // Determine final seed color based on role and preferences
+  // COACH: usa esclusivamente il proprio brand_color (o default Indigo). Ignora Neuro-Sync.
+  // ATHLETE: rispetta Neuro-Sync, override manuale, oppure eredita dal brand_color del coach.
   const seedColor = useMemo(() => {
+    const isCoach = userProfile?.role === "coach";
+    if (isCoach) {
+      return userProfile?.brand_color || DEFAULT_SEED;
+    }
     if (preferences.isNeuroSyncEnabled) {
       return neurotypeSeedColor;
     }
     return preferences.manualColor || coachBranding || DEFAULT_SEED;
-  }, [preferences.isNeuroSyncEnabled, preferences.manualColor, neurotypeSeedColor, coachBranding]);
+  }, [userProfile?.role, userProfile?.brand_color, preferences.isNeuroSyncEnabled, preferences.manualColor, neurotypeSeedColor, coachBranding]);
 
   // Generate theme
   const theme = useMemo(() => {
