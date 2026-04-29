@@ -59,7 +59,7 @@ const allAnswered = (values: Record<string, YesNoIDK | null> | object): boolean 
 export default function OnboardingWizard() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [data, setData] = useState<OnboardingData>(defaultOnboardingData);
   const [showResult, setShowResult] = useState(false);
@@ -87,6 +87,17 @@ export default function OnboardingWizard() {
     }
     setInitialized(true);
   }, []);
+
+  useEffect(() => {
+    if (authLoading || user) return;
+
+    toast({
+      title: "Accesso richiesto",
+      description: "Accedi prima di completare l'onboarding atleta.",
+      variant: "destructive",
+    });
+    navigate("/auth", { replace: true });
+  }, [authLoading, navigate, toast, user]);
 
   // Persist draft
   useEffect(() => {
@@ -165,16 +176,33 @@ export default function OnboardingWizard() {
   const handleBack = () => setCurrentStep((s) => Math.max(1, s - 1));
 
   const handleComplete = async () => {
-    if (!user || !dominantType) return;
+    if (isSubmitting) return;
+
+    const result = analyzeOnboarding(data);
+    const finalDominantType = dominantType ?? result.dominant_neurotype;
+
+    if (!user) {
+      toast({
+        title: "Accesso richiesto",
+        description: "Accedi prima di salvare il profilo e accedere alla dashboard.",
+        variant: "destructive",
+      });
+      navigate("/auth", { replace: true });
+      return;
+    }
+
+    if (!dominantType) {
+      setDominantType(finalDominantType);
+      setScores(result.neurotype_scores);
+    }
+
     setIsSubmitting(true);
 
     try {
-      const result = analyzeOnboarding(data);
-
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
-          neurotype: dominantType,
+          neurotype: finalDominantType,
           onboarding_completed: true,
           onboarding_data: JSON.parse(JSON.stringify(data)),
           medical_clearance_required: result.red_flags.medical_clearance_required,
@@ -265,12 +293,18 @@ export default function OnboardingWizard() {
         title: "Onboarding completato!",
         description: "Profilo salvato. Il tuo Coach è stato notificato dei flag rilevanti.",
       });
-      navigate("/athlete");
-    } catch (error: any) {
+      navigate("/athlete", { replace: true });
+      window.setTimeout(() => {
+        if (window.location.pathname === "/onboarding") {
+          window.location.replace("/athlete");
+        }
+      }, 150);
+    } catch (error: unknown) {
       console.error("[Onboarding] handleComplete failed:", error);
+      const message = error instanceof Error ? error.message : "Si è verificato un errore. Riprova.";
       toast({
         title: "Errore nel salvataggio",
-        description: error?.message || "Si è verificato un errore. Riprova.",
+        description: message,
         variant: "destructive",
       });
     } finally {
