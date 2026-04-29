@@ -204,22 +204,48 @@ export default function CoachSettings() {
     }
   };
 
-  // Upload file to storage
-  const uploadFile = async (file: File, bucket: string, folder: string): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${folder}/${Date.now()}.${fileExt}`;
-    
-    const { error: uploadError } = await supabase.storage
-      .from(bucket)
-      .upload(fileName, file, { upsert: true });
+  // Compress an image File and return a data URL (JPEG/WebP).
+  // We embed the image as a data URL in the profile to avoid the storage backend.
+  const fileToCompressedDataURL = async (
+    file: File,
+    maxSize = 512,
+    quality = 0.82
+  ): Promise<string> => {
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error("Impossibile leggere il file"));
+      reader.readAsDataURL(file);
+    });
 
-    if (uploadError) throw uploadError;
+    // For SVG or non-raster images, return as-is.
+    if (file.type === "image/svg+xml") return dataUrl;
 
-    const { data: { publicUrl } } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(fileName);
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const im = new Image();
+      im.onload = () => resolve(im);
+      im.onerror = () => reject(new Error("Immagine non valida"));
+      im.src = dataUrl;
+    });
 
-    return publicUrl;
+    const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+    const w = Math.round(img.width * scale);
+    const h = Math.round(img.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas non supportato");
+    ctx.drawImage(img, 0, 0, w, h);
+
+    // Prefer WebP, fallback to JPEG
+    const mime = "image/webp";
+    return canvas.toDataURL(mime, quality);
+  };
+
+  // Kept for API compatibility; routes uploads to the inline data-URL pipeline.
+  const uploadFile = async (file: File, _bucket: string, _folder: string): Promise<string> => {
+    return fileToCompressedDataURL(file);
   };
 
   // Save profile mutation
