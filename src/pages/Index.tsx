@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { MetaHead } from "@/components/MetaHead";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Footer } from "@/components/layout/Footer";
 import { useAuth } from "@/hooks/useAuth";
