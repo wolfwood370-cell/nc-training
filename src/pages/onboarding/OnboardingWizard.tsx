@@ -266,9 +266,13 @@ export default function OnboardingWizard() {
         description: "Profilo salvato. Il tuo Coach è stato notificato dei flag rilevanti.",
       });
       navigate("/athlete");
-    } catch (error) {
-      console.error(error);
-      toast({ title: "Errore", description: "Si è verificato un errore. Riprova.", variant: "destructive" });
+    } catch (error: any) {
+      console.error("[Onboarding] handleComplete failed:", error);
+      toast({
+        title: "Errore nel salvataggio",
+        description: error?.message || "Si è verificato un errore. Riprova.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
