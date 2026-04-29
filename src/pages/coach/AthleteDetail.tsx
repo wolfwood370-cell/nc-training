@@ -2178,6 +2178,25 @@ function SettingsContent({
     },
   });
 
+  // Permanent delete mutation
+  const deleteAthleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!athleteId) throw new Error("No athlete ID");
+      const { data, error } = await supabase.functions.invoke("delete-athlete", {
+        body: { athlete_id: athleteId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+    },
+    onSuccess: () => {
+      toast.success("Atleta eliminato definitivamente");
+      navigate("/coach/athletes");
+    },
+    onError: (error: any) => {
+      toast.error(`Errore nell'eliminazione: ${error.message}`);
+    },
+  });
+
   // Archive athlete mutation
   const archiveAthleteMutation = useMutation({
     mutationFn: async () => {
