@@ -26,7 +26,14 @@ export function YesNoQuestionList<T>({
   questions,
   values,
   onChange,
+  invertColors = false,
 }: YesNoQuestionListProps<T>) {
+  const yesClass = invertColors
+    ? "border-rose-500 bg-rose-500/10 text-rose-600 dark:text-rose-400"
+    : "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
+  const noClass = invertColors
+    ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+    : "border-rose-500 bg-rose-500/10 text-rose-600 dark:text-rose-400";
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
