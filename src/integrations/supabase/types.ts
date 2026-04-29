@@ -1478,18 +1478,23 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           brand_color: string | null
+          calibration_requirements: string[]
           coach_id: string | null
           created_at: string
           current_period_end: string | null
+          experience_level: string | null
+          fms_exclusion_zones: string[]
           full_name: string | null
           id: string
           leaderboard_anonymous: boolean
           logo_url: string | null
+          medical_clearance_required: boolean
           neurotype: string | null
           onboarding_completed: boolean
           onboarding_data: Json | null
           one_rm_data: Json | null
           preferences: Json | null
+          red_flags: Json
           role: Database["public"]["Enums"]["user_role"]
           settings: Json
           social_links: Json | null
@@ -1501,18 +1506,23 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           brand_color?: string | null
+          calibration_requirements?: string[]
           coach_id?: string | null
           created_at?: string
           current_period_end?: string | null
+          experience_level?: string | null
+          fms_exclusion_zones?: string[]
           full_name?: string | null
           id: string
           leaderboard_anonymous?: boolean
           logo_url?: string | null
+          medical_clearance_required?: boolean
           neurotype?: string | null
           onboarding_completed?: boolean
           onboarding_data?: Json | null
           one_rm_data?: Json | null
           preferences?: Json | null
+          red_flags?: Json
           role?: Database["public"]["Enums"]["user_role"]
           settings?: Json
           social_links?: Json | null
@@ -1524,18 +1534,23 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           brand_color?: string | null
+          calibration_requirements?: string[]
           coach_id?: string | null
           created_at?: string
           current_period_end?: string | null
+          experience_level?: string | null
+          fms_exclusion_zones?: string[]
           full_name?: string | null
           id?: string
           leaderboard_anonymous?: boolean
           logo_url?: string | null
+          medical_clearance_required?: boolean
           neurotype?: string | null
           onboarding_completed?: boolean
           onboarding_data?: Json | null
           one_rm_data?: Json | null
           preferences?: Json | null
+          red_flags?: Json
           role?: Database["public"]["Enums"]["user_role"]
           settings?: Json
           social_links?: Json | null
