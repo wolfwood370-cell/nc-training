@@ -1,4 +1,4 @@
-// Onboarding Data Types — NC Training System Profiling Engine
+// Onboarding Data Types — NC Personal Trainer Profiling Engine
 
 export type YesNoIDK = 'yes' | 'no' | 'idk';
 
