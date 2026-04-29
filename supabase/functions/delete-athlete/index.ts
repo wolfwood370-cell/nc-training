@@ -57,8 +57,9 @@ Deno.serve(async (req) => {
       });
     }
 
+    console.log("delete-athlete auth check", { callerId, athlete_id, profileCoachId: profile.coach_id });
     if (profile.coach_id !== callerId) {
-      return new Response(JSON.stringify({ error: "Not authorized" }), {
+      return new Response(JSON.stringify({ error: "Not authorized", debug: { callerId, profileCoachId: profile.coach_id } }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
