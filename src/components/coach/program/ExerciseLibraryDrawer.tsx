@@ -9,9 +9,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Search, Dumbbell } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Search, Dumbbell, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useProgramBuilderStore } from '@/stores/programBuilder/useProgramBuilderStore';
+import {
+  useExerciseLibraryQuery,
+  type LibraryExercise,
+} from '@/hooks/useExerciseLibraryQuery';
 import type {
   NewProgrammedExercise,
   ProgrammedSet,
@@ -19,65 +25,25 @@ import type {
 } from '@/types/training';
 
 // ---------------------------------------------------------------------------
-// Mock library
+// Helpers
 // ---------------------------------------------------------------------------
-//
-// Hardcoded for now — when the real exercise-library API lands, swap this
-// constant for a `useQuery(['exercise-library', search], …)` call. The drawer
-// component itself stays unchanged.
-
-interface LibraryExerciseDef {
-  /** Stable client-side id used as `exercise_id` foreign key when added. */
-  exercise_id: UUID;
-  name: string;
-  /** Coarse muscle-group tag for the badge in the row. */
-  muscle: string;
-  /** Default rep target for the first auto-generated set. */
-  default_reps: string;
-  /** Default RPE for the first auto-generated set. */
-  default_rpe: number;
-}
-
-const MOCK_LIBRARY: LibraryExerciseDef[] = [
-  { exercise_id: 'lib-back-squat',         name: 'Back Squat',         muscle: 'Quads',     default_reps: '5',     default_rpe: 8 },
-  { exercise_id: 'lib-front-squat',        name: 'Front Squat',        muscle: 'Quads',     default_reps: '5',     default_rpe: 8 },
-  { exercise_id: 'lib-bench-press',        name: 'Bench Press',        muscle: 'Chest',     default_reps: '5',     default_rpe: 8 },
-  { exercise_id: 'lib-incline-db-press',   name: 'Incline DB Press',   muscle: 'Chest',     default_reps: '8-10',  default_rpe: 8 },
-  { exercise_id: 'lib-overhead-press',     name: 'Overhead Press',     muscle: 'Shoulders', default_reps: '5',     default_rpe: 8 },
-  { exercise_id: 'lib-deadlift',           name: 'Deadlift',           muscle: 'Posterior', default_reps: '3',     default_rpe: 8 },
-  { exercise_id: 'lib-romanian-deadlift',  name: 'Romanian Deadlift',  muscle: 'Hamstrings',default_reps: '8',     default_rpe: 8 },
-  { exercise_id: 'lib-pull-up',            name: 'Pull-Up',            muscle: 'Back',      default_reps: 'AMRAP', default_rpe: 9 },
-  { exercise_id: 'lib-barbell-row',        name: 'Barbell Row',        muscle: 'Back',      default_reps: '8',     default_rpe: 8 },
-  { exercise_id: 'lib-lat-pulldown',       name: 'Lat Pulldown',       muscle: 'Back',      default_reps: '10-12', default_rpe: 8 },
-  { exercise_id: 'lib-walking-lunge',      name: 'Walking Lunge',      muscle: 'Quads',     default_reps: '10',    default_rpe: 7 },
-  { exercise_id: 'lib-bulgarian-split',    name: 'Bulgarian Split Squat', muscle: 'Quads',  default_reps: '8',     default_rpe: 8 },
-  { exercise_id: 'lib-hip-thrust',         name: 'Hip Thrust',         muscle: 'Glutes',    default_reps: '8',     default_rpe: 8 },
-  { exercise_id: 'lib-leg-curl',           name: 'Leg Curl',           muscle: 'Hamstrings',default_reps: '10-12', default_rpe: 9 },
-  { exercise_id: 'lib-leg-extension',      name: 'Leg Extension',      muscle: 'Quads',     default_reps: '12-15', default_rpe: 9 },
-  { exercise_id: 'lib-cable-fly',          name: 'Cable Fly',          muscle: 'Chest',     default_reps: '12-15', default_rpe: 9 },
-  { exercise_id: 'lib-tricep-pushdown',    name: 'Tricep Pushdown',    muscle: 'Triceps',   default_reps: '10-12', default_rpe: 8 },
-  { exercise_id: 'lib-bicep-curl',         name: 'Bicep Curl',         muscle: 'Biceps',    default_reps: '10-12', default_rpe: 8 },
-  { exercise_id: 'lib-face-pull',          name: 'Face Pull',          muscle: 'Rear Delt', default_reps: '15',    default_rpe: 8 },
-  { exercise_id: 'lib-plank',              name: 'Plank',              muscle: 'Core',      default_reps: '60s',   default_rpe: 7 },
-];
 
 /**
- * Builds a NewProgrammedExercise with one warmup set + 3 working sets so the
- * card is immediately useful. The coach overrides everything inline.
+ * Build a starter `NewProgrammedExercise` (1 working scaffold × 3 sets) from
+ * a real library row. RPE inherits from the coach default when present.
  */
-function buildNewExercise(def: LibraryExerciseDef): NewProgrammedExercise {
+function buildNewExercise(def: LibraryExercise): NewProgrammedExercise {
+  const defaultRpe = def.default_rpe ?? 8;
   const buildSet = (n: number): ProgrammedSet => ({
-    // id is stamped by the store's addExerciseToSession defensive guard, but
-    // we provide one anyway so the shape is internally consistent.
     id: crypto.randomUUID(),
     set_number: n,
-    reps_target: def.default_reps,
-    rpe_target: def.default_rpe,
+    reps_target: '8',
+    rpe_target: defaultRpe,
     rest_seconds: 90,
   });
 
   return {
-    exercise_id: def.exercise_id,
+    exercise_id: def.id,
     exercise_name: def.name,
     sets: [buildSet(1), buildSet(2), buildSet(3)],
   };
@@ -90,9 +56,7 @@ function buildNewExercise(def: LibraryExerciseDef): NewProgrammedExercise {
 export interface ExerciseLibraryDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** The week the target session lives in. */
   weekId: UUID | null;
-  /** The session into which the picked exercise is appended. */
   sessionId: UUID | null;
 }
 
@@ -103,32 +67,32 @@ export function ExerciseLibraryDrawer({
   sessionId,
 }: ExerciseLibraryDrawerProps) {
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 250);
+
   const addExerciseToSession = useProgramBuilderStore(
     (s) => s.addExerciseToSession,
   );
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return MOCK_LIBRARY;
-    return MOCK_LIBRARY.filter(
-      (ex) =>
-        ex.name.toLowerCase().includes(q) ||
-        ex.muscle.toLowerCase().includes(q),
-    );
-  }, [search]);
+  const { data: exercises = [], isLoading, error } = useExerciseLibraryQuery({
+    searchQuery: debouncedSearch,
+    enabled: open,
+  });
 
-  const handlePick = (def: LibraryExerciseDef) => {
-    if (!weekId || !sessionId) return; // defensive — drawer shouldn't be open without these
+  const handlePick = (def: LibraryExercise) => {
+    if (!weekId || !sessionId) return;
     addExerciseToSession(weekId, sessionId, buildNewExercise(def));
     setSearch('');
     onOpenChange(false);
   };
 
+  // Stable list reference for render
+  const list = useMemo(() => exercises, [exercises]);
+
   return (
     <Sheet
       open={open}
       onOpenChange={(o) => {
-        if (!o) setSearch(''); // reset filter when the drawer is dismissed
+        if (!o) setSearch('');
         onOpenChange(o);
       }}
     >
@@ -160,13 +124,34 @@ export function ExerciseLibraryDrawer({
         {/* List */}
         <ScrollArea className="flex-1">
           <ul className="py-1">
-            {filtered.length === 0 && (
-              <li className="px-5 py-8 text-center text-xs text-muted-foreground">
-                No exercises match "{search}".
+            {isLoading && list.length === 0 && (
+              <>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <li key={i} className="px-5 py-2 flex items-center justify-between gap-3">
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-4 w-14" />
+                  </li>
+                ))}
+              </>
+            )}
+
+            {!isLoading && error && (
+              <li className="px-5 py-8 text-center text-xs text-destructive flex flex-col items-center gap-1.5">
+                <AlertCircle className="h-4 w-4" />
+                Failed to load exercises.
               </li>
             )}
-            {filtered.map((ex) => (
-              <li key={ex.exercise_id}>
+
+            {!isLoading && !error && list.length === 0 && (
+              <li className="px-5 py-8 text-center text-xs text-muted-foreground">
+                {debouncedSearch.trim()
+                  ? `No exercises match "${debouncedSearch}".`
+                  : 'No exercises in your library yet.'}
+              </li>
+            )}
+
+            {list.map((ex) => (
+              <li key={ex.id}>
                 <button
                   type="button"
                   onClick={() => handlePick(ex)}
@@ -183,7 +168,7 @@ export function ExerciseLibraryDrawer({
                     variant="secondary"
                     className="text-[10px] h-4 px-1.5 font-normal flex-shrink-0"
                   >
-                    {ex.muscle}
+                    {ex.muscle_group}
                   </Badge>
                 </button>
               </li>
