@@ -710,11 +710,15 @@ export type Database = {
       }
       daily_metrics: {
         Row: {
+          body_weight_kg: number | null
+          calories_consumed: number | null
           created_at: string
           date: string
+          hrv_ms: number | null
           hrv_rmssd: number | null
           id: string
           notes: string | null
+          readiness_score: number | null
           resting_hr: number | null
           sleep_hours: number | null
           subjective_readiness: number | null
@@ -723,11 +727,15 @@ export type Database = {
           weight_kg: number | null
         }
         Insert: {
+          body_weight_kg?: number | null
+          calories_consumed?: number | null
           created_at?: string
           date?: string
+          hrv_ms?: number | null
           hrv_rmssd?: number | null
           id?: string
           notes?: string | null
+          readiness_score?: number | null
           resting_hr?: number | null
           sleep_hours?: number | null
           subjective_readiness?: number | null
@@ -736,11 +744,15 @@ export type Database = {
           weight_kg?: number | null
         }
         Update: {
+          body_weight_kg?: number | null
+          calories_consumed?: number | null
           created_at?: string
           date?: string
+          hrv_ms?: number | null
           hrv_rmssd?: number | null
           id?: string
           notes?: string | null
+          readiness_score?: number | null
           resting_hr?: number | null
           sleep_hours?: number | null
           subjective_readiness?: number | null

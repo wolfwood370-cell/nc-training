@@ -51,13 +51,32 @@ export interface DailyReadinessPayload {
   stress_level?: number;
   soreness_map?: Json;
   notes?: string;
+  /** Local edit timestamp (ms) — used for last-write-wins conflict resolution */
+  client_updated_at?: number;
+}
+
+export interface DailyMetricsPayload {
+  type: 'daily_metrics';
+  local_id: string;
+  user_id: string;
+  date: string;
+  readiness_score?: number;
+  sleep_hours?: number;
+  hrv_ms?: number;
+  body_weight_kg?: number;
+  calories_consumed?: number;
+  notes?: string;
+  /** Local edit timestamp (ms) — used for last-write-wins conflict resolution */
+  client_updated_at: number;
 }
 
 export type SyncStatus = 'idle' | 'syncing' | 'offline' | 'error';
 
+type AnyPayload = WorkoutLogPayload | DailyReadinessPayload | DailyMetricsPayload;
+
 type QueueItem = {
   id: string;
-  payload: WorkoutLogPayload | DailyReadinessPayload;
+  payload: AnyPayload;
   timestamp: number;
   retryCount: number;
   nextRetryAt?: number;
@@ -94,7 +113,7 @@ function saveQueue(queue: QueueItem[]): void {
   }
 }
 
-function addToQueue(payload: WorkoutLogPayload | DailyReadinessPayload): void {
+function addToQueue(payload: AnyPayload): void {
   const queue = getQueue();
   queue.push({
     id: payload.local_id,
@@ -201,6 +220,21 @@ async function syncWorkoutLog(payload: WorkoutLogPayload): Promise<void> {
 }
 
 async function syncDailyReadiness(payload: DailyReadinessPayload): Promise<void> {
+  // Timestamp-based conflict resolution: skip our write if the server row is newer.
+  if (payload.client_updated_at) {
+    const { data: serverRow } = await supabase
+      .from('daily_readiness')
+      .select('created_at')
+      .eq('athlete_id', payload.athlete_id)
+      .eq('date', payload.date)
+      .maybeSingle();
+    const serverTs = serverRow?.created_at ? new Date(serverRow.created_at).getTime() : 0;
+    if (serverTs > payload.client_updated_at) {
+      console.warn('[OfflineSync] Readiness server row newer — keeping server version.');
+      return;
+    }
+  }
+
   const { error } = await supabase
     .from('daily_readiness')
     .upsert({
@@ -220,12 +254,50 @@ async function syncDailyReadiness(payload: DailyReadinessPayload): Promise<void>
   if (error) throw error;
 }
 
+async function syncDailyMetrics(payload: DailyMetricsPayload): Promise<void> {
+  // Timestamp-based last-write-wins: compare server.updated_at vs client_updated_at.
+  const { data: serverRow } = await supabase
+    .from('daily_metrics')
+    .select('updated_at')
+    .eq('user_id', payload.user_id)
+    .eq('date', payload.date)
+    .maybeSingle();
+
+  const serverTs = serverRow?.updated_at ? new Date(serverRow.updated_at).getTime() : 0;
+  if (serverTs > payload.client_updated_at) {
+    console.warn(
+      `[OfflineSync] daily_metrics server row newer (server=${serverTs} > client=${payload.client_updated_at}). Skipping write.`
+    );
+    return;
+  }
+
+  const { error } = await supabase
+    .from('daily_metrics')
+    .upsert(
+      {
+        user_id: payload.user_id,
+        date: payload.date,
+        readiness_score: payload.readiness_score,
+        sleep_hours: payload.sleep_hours,
+        hrv_ms: payload.hrv_ms,
+        body_weight_kg: payload.body_weight_kg,
+        calories_consumed: payload.calories_consumed,
+        notes: payload.notes,
+      } as any,
+      { onConflict: 'user_id,date' }
+    );
+
+  if (error) throw error;
+}
+
 async function syncQueueItem(item: QueueItem): Promise<{ ok: boolean; statusCode?: number }> {
   try {
     if (item.payload.type === 'workout_log') {
       await syncWorkoutLog(item.payload);
     } else if (item.payload.type === 'daily_readiness') {
       await syncDailyReadiness(item.payload);
+    } else if (item.payload.type === 'daily_metrics') {
+      await syncDailyMetrics(item.payload);
     }
     return { ok: true };
   } catch (error: any) {
@@ -436,22 +508,60 @@ export function useOfflineSync() {
     },
   });
 
+  // Mutation: Log/upsert daily metrics (queues if offline). Uses timestamp-based
+  // last-write-wins resolution server-side.
+  const logMetricsMutation = useMutation({
+    mutationFn: async (
+      payload: Omit<DailyMetricsPayload, 'type' | 'client_updated_at'> & { client_updated_at?: number }
+    ) => {
+      const fullPayload: DailyMetricsPayload = {
+        ...payload,
+        type: 'daily_metrics',
+        client_updated_at: payload.client_updated_at ?? Date.now(),
+      };
+
+      if (navigator.onLine) {
+        try {
+          await syncDailyMetrics(fullPayload);
+          return { synced: true, id: payload.local_id };
+        } catch (e) {
+          // Network/transient — queue for retry instead of failing the UI.
+          addToQueue(fullPayload);
+          return { synced: false, id: payload.local_id };
+        }
+      } else {
+        addToQueue(fullPayload);
+        return { synced: false, id: payload.local_id };
+      }
+    },
+    onSuccess: (result) => {
+      if (result.synced) {
+        queryClient.invalidateQueries({ queryKey: ['daily-metrics'] });
+      }
+    },
+  });
+
   return {
     // Status
     isOnline,
     syncStatus,
     pendingCount: getQueue().length,
-    
+
     // Workout logging (athlete only)
     logWorkout: logWorkoutMutation.mutate,
     logWorkoutAsync: logWorkoutMutation.mutateAsync,
     isLoggingWorkout: logWorkoutMutation.isPending,
-    
+
     // Readiness logging (athlete only)
     logReadiness: logReadinessMutation.mutate,
     logReadinessAsync: logReadinessMutation.mutateAsync,
     isLoggingReadiness: logReadinessMutation.isPending,
-    
+
+    // Daily metrics (wearables / nutrition / body weight)
+    logMetrics: logMetricsMutation.mutate,
+    logMetricsAsync: logMetricsMutation.mutateAsync,
+    isLoggingMetrics: logMetricsMutation.isPending,
+
     // Manual sync trigger
     forceSync: processQueue,
   };
