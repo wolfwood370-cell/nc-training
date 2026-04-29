@@ -9,6 +9,9 @@ interface YesNoQuestionListProps<T> {
   questions: YesNoQuestion[];
   values: T;
   onChange: (values: T) => void;
+  /** When true, "no" answers are highlighted as positive (green) and "yes" as negative (red).
+   *  Used for risk-style questionnaires (PAR-Q, Orthopedic) where a "yes" indicates a red flag. */
+  invertColors?: boolean;
 }
 
 const OPTIONS: { value: YesNoIDK; label: string }[] = [
