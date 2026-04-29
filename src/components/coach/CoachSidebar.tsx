@@ -59,6 +59,17 @@ const secondaryNavItems = [
 export function CoachSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (e) {
+      console.error("Logout error:", e);
+      toast.error("Errore durante il logout");
+      window.location.href = "/auth";
+    }
+  };
 
   return (
     <Sidebar 
