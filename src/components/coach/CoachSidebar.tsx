@@ -234,7 +234,12 @@ export function CoachSidebar() {
                 <p className="text-sm font-medium text-sidebar-foreground truncate">Marco Coach</p>
                 <p className="text-xs text-sidebar-foreground/50 truncate">Piano Pro</p>
               </div>
-              <button className="p-1.5 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors">
+              <button
+                onClick={handleLogout}
+                title="Logout"
+                aria-label="Logout"
+                className="p-1.5 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors"
+              >
                 <LogOut className="h-4 w-4" />
               </button>
             </>
