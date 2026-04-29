@@ -1,0 +1,306 @@
+import { memo, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Plus, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useProgramBuilderStore } from '@/stores/programBuilder/useProgramBuilderStore';
+import type {
+  ProgrammedExercise,
+  ProgrammedSet,
+  ProgrammedSetUpdate,
+  UUID,
+} from '@/types/training';
+
+// ---------------------------------------------------------------------------
+// Auto-regulation editor: RPE | RIR
+// ---------------------------------------------------------------------------
+//
+// A coach typically prescribes one or the other, but the schema permits both.
+// We render whichever is currently set; if neither is set, the card defaults
+// to displaying RPE (the more common modern choice). A coach can flip the
+// header label to switch the rendered field.
+
+type AutoRegMode = 'rpe' | 'rir';
+
+// ---------------------------------------------------------------------------
+// CompactCell — borderless input that reveals its border only on hover/focus
+// ---------------------------------------------------------------------------
+
+interface CompactCellProps {
+  value: string | number | undefined;
+  /** Called on blur with the raw string from the input. */
+  onCommit: (raw: string) => void;
+  type?: 'text' | 'number';
+  placeholder?: string;
+  /** Tighten the input width if the column is narrow. */
+  width?: string;
+  /** Optional suffix glyph rendered inside the cell (e.g. "%"). */
+  suffix?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+}
+
+const CompactCell = memo(function CompactCell({
+  value,
+  onCommit,
+  type = 'text',
+  placeholder = '—',
+  width,
+  suffix,
+  min,
+  max,
+  step,
+}: CompactCellProps) {
+  const handleBlur = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const raw = e.currentTarget.value.trim();
+      onCommit(raw);
+    },
+    [onCommit],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // Enter commits and tabs forward; Escape rolls back to last committed.
+      if (e.key === 'Enter') {
+        e.currentTarget.blur();
+      } else if (e.key === 'Escape') {
+        e.currentTarget.value = value == null ? '' : String(value);
+        e.currentTarget.blur();
+      }
+    },
+    [value],
+  );
+
+  return (
+    <div className={cn('relative inline-flex items-center', width)}>
+      <input
+        type={type}
+        defaultValue={value ?? ''}
+        placeholder={placeholder}
+        min={min}
+        max={max}
+        step={step}
+        inputMode={type === 'number' ? 'decimal' : undefined}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        // Re-key when the upstream value changes so the uncontrolled input
+        // syncs (e.g. after week duplication overwrites this set).
+        key={String(value ?? '')}
+        className={cn(
+          'w-full h-7 px-1.5 text-xs tabular-nums text-center bg-transparent',
+          'rounded-sm border border-transparent',
+          'hover:border-border/70 hover:bg-muted/30',
+          'focus:outline-none focus:border-primary/60 focus:bg-background focus:ring-1 focus:ring-primary/20',
+          'transition-colors',
+          suffix && 'pr-3.5',
+        )}
+      />
+      {suffix && (
+        <span className="absolute right-1 text-[9px] text-muted-foreground pointer-events-none">
+          {suffix}
+        </span>
+      )}
+    </div>
+  );
+});
+
+// ---------------------------------------------------------------------------
+// ProgrammedExerciseCard
+// ---------------------------------------------------------------------------
+
+export interface ProgrammedExerciseCardProps {
+  weekId: UUID;
+  sessionId: UUID;
+  exercise: ProgrammedExercise;
+  /** Optional remove handler — wired by the parent to the store's removeExercise. */
+  onRemove?: () => void;
+  /** Default auto-regulation column header. Can be flipped per-coach upstream. */
+  autoRegMode?: AutoRegMode;
+}
+
+export const ProgrammedExerciseCard = memo(function ProgrammedExerciseCard({
+  weekId,
+  sessionId,
+  exercise,
+  onRemove,
+  autoRegMode = 'rpe',
+}: ProgrammedExerciseCardProps) {
+  // Store actions are pulled atomically — using shallow selectors here would
+  // be overkill since the function references are stable inside zustand.
+  const updateSetProgression = useProgramBuilderStore(
+    (s) => s.updateSetProgression,
+  );
+  const addSetToExercise = useProgramBuilderStore(
+    (s) => s.addSetToExercise,
+  );
+
+  const patch = useCallback(
+    (set: ProgrammedSet, updates: ProgrammedSetUpdate) => {
+      updateSetProgression(
+        weekId,
+        sessionId,
+        exercise.id,
+        set.set_number,
+        updates,
+      );
+    },
+    [updateSetProgression, weekId, sessionId, exercise.id],
+  );
+
+  // Parse a raw numeric input. Empty string → undefined (clears the field).
+  // Out-of-range or non-numeric → no-op (the input visually re-syncs via key).
+  const parseNum = (raw: string, min?: number, max?: number) => {
+    if (raw === '') return undefined;
+    const n = Number(raw);
+    if (!Number.isFinite(n)) return null; // sentinel: ignore
+    if (min != null && n < min) return null;
+    if (max != null && n > max) return null;
+    return n;
+  };
+
+  return (
+    <div
+      className={cn(
+        'group/card rounded-md border border-border/60 bg-card',
+        'shadow-sm hover:border-border transition-colors',
+      )}
+    >
+      {/* Header — exercise name + remove */}
+      <div className="flex items-center justify-between gap-1 px-2 py-1.5 border-b border-border/50">
+        <span
+          className="text-xs font-semibold truncate"
+          title={exercise.exercise_name}
+        >
+          {exercise.exercise_name}
+        </span>
+        {onRemove && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onRemove}
+            className={cn(
+              'h-5 w-5 flex-shrink-0 text-muted-foreground hover:text-destructive',
+              'opacity-0 group-hover/card:opacity-100 transition-opacity',
+            )}
+            aria-label="Remove exercise"
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+      </div>
+
+      {/* Set grid — desktop-dense, tabular layout
+         Columns: # | Reps | RPE/RIR | %1RM
+         Using a CSS grid keeps headers and rows perfectly aligned without
+         <table>'s padding overhead.                                          */}
+      <div className="px-1.5 py-1">
+        {/* Header row */}
+        <div
+          className={cn(
+            'grid grid-cols-[1.5rem_1fr_1fr_1fr] items-center gap-1',
+            'px-1 pb-0.5 mb-0.5 border-b border-border/40',
+            'text-[9px] font-medium text-muted-foreground uppercase tracking-wider',
+          )}
+        >
+          <span className="text-center">Set</span>
+          <span className="text-center">Reps</span>
+          <span className="text-center">{autoRegMode === 'rir' ? 'RIR' : 'RPE'}</span>
+          <span className="text-center">%1RM</span>
+        </div>
+
+        {/* Set rows */}
+        {exercise.sets.length === 0 && (
+          <p className="text-[10px] text-muted-foreground text-center py-1.5">
+            No sets yet.
+          </p>
+        )}
+        {exercise.sets.map((set) => (
+          <div
+            key={set.id}
+            className={cn(
+              'grid grid-cols-[1.5rem_1fr_1fr_1fr] items-center gap-1',
+              'px-1 py-0.5 rounded-sm hover:bg-muted/20',
+            )}
+          >
+            <span className="text-[10px] text-muted-foreground text-center tabular-nums">
+              {set.set_number}
+            </span>
+
+            {/* Reps — free-form string ("8", "8-10", "AMRAP") */}
+            <CompactCell
+              value={set.reps_target}
+              onCommit={(raw) =>
+                patch(set, { reps_target: raw === '' ? '' : raw })
+              }
+              placeholder="—"
+            />
+
+            {/* RPE or RIR */}
+            {autoRegMode === 'rir' ? (
+              <CompactCell
+                type="number"
+                value={set.rir_target}
+                min={0}
+                max={10}
+                step={0.5}
+                placeholder="—"
+                onCommit={(raw) => {
+                  const n = parseNum(raw, 0, 10);
+                  if (n === null) return;
+                  patch(set, { rir_target: n });
+                }}
+              />
+            ) : (
+              <CompactCell
+                type="number"
+                value={set.rpe_target}
+                min={1}
+                max={10}
+                step={0.5}
+                placeholder="—"
+                onCommit={(raw) => {
+                  const n = parseNum(raw, 1, 10);
+                  if (n === null) return;
+                  patch(set, { rpe_target: n });
+                }}
+              />
+            )}
+
+            {/* %1RM */}
+            <CompactCell
+              type="number"
+              value={set.percent_1rm_target}
+              min={0}
+              max={100}
+              step={1}
+              placeholder="—"
+              suffix="%"
+              onCommit={(raw) => {
+                const n = parseNum(raw, 0, 100);
+                if (n === null) return;
+                patch(set, { percent_1rm_target: n });
+              }}
+            />
+          </div>
+        ))}
+
+        {/* Add set */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => addSetToExercise(weekId, sessionId, exercise.id)}
+          className={cn(
+            'w-full h-6 mt-0.5 text-[10px] text-muted-foreground',
+            'hover:text-foreground hover:bg-muted/40',
+          )}
+        >
+          <Plus className="h-3 w-3 mr-1" />
+          Add Set
+        </Button>
+      </div>
+    </div>
+  );
+});

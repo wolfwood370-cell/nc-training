@@ -110,6 +110,19 @@ interface ProgramBuilderState {
     updates: ProgrammedSetUpdate
   ) => void;
 
+  // ---- Set CRUD (append-only; deletion handled via removeExercise/replace) ----
+  /**
+   * Append a new working set to the end of an exercise. The new set is
+   * pre-filled with sensible hypertrophy defaults (8 reps @ RPE 8, 90s rest)
+   * which the coach typically overrides inline. Returns nothing — callers
+   * read the resulting state from the store.
+   */
+  addSetToExercise: (
+    weekId: UUID,
+    sessionId: UUID,
+    exerciseId: UUID
+  ) => void;
+
   // ---- Week duplication (the coach's killer feature) ----
   /**
    * Deep-copies all sessions, exercises, and sets from `sourceWeekId` into
@@ -254,6 +267,38 @@ export const useProgramBuilderStore = create<ProgramBuilderState>()(
         // immutable tree. We deliberately whitelist via ProgrammedSetUpdate
         // (which omits id and set_number) to prevent accidental key changes.
         Object.assign(targetSet, updates);
+
+        state.isDirty = true;
+      }),
+
+    // -----------------------------------------------------------------------
+    // Set CRUD
+    // -----------------------------------------------------------------------
+
+    addSetToExercise: (weekId, sessionId, exerciseId) =>
+      set((state) => {
+        const session = findSession(state.block, weekId, sessionId);
+        if (!session) return;
+
+        const exercise = session.exercises.find((e) => e.id === exerciseId);
+        if (!exercise) return;
+
+        // Inherit prescription from the previous set so coaches don't
+        // re-type the same numbers — the most common pattern is "another
+        // set of the same thing" rather than introducing a new scheme.
+        const prev = exercise.sets[exercise.sets.length - 1];
+
+        exercise.sets.push({
+          id: uuid(),
+          set_number: exercise.sets.length + 1,
+          reps_target: prev?.reps_target ?? '8',
+          rpe_target: prev?.rpe_target ?? 8,
+          rir_target: prev?.rir_target,
+          percent_1rm_target: prev?.percent_1rm_target,
+          rest_seconds: prev?.rest_seconds ?? 90,
+          tempo: prev?.tempo,
+          // is_warmup deliberately not inherited — new sets default to working sets.
+        });
 
         state.isDirty = true;
       }),

@@ -39,6 +39,8 @@ import { cn } from "@/lib/utils";
 import { useShallow } from "zustand/shallow";
 
 import { useAdvancedProgramStore } from "@/stores/useAdvancedProgramStore";
+import { ExerciseLibraryDrawer } from "@/components/coach/program/ExerciseLibraryDrawer";
+import { ProgrammedExerciseCard } from "@/components/coach/program/ProgrammedExerciseCard";
 import type {
   Microcycle,
   Session,
@@ -293,21 +295,22 @@ function ExerciseCard({ exercise }: ExerciseCardProps) {
 
 /**
  * One vertical column representing a single training day. The "+ Add
- * Exercise" ghost button at the bottom triggers `addExerciseToSession`
- * with a mock payload — that wiring will be replaced when the exercise
- * library modal lands.
+ * Exercise" button opens the ExerciseLibraryDrawer; each programmed
+ * exercise is rendered with the inline ProgrammedExerciseCard which writes
+ * directly to the store.
  */
 interface SessionColumnProps {
   weekId: UUID;
   session: Session;
-  onAddExercise: (weekId: UUID, sessionId: UUID) => void;
 }
 
-function SessionColumn({ weekId, session, onAddExercise }: SessionColumnProps) {
+function SessionColumn({ weekId, session }: SessionColumnProps) {
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const removeExercise = useAdvancedProgramStore((s) => s.removeExercise);
+
   return (
     <div className="flex h-full w-[260px] shrink-0 flex-col gap-2 rounded-lg border border-border/60 bg-muted/20 p-3">
-      {/* Column header — keeps day name & focus on top so a coach can
-          scan a week of sessions horizontally without losing context. */}
+      {/* Column header */}
       <div className="flex items-baseline justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold leading-tight">
@@ -329,8 +332,7 @@ function SessionColumn({ weekId, session, onAddExercise }: SessionColumnProps) {
 
       <Separator className="bg-border/40" />
 
-      {/* Exercise list. Empty-state messaging is intentionally muted —
-          the prominent "+ Add" button below carries the call-to-action. */}
+      {/* Exercise list */}
       <div className="flex flex-1 flex-col gap-1.5 overflow-y-auto">
         {session.exercises.length === 0 ? (
           <p className="px-1 py-3 text-center text-[11px] italic text-muted-foreground/70">
@@ -338,22 +340,34 @@ function SessionColumn({ weekId, session, onAddExercise }: SessionColumnProps) {
           </p>
         ) : (
           session.exercises.map((ex) => (
-            <ExerciseCard key={ex.id} exercise={ex} />
+            <ProgrammedExerciseCard
+              key={ex.id}
+              weekId={weekId}
+              sessionId={session.id}
+              exercise={ex}
+              onRemove={() => removeExercise(weekId, session.id, ex.id)}
+            />
           ))
         )}
       </div>
 
-      {/* Add button. `ghost` variant + dashed border = familiar "add slot"
-          affordance from Trello / Linear. */}
+      {/* Add button — opens the exercise library drawer */}
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => onAddExercise(weekId, session.id)}
+        onClick={() => setLibraryOpen(true)}
         className="h-8 w-full justify-center gap-1.5 border border-dashed border-border/60 text-xs text-muted-foreground hover:border-primary/40 hover:bg-primary/5 hover:text-foreground"
       >
         <Plus className="h-3.5 w-3.5" />
         Add Exercise
       </Button>
+
+      <ExerciseLibraryDrawer
+        open={libraryOpen}
+        onOpenChange={setLibraryOpen}
+        weekId={weekId}
+        sessionId={session.id}
+      />
     </div>
   );
 }
@@ -374,10 +388,9 @@ export default function ProgramBuilder() {
 
   // Actions are grouped via useShallow so the function-identity object
   // doesn't churn on every state change.
-  const { initializeBlock, addExerciseToSession } = useAdvancedProgramStore(
+  const { initializeBlock } = useAdvancedProgramStore(
     useShallow((s) => ({
       initializeBlock: s.initializeBlock,
-      addExerciseToSession: s.addExerciseToSession,
     }))
   );
 
@@ -430,13 +443,7 @@ export default function ProgramBuilder() {
   // -------------------------------------------------------------------------
   // Handlers
   // -------------------------------------------------------------------------
-
-  const handleAddExercise = useCallback(
-    (weekId: UUID, sessionId: UUID) => {
-      addExerciseToSession(weekId, sessionId, buildMockExercise());
-    },
-    [addExerciseToSession]
-  );
+  // (Add-exercise wiring now lives inside SessionColumn via the drawer.)
 
   // -------------------------------------------------------------------------
   // Render
@@ -554,7 +561,6 @@ export default function ProgramBuilder() {
                     key={session.id}
                     weekId={selectedWeek.id}
                     session={session}
-                    onAddExercise={handleAddExercise}
                   />
                 ))
               ) : (
