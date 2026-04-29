@@ -2535,17 +2535,17 @@ function SettingsContent({
                   <AlertDialogCancel>Annulla</AlertDialogCancel>
                   <AlertDialogAction
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    disabled
+                    onClick={() => deleteAthleteMutation.mutate()}
+                    disabled={deleteAthleteMutation.isPending}
                   >
-                    Elimina Definitivamente
+                    {deleteAthleteMutation.isPending
+                      ? "Eliminazione..."
+                      : "Elimina Definitivamente"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           </div>
-          <p className="text-xs text-muted-foreground text-center">
-            L'eliminazione definitiva è attualmente disabilitata per sicurezza
-          </p>
         </CardContent>
       </Card>
     </div>
