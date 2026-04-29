@@ -1,0 +1,1 @@
+UPDATE public.profiles SET role = 'coach' WHERE id = '86f41892-32b1-41a2-9690-0033007db4f6';
