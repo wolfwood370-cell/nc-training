@@ -388,10 +388,9 @@ export default function ProgramBuilder() {
 
   // Actions are grouped via useShallow so the function-identity object
   // doesn't churn on every state change.
-  const { initializeBlock, addExerciseToSession } = useAdvancedProgramStore(
+  const { initializeBlock } = useAdvancedProgramStore(
     useShallow((s) => ({
       initializeBlock: s.initializeBlock,
-      addExerciseToSession: s.addExerciseToSession,
     }))
   );
 
