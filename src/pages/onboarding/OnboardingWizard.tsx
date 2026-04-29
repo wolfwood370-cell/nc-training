@@ -334,6 +334,7 @@ export default function OnboardingWizard() {
                       questions={MEDICAL_QUESTIONS}
                       values={data.medical}
                       onChange={(medical) => setData({ ...data, medical })}
+                      invertColors
                     />
                   )}
                   {currentStep === 4 && (
@@ -343,6 +344,7 @@ export default function OnboardingWizard() {
                       questions={ORTHOPEDIC_QUESTIONS}
                       values={data.orthopedic}
                       onChange={(orthopedic) => setData({ ...data, orthopedic })}
+                      invertColors
                     />
                   )}
                   {currentStep === 5 && (
