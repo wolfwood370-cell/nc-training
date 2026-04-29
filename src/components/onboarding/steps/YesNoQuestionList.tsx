@@ -72,9 +72,9 @@ export function YesNoQuestionList<T>({
                           "px-3 py-2 rounded-md border-2 text-sm font-medium transition-all",
                           selected
                             ? opt.value === "yes"
-                              ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                              ? yesClass
                               : opt.value === "no"
-                              ? "border-rose-500 bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                              ? noClass
                               : "border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400"
                             : "border-border hover:border-primary/40 text-muted-foreground"
                         )}
