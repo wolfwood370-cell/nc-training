@@ -34,13 +34,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Plus, Calendar, Target, Layers, Dumbbell } from "lucide-react";
+import { Plus, Calendar, Target, Layers, Dumbbell, Save, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useShallow } from "zustand/shallow";
+import { toast } from "sonner";
 
 import { useAdvancedProgramStore } from "@/stores/useAdvancedProgramStore";
 import { ExerciseLibraryDrawer } from "@/components/coach/program/ExerciseLibraryDrawer";
 import { ProgrammedExerciseCard } from "@/components/coach/program/ProgrammedExerciseCard";
+import {
+  useSaveProgramBlock,
+  SaveProgramBlockError,
+} from "@/hooks/useSaveProgramBlock";
 import type {
   Microcycle,
   Session,
@@ -492,6 +497,20 @@ export default function ProgramBuilder() {
               </span>
             </div>
           </div>
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="shrink-0 gap-2"
+          >
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            {isSaving ? "Saving…" : "Save Program"}
+          </Button>
         </div>
 
         {/* ───────────────────────────────────────────────────────────────
