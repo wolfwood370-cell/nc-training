@@ -39,7 +39,7 @@ export function LegalStep({ data, onUpdate }: LegalStepProps) {
                 </p>
                 <p>
                   <strong className="text-foreground">Termini di servizio.</strong> Accetto che le indicazioni fornite
-                  da NC Training System sono di carattere educativo e prestazionale, non sostituiscono diagnosi o
+                  da NC Personal Trainer sono di carattere educativo e prestazionale, non sostituiscono diagnosi o
                   prescrizioni mediche, e che la responsabilità dell'esecuzione resta in capo all'atleta.
                 </p>
                 <p>
