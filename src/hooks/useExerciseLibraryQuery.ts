@@ -87,9 +87,11 @@ export interface UseExerciseLibraryQueryOptions {
 // Internals
 // ---------------------------------------------------------------------------
 
-/** Columns we actually need. Keep this tight — every byte counts on PWA. */
+/** Columns we actually need. Keep this tight — every byte counts on PWA.
+ *  NOTE: live `exercises` schema has no `is_compound` column; we derive it
+ *  from `exercise_type` ('Multi-articolare' === compound). */
 const SELECT_COLS =
-  'id, name, muscles, movement_pattern, default_rpe, is_compound';
+  'id, name, muscles, movement_pattern, default_rpe, exercise_type';
 
 /** Row shape returned by Supabase given SELECT_COLS. */
 interface ExerciseRow {
@@ -98,7 +100,7 @@ interface ExerciseRow {
   muscles: string[] | null;
   movement_pattern: string | null;
   default_rpe: number | null;
-  is_compound: boolean;
+  exercise_type: string | null;
 }
 
 /** Project a raw DB row into the UI-facing LibraryExercise shape. */
@@ -111,7 +113,7 @@ function mapRow(row: ExerciseRow): LibraryExercise {
     equipment: row.movement_pattern ?? '',
     muscles,
     default_rpe: row.default_rpe,
-    is_compound: row.is_compound,
+    is_compound: row.exercise_type === 'Multi-articolare',
   };
 }
 
