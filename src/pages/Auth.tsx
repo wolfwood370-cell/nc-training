@@ -73,8 +73,8 @@ export default function Auth() {
       await signUp(signupEmail, signupPassword, signupName, signupRole);
       toast.success("Account creato! Benvenuto!");
       
-      // Navigate based on role
-      navigate(signupRole === "coach" ? "/coach" : "/athlete");
+      // Navigate based on role: coaches go to dashboard, athletes start onboarding
+      navigate(signupRole === "coach" ? "/coach" : "/onboarding");
     } catch (error: any) {
       toast.error(mapSupabaseError(error));
     } finally {
