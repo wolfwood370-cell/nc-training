@@ -240,7 +240,7 @@ export default function CoachSettings() {
         logoUrl = await uploadFile(logoFile, "coach-branding", user.id);
       }
 
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from("profiles")
         .update({
           full_name: fullName || null,
@@ -251,9 +251,13 @@ export default function CoachSettings() {
           social_links: socialLinks as unknown as Json,
           preferences: preferences as unknown as Json,
         })
-        .eq("id", user.id);
+        .eq("id", user.id)
+        .select("id");
 
       if (error) throw error;
+      if (!updated || updated.length === 0) {
+        throw new Error("PROFILE_MISSING");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["coach-profile"] });
@@ -261,9 +265,13 @@ export default function CoachSettings() {
       setLogoFile(null);
       toast.success("Impostazioni salvate con successo!");
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error(error);
-      toast.error("Errore nel salvare le impostazioni");
+      if (error.message === "PROFILE_MISSING") {
+        toast.error("Profilo non trovato. Effettua il logout e accedi di nuovo.");
+      } else {
+        toast.error(`Errore nel salvare: ${error.message}`);
+      }
     },
   });
 
