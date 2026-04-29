@@ -1,10 +1,7 @@
 import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Badge } from "@/components/ui/badge";
-import { Check, Watch, Smartphone } from "lucide-react";
 import { BiometricsData } from "@/types/onboarding";
 import { cn } from "@/lib/utils";
 
@@ -13,36 +10,7 @@ interface BiometricsStepProps {
   onUpdate: (data: BiometricsData) => void;
 }
 
-const wearableOptions = [
-  { id: "oura", label: "Oura Ring", autoSync: true },
-  { id: "garmin", label: "Garmin", autoSync: true },
-  { id: "apple_watch", label: "Apple Watch", autoSync: false },
-  { id: "whoop", label: "Whoop", autoSync: true },
-  { id: "polar", label: "Polar/Fascia Cardio", autoSync: false },
-  { id: "none", label: "Nessuno", autoSync: false },
-];
-
 export function BiometricsStep({ data, onUpdate }: BiometricsStepProps) {
-  const handleWearableToggle = (wearableId: string) => {
-    let newWearables: string[];
-
-    if (wearableId === "none") {
-      newWearables = data.wearables.includes("none") ? [] : ["none"];
-    } else {
-      const filtered = data.wearables.filter((w) => w !== "none");
-      if (filtered.includes(wearableId)) {
-        newWearables = filtered.filter((w) => w !== wearableId);
-      } else {
-        newWearables = [...filtered, wearableId];
-      }
-    }
-
-    onUpdate({ ...data, wearables: newWearables });
-  };
-
-  const hasAutoSyncDevice = data.wearables.some(
-    (w) => wearableOptions.find((opt) => opt.id === w)?.autoSync,
-  );
 
   return (
     <motion.div

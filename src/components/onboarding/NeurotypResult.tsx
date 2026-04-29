@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Brain, Sparkles, ArrowRight, Check } from "lucide-react";
-import { NeurotypType, neurotypLabels } from "@/types/onboarding";
+import { NeurotypType, NEUROTYPE_LABELS as neurotypLabels } from "@/types/onboarding";
 import { cn } from "@/lib/utils";
 
 interface NeurotypResultProps {
