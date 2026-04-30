@@ -324,7 +324,6 @@ ${contextBlock}`
           body: JSON.stringify({
             model: "openai/gpt-5-mini",
             messages,
-            temperature: 0.2, // tight: we want fidelity to the manuals, not flair
             stream: false,
           }),
         },
