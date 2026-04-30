@@ -344,20 +344,32 @@ export default function KnowledgeBase() {
                 multiple
                 accept=".pdf,.txt,application/pdf,text/plain"
                 onChange={onSelect}
-                disabled={isTraining}
+                disabled={isTraining || isReading}
                 className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
                 aria-label="Carica documenti"
               />
-              <Upload className={cn(
-                "h-10 w-10 mx-auto mb-3 transition-colors",
-                isDragging ? "text-violet-400" : "text-muted-foreground"
-              )} />
-              <p className="text-sm font-medium">
-                {isDragging ? "Rilascia per caricare" : "Trascina i file o clicca per selezionare"}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                I documenti vengono divisi in chunk vettoriali da 1000 caratteri ed embeddati con OpenAI
-              </p>
+              {isReading ? (
+                <>
+                  <Loader2 className="h-10 w-10 mx-auto mb-3 text-violet-400 animate-spin" />
+                  <p className="text-sm font-medium">{readingLabel || "Lettura del documento... attendi"}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    File di grandi dimensioni: il browser sta estraendo il testo. Non chiudere la pagina.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Upload className={cn(
+                    "h-10 w-10 mx-auto mb-3 transition-colors",
+                    isDragging ? "text-violet-400" : "text-muted-foreground"
+                  )} />
+                  <p className="text-sm font-medium">
+                    {isDragging ? "Rilascia per caricare" : "Trascina i file o clicca per selezionare"}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    I documenti vengono divisi in chunk vettoriali da 1000 caratteri ed embeddati con OpenAI
+                  </p>
+                </>
+              )}
             </div>
 
             {/* Pending list */}
