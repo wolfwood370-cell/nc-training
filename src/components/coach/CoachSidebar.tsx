@@ -47,7 +47,8 @@ const mainNavItems = [
   { title: "Programmi", url: "/coach/programs", icon: Dumbbell },
   { title: "Calendario", url: "/coach/calendar", icon: Calendar },
   { title: "Messaggi", url: "/coach/messages", icon: MessageSquare },
-  { title: "Libreria", url: "/coach/library", icon: BookOpen },
+  { title: "Resources", url: "/coach/library", icon: BookOpen },
+  { title: "Exercises", url: "/coach/exercises", icon: Dumbbell },
   { title: "Analisi", url: "/coach/analytics", icon: BarChart3 },
   { title: "Business", url: "/coach/business", icon: CreditCard },
 ];
