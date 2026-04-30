@@ -138,8 +138,6 @@ export function useCopilotChat(): UseCopilotChatResult {
             message: trimmed,
             history: historyForServer,
           },
-          // @ts-expect-error — `signal` is supported by the underlying fetch
-          // but not yet typed in @supabase/functions-js options.
           signal: controller.signal,
         });
 
