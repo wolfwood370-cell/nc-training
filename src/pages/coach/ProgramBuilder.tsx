@@ -630,16 +630,27 @@ export default function ProgramBuilder() {
               <Select
                 value={block.athlete_id || undefined}
                 onValueChange={handleAssignAthlete}
+                disabled={athletesLoading}
               >
-                <SelectTrigger className="h-9 w-[180px] text-xs">
-                  <SelectValue placeholder="Assign athlete…" />
+                <SelectTrigger className="h-9 w-[200px] text-xs">
+                  <SelectValue
+                    placeholder={
+                      athletesLoading ? "Loading athletes…" : "Assign athlete…"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  {MOCK_ATHLETES.map((a) => (
-                    <SelectItem key={a.id} value={a.id} className="text-xs">
-                      {a.name}
-                    </SelectItem>
-                  ))}
+                  {athletesRoster.length === 0 ? (
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                      No athletes yet.
+                    </div>
+                  ) : (
+                    athletesRoster.map((a) => (
+                      <SelectItem key={a.id} value={a.id} className="text-xs">
+                        {a.full_name ?? "Atleta"}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
