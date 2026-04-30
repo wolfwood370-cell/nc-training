@@ -773,6 +773,7 @@ export default function ProgramBuilder() {
                     key={session.id}
                     weekId={selectedWeek.id}
                     session={session}
+                    checkExercise={assignedAthleteId ? checkExercise : undefined}
                   />
                 ))
               ) : (
