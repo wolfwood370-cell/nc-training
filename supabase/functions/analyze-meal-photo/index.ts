@@ -1,231 +1,246 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// supabase/functions/analyze-meal-photo/index.ts
+
+import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+import OpenAI from "https://deno.land/x/openai@v4.69.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-function getVisionLimit(tier: string | null): number {
-  if (tier === "pro" || tier === "premium") return 50;
-  return 5; // basic / null / free
+const SYSTEM_PROMPT = `You are an elite sports nutritionist and registered dietitian with 20+ years of experience analyzing meals for professional athletes. Your specialty is rapid, precise macronutrient estimation from visual inspection.
+
+When analyzing a meal photo, you must:
+1. Identify all visible food items and ingredients with precision
+2. Estimate portion sizes using visual cues (plate size ~26cm standard, utensil scale, hand-relative dimensions)
+3. Calculate total macronutrients accounting for cooking methods (oils, butters, sauces add hidden calories)
+4. Provide a confidence score (1-100) based on:
+   - Image clarity and angle (penalize obscured/partial views)
+   - Ambiguity of preparation method
+   - Hidden ingredients (sauces, oils, fillings)
+   - Portion size certainty
+5. Be conservative with estimates — athletes rely on accuracy. When uncertain, lean toward realistic averages rather than optimistic numbers.
+
+CRITICAL OUTPUT RULES:
+- Respond ONLY with a single valid JSON object. No markdown, no code fences, no commentary.
+- All numeric fields must be numbers (not strings), rounded to whole integers.
+- "mealName" should be concise and descriptive (e.g., "Grilled Chicken Caesar Salad", not "A salad").
+- "ingredients" must be an array of identifiable component strings.
+- "confidenceScore" must reflect genuine certainty — do not default to high values.
+
+Required JSON schema:
+{
+  "mealName": string,
+  "calories": number,
+  "protein": number,
+  "carbs": number,
+  "fats": number,
+  "confidenceScore": number,
+  "ingredients": string[]
+}`;
+
+interface AnalyzeRequest {
+  imageBase64: string;
+  mimeType?: string;
 }
 
-serve(async (req) => {
+interface MealAnalysis {
+  mealName: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  confidenceScore: number;
+  ingredients: string[];
+}
+
+function validateAnalysis(data: unknown): MealAnalysis {
+  if (!data || typeof data !== "object") {
+    throw new Error("AI response is not a valid object");
+  }
+
+  const d = data as Record<string, unknown>;
+
+  const mealName = typeof d.mealName === "string" ? d.mealName.trim() : "";
+  const calories = Number(d.calories);
+  const protein = Number(d.protein);
+  const carbs = Number(d.carbs);
+  const fats = Number(d.fats);
+  const confidenceScore = Number(d.confidenceScore);
+  const ingredients = Array.isArray(d.ingredients)
+    ? d.ingredients.filter((i): i is string => typeof i === "string")
+    : [];
+
+  if (!mealName) throw new Error("Missing or invalid mealName");
+  if (!Number.isFinite(calories) || calories < 0) {
+    throw new Error("Invalid calories value");
+  }
+  if (!Number.isFinite(protein) || protein < 0) {
+    throw new Error("Invalid protein value");
+  }
+  if (!Number.isFinite(carbs) || carbs < 0) {
+    throw new Error("Invalid carbs value");
+  }
+  if (!Number.isFinite(fats) || fats < 0) {
+    throw new Error("Invalid fats value");
+  }
+  if (
+    !Number.isFinite(confidenceScore) ||
+    confidenceScore < 1 ||
+    confidenceScore > 100
+  ) {
+    throw new Error("Invalid confidenceScore (must be 1-100)");
+  }
+
+  return {
+    mealName,
+    calories: Math.round(calories),
+    protein: Math.round(protein),
+    carbs: Math.round(carbs),
+    fats: Math.round(fats),
+    confidenceScore: Math.round(confidenceScore),
+    ingredients,
+  };
+}
+
+function extractJson(raw: string): string {
+  // Strip markdown fences if the model ignored instructions
+  const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  if (fenceMatch) return fenceMatch[1].trim();
+
+  // Fallback: extract first {...} block
+  const start = raw.indexOf("{");
+  const end = raw.lastIndexOf("}");
+  if (start !== -1 && end !== -1 && end > start) {
+    return raw.slice(start, end + 1);
+  }
+  return raw.trim();
+}
+
+serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-  const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: "Method not allowed" }),
+      {
+        status: 405,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
+  }
 
   try {
-    // --- 1. Authenticate user ---
-    const authHeader = req.headers.get("authorization") ?? "";
-    const token = authHeader.replace("Bearer ", "");
-    if (!token) {
-      return new Response(JSON.stringify({ error: "Non autenticato" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const apiKey = Deno.env.get("LOVABLE_API_KEY");
+    const baseURL = Deno.env.get("LOVABLE_AI_GATEWAY_URL") ??
+      "https://ai.gateway.lovable.dev/v1";
 
-    const { data: { user }, error: authErr } = await adminClient.auth.getUser(token);
-    if (authErr || !user) {
-      return new Response(JSON.stringify({ error: "Token non valido" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // --- 2. Determine tier & daily limit ---
-    const { data: profile } = await adminClient
-      .from("profiles")
-      .select("subscription_tier")
-      .eq("id", user.id)
-      .single();
-
-    const dailyLimit = getVisionLimit(profile?.subscription_tier ?? null);
-
-    // --- 3. Check quota from user_ai_usage (date-partitioned) ---
-    const todayStr = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-
-    const { data: usage } = await adminClient
-      .from("user_ai_usage")
-      .select("vision_count")
-      .eq("user_id", user.id)
-      .eq("date", todayStr)
-      .maybeSingle();
-
-    const currentCount = usage?.vision_count ?? 0;
-
-    if (currentCount >= dailyLimit) {
+    if (!apiKey) {
+      console.error("[analyze-meal-photo] LOVABLE_API_KEY is not configured");
       return new Response(
-        JSON.stringify({
-          error: "Daily AI limit reached.",
-          code: "DAILY_LIMIT",
-          daily_limit: dailyLimit,
-          tier: profile?.subscription_tier ?? "basic",
-        }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // --- 4. Parse request body ---
-    const { image_base64, userDescription } = await req.json();
-
-    if (!image_base64) {
-      return new Response(
-        JSON.stringify({ error: "Nessuna immagine fornita" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
-    // --- 5. Call AI gateway (wrapped for fair billing) ---
-    const imageUrl = image_base64.startsWith("data:")
-      ? image_base64
-      : `data:image/jpeg;base64,${image_base64}`;
-
-    let result: Record<string, unknown>;
-
-    try {
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
+        JSON.stringify({ error: "AI service is not configured" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
+      );
+    }
+
+    let body: AnalyzeRequest;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON body" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    const { imageBase64, mimeType = "image/jpeg" } = body;
+
+    if (!imageBase64 || typeof imageBase64 !== "string") {
+      return new Response(
+        JSON.stringify({ error: "imageBase64 is required" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Normalize: accept both raw base64 and full data URLs
+    const dataUrl = imageBase64.startsWith("data:")
+      ? imageBase64
+      : `data:${mimeType};base64,${imageBase64}`;
+
+    const client = new OpenAI({ apiKey, baseURL });
+
+    const completion = await client.chat.completions.create({
+      model: "google/gemini-3-flash-preview",
+      temperature: 0.2,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: [
             {
-              role: "system",
-              content: `Sei un Nutrizionista Sportivo esperto. Analizza l'immagine del cibo fornita.
-Stima i macronutrienti con la massima accuratezza possibile.
-Restituisci ESCLUSIVAMENTE un JSON valido con questa struttura:
-{ "name": "string (nome del piatto in ITALIANO)", "calories": number, "protein": number, "carbs": number, "fat": number, "confidence_score": number (da 0 a 1) }
-
-Se l'immagine NON contiene cibo, restituisci: { "error": "Non è cibo" }
-
-Regole:
-- Il nome deve essere in italiano
-- Le calorie e i macros devono essere numeri interi
-- Il confidence_score indica quanto sei sicuro della stima (0.0 = incerto, 1.0 = molto sicuro)
-- Considera le porzioni visibili nell'immagine
-- NON aggiungere testo, spiegazioni o markdown. Solo il JSON.`,
+              type: "text",
+              text:
+                "Analyze this meal. Return ONLY the JSON object matching the required schema.",
             },
             {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: userDescription
-                    ? `Analizza questo pasto e stima i macronutrienti. L'utente ha fornito questo contesto aggiuntivo: "${userDescription}". Usa queste informazioni per affinare le porzioni e gli ingredienti. Se l'utente specifica una quantità (es. "200g"), dai priorità a quella rispetto alla tua stima visiva.`
-                    : "Analizza questo pasto e stima i macronutrienti.",
-                },
-                { type: "image_url", image_url: { url: imageUrl } },
-              ],
+              type: "image_url",
+              image_url: { url: dataUrl },
             },
           ],
-        }),
-      });
+        },
+      ],
+    });
 
-      if (!response.ok) {
-        if (response.status === 429) {
-          return new Response(
-            JSON.stringify({ error: "Troppe richieste, riprova tra poco." }),
-            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        if (response.status === 402) {
-          return new Response(
-            JSON.stringify({ error: "Crediti AI esauriti." }),
-            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        const errorText = await response.text();
-        console.error("AI gateway error:", response.status, errorText);
-        // DO NOT increment — AI failed
-        return new Response(
-          JSON.stringify({ error: "Il servizio AI non è disponibile al momento. Il tuo credito NON è stato consumato. Riprova tra poco." }),
-          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      const data = await response.json();
-      const content = data.choices?.[0]?.message?.content;
-
-      if (!content) {
-        // DO NOT increment — no usable response
-        return new Response(
-          JSON.stringify({ error: "L'AI non ha restituito una risposta valida. Il tuo credito NON è stato consumato." }),
-          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      let cleaned = content.trim();
-      if (cleaned.startsWith("```")) {
-        cleaned = cleaned.replace(/^```(?:json)?\s*/, "").replace(/```\s*$/, "").trim();
-      }
-
-      result = JSON.parse(cleaned);
-    } catch (aiError) {
-      // AI call threw (network timeout, DNS, etc.) — DO NOT increment
-      console.error("AI call failed (no credit charged):", aiError);
-      return new Response(
-        JSON.stringify({ error: "Errore di connessione al servizio AI. Il tuo credito NON è stato consumato. Riprova." }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    const rawContent = completion.choices?.[0]?.message?.content;
+    if (!rawContent || typeof rawContent !== "string") {
+      throw new Error("AI returned empty response");
     }
 
-    // --- 6. Increment vision_count atomically ONLY after successful AI response ---
-    if (usage) {
-      // Row exists for today → increment
-      await adminClient
-        .from("user_ai_usage")
-        .update({ vision_count: currentCount + 1, last_reset: new Date().toISOString() })
-        .eq("user_id", user.id)
-        .eq("date", todayStr);
-    } else {
-      // No row for today → insert
-      await adminClient
-        .from("user_ai_usage")
-        .insert({ user_id: user.id, date: todayStr, vision_count: 1, last_reset: new Date().toISOString() });
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(extractJson(rawContent));
+    } catch (parseErr) {
+      console.error("[analyze-meal-photo] JSON parse failed:", rawContent);
+      throw new Error("AI response was not valid JSON");
     }
 
-    // Also keep legacy ai_usage_tracking in sync
-    const { data: legacyUsage } = await adminClient
-      .from("ai_usage_tracking")
-      .select("message_count, daily_limit, last_reset_at")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    const analysis = validateAnalysis(parsed);
 
-    if (legacyUsage) {
-      await adminClient
-        .from("ai_usage_tracking")
-        .update({ message_count: legacyUsage.message_count + 1, daily_limit: dailyLimit })
-        .eq("user_id", user.id);
-    } else {
-      await adminClient
-        .from("ai_usage_tracking")
-        .insert({ user_id: user.id, message_count: 1, daily_limit: dailyLimit });
-    }
-
-    return new Response(JSON.stringify(result), {
+    return new Response(JSON.stringify(analysis), {
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (e) {
-    console.error("analyze-meal-photo error:", e);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("[analyze-meal-photo] Error:", message);
+
+    // Surface rate limit / quota errors with distinguishable status
+    const status = /rate.?limit|quota|429/i.test(message)
+      ? 429
+      : /timeout|timed out/i.test(message)
+      ? 504
+      : 500;
+
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Errore sconosciuto" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: message }),
+      {
+        status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });
