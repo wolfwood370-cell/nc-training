@@ -28,6 +28,7 @@
  */
 
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { CoachLayout } from "@/components/coach/CoachLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +54,10 @@ import {
   useSaveProgramBlock,
   SaveProgramBlockError,
 } from "@/hooks/useSaveProgramBlock";
+import { useAuth } from "@/hooks/useAuth";
+import { useAthleteRiskAnalysis } from "@/hooks/useAthleteRiskAnalysis";
+import { supabase } from "@/integrations/supabase/client";
+import type { ExerciseInfo, ExerciseRiskAssessment } from "@/lib/math/fmsRiskEngine";
 import type {
   Microcycle,
   Session,
@@ -91,14 +96,30 @@ const WEEK_PHASE_LABELS = [
 ] as const;
 
 /**
- * Mock athlete roster for the assignment dropdown. Replaced by a live
- * `useCoachAthletes` query in a later slice.
+ * Inline hook: fetch the authenticated coach's athletes from the
+ * `profiles` table. Kept local to the page since this is the only
+ * consumer for now; will be promoted to a shared hook if a second
+ * caller appears.
  */
-const MOCK_ATHLETES = [
-  { id: "athlete-john-doe", name: "John Doe" },
-  { id: "athlete-jane-smith", name: "Jane Smith" },
-  { id: "athlete-mark-rivera", name: "Mark Rivera" },
-] as const;
+function useCoachAthletes() {
+  const { user, profile } = useAuth();
+  return useQuery({
+    queryKey: ["coach-athletes-roster", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .eq("coach_id", user.id)
+        .eq("role", "athlete")
+        .order("full_name", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as Array<{ id: string; full_name: string | null }>;
+    },
+    enabled: !!user && profile?.role === "coach",
+    staleTime: 5 * 60 * 1000,
+  });
+}
 
 const weekPhaseLabel = (week: Microcycle): string => {
   if (week.is_deload) return "Deload";
@@ -324,9 +345,15 @@ function ExerciseCard({ exercise }: ExerciseCardProps) {
 interface SessionColumnProps {
   weekId: UUID;
   session: Session;
+  /**
+   * Optional risk-checker injected from the page. Closes over the
+   * cached FMS assessment for the assigned athlete; safe to call before
+   * data lands (returns a low-risk verdict with `unknown_assessment`).
+   */
+  checkExercise?: (exercise: ExerciseInfo) => ExerciseRiskAssessment;
 }
 
-function SessionColumn({ weekId, session }: SessionColumnProps) {
+function SessionColumn({ weekId, session, checkExercise }: SessionColumnProps) {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const removeExercise = useAdvancedProgramStore((s) => s.removeExercise);
 
@@ -368,6 +395,7 @@ function SessionColumn({ weekId, session }: SessionColumnProps) {
               sessionId={session.id}
               exercise={ex}
               onRemove={() => removeExercise(weekId, session.id, ex.id)}
+              checkExercise={checkExercise}
             />
           ))
         )}
@@ -415,6 +443,16 @@ export default function ProgramBuilder() {
       initializeBlock: s.initializeBlock,
     }))
   );
+
+  // -------------------------------------------------------------------------
+  // Live coach roster + FMS risk hook for the assigned athlete.
+  // -------------------------------------------------------------------------
+
+  const { data: athletesRoster = [], isLoading: athletesLoading } =
+    useCoachAthletes();
+
+  const assignedAthleteId = block?.athlete_id ?? null;
+  const { checkExercise } = useAthleteRiskAnalysis(assignedAthleteId);
 
   // -------------------------------------------------------------------------
   // Local UI state — selected week (a pure view concern)
@@ -592,16 +630,27 @@ export default function ProgramBuilder() {
               <Select
                 value={block.athlete_id || undefined}
                 onValueChange={handleAssignAthlete}
+                disabled={athletesLoading}
               >
-                <SelectTrigger className="h-9 w-[180px] text-xs">
-                  <SelectValue placeholder="Assign athlete…" />
+                <SelectTrigger className="h-9 w-[200px] text-xs">
+                  <SelectValue
+                    placeholder={
+                      athletesLoading ? "Loading athletes…" : "Assign athlete…"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  {MOCK_ATHLETES.map((a) => (
-                    <SelectItem key={a.id} value={a.id} className="text-xs">
-                      {a.name}
-                    </SelectItem>
-                  ))}
+                  {athletesRoster.length === 0 ? (
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                      No athletes yet.
+                    </div>
+                  ) : (
+                    athletesRoster.map((a) => (
+                      <SelectItem key={a.id} value={a.id} className="text-xs">
+                        {a.full_name ?? "Atleta"}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -724,6 +773,7 @@ export default function ProgramBuilder() {
                     key={session.id}
                     weekId={selectedWeek.id}
                     session={session}
+                    checkExercise={assignedAthleteId ? checkExercise : undefined}
                   />
                 ))
               ) : (
