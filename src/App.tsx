@@ -82,6 +82,7 @@ const App = () => (
               <Route path="/coach/inbox" element={<SubscriptionGuard><CoachCheckinInbox /></SubscriptionGuard>} />
               <Route path="/coach/fms" element={<SubscriptionGuard><FmsScreening /></SubscriptionGuard>} />
               <Route path="/coach/knowledge" element={<SubscriptionGuard><KnowledgeBase /></SubscriptionGuard>} />
+              <Route path="/coach/copilot" element={<SubscriptionGuard><MasterCopilot /></SubscriptionGuard>} />
               <Route path="/coach/settings" element={<SubscriptionGuard><CoachSettings /></SubscriptionGuard>} />
               
               {/* Athlete Routes */}
