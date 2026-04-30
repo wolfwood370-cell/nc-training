@@ -47,7 +47,8 @@ interface PendingFile {
 }
 
 const ACCEPTED_TYPES = [".pdf", ".txt"];
-const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_MB = 100;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -90,6 +91,8 @@ export default function KnowledgeBase() {
   const [pending, setPending] = useState<PendingFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isTraining, setIsTraining] = useState(false);
+  const [isReading, setIsReading] = useState(false);
+  const [readingLabel, setReadingLabel] = useState<string>("");
   const [progress, setProgress] = useState(0);
   const [statusLine, setStatusLine] = useState<string>("");
 
@@ -117,35 +120,58 @@ export default function KnowledgeBase() {
   const totalChunks = documents.reduce((acc, d) => acc + (d.chunk_count ?? 0), 0);
 
   const handleFiles = useCallback(async (files: FileList | File[]) => {
+    const list = Array.from(files);
+    if (list.length === 0) return;
+
+    // Immediate UI feedback: show the "reading" overlay BEFORE we touch
+    // potentially huge files. Yield once so React paints the loader before
+    // file.text() blocks the main thread.
+    setIsReading(true);
+    setReadingLabel(
+      list.length === 1
+        ? `Lettura di "${list[0].name}"... attendi`
+        : `Lettura di ${list.length} documenti... attendi`,
+    );
+    await new Promise((r) => setTimeout(r, 0));
+
     const next: PendingFile[] = [];
-    for (const file of Array.from(files)) {
-      const ext = "." + (file.name.split(".").pop() ?? "").toLowerCase();
-      if (!ACCEPTED_TYPES.includes(ext)) {
-        toast.error(`${file.name}: formato non supportato (solo .pdf, .txt)`);
-        continue;
-      }
-      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-        toast.error(`${file.name}: troppo grande (max ${MAX_FILE_SIZE_MB}MB)`);
-        continue;
-      }
+    try {
+      for (const file of list) {
+        setReadingLabel(`Lettura "${file.name}" (${formatBytes(file.size)})...`);
+        // Yield to the event loop so the label updates between files.
+        await new Promise((r) => setTimeout(r, 0));
 
-      const entry: PendingFile = { id: crypto.randomUUID(), file };
-
-      if (ext === ".txt") {
-        try {
-          entry.textContent = await file.text();
-        } catch {
-          entry.error = "Lettura file fallita";
+        const ext = "." + (file.name.split(".").pop() ?? "").toLowerCase();
+        if (!ACCEPTED_TYPES.includes(ext)) {
+          toast.error(`${file.name}: formato non supportato (solo .pdf, .txt)`);
+          continue;
         }
-      } else {
-        // PDF: extraction not yet wired (would require pdfjs-dist).
-        // TODO: integrate pdfjs-dist or upload to Storage and let edge function extract.
-        entry.error = "Estrazione PDF non disponibile in MVP — usa .txt";
-      }
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+          toast.error(`${file.name}: troppo grande (max ${MAX_FILE_SIZE_MB}MB)`);
+          continue;
+        }
 
-      next.push(entry);
+        const entry: PendingFile = { id: crypto.randomUUID(), file };
+
+        if (ext === ".txt") {
+          try {
+            entry.textContent = await file.text();
+          } catch {
+            entry.error = "Lettura file fallita";
+          }
+        } else {
+          // PDF: extraction not yet wired (would require pdfjs-dist).
+          // TODO: integrate pdfjs-dist or upload to Storage and let edge function extract.
+          entry.error = "Estrazione PDF non disponibile in MVP — usa .txt";
+        }
+
+        next.push(entry);
+      }
+      setPending((prev) => [...prev, ...next]);
+    } finally {
+      setIsReading(false);
+      setReadingLabel("");
     }
-    setPending((prev) => [...prev, ...next]);
   }, []);
 
   const onDrop = (e: DragEvent<HTMLDivElement>) => {
@@ -318,20 +344,32 @@ export default function KnowledgeBase() {
                 multiple
                 accept=".pdf,.txt,application/pdf,text/plain"
                 onChange={onSelect}
-                disabled={isTraining}
+                disabled={isTraining || isReading}
                 className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
                 aria-label="Carica documenti"
               />
-              <Upload className={cn(
-                "h-10 w-10 mx-auto mb-3 transition-colors",
-                isDragging ? "text-violet-400" : "text-muted-foreground"
-              )} />
-              <p className="text-sm font-medium">
-                {isDragging ? "Rilascia per caricare" : "Trascina i file o clicca per selezionare"}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                I documenti vengono divisi in chunk vettoriali da 1000 caratteri ed embeddati con OpenAI
-              </p>
+              {isReading ? (
+                <>
+                  <Loader2 className="h-10 w-10 mx-auto mb-3 text-violet-400 animate-spin" />
+                  <p className="text-sm font-medium">{readingLabel || "Lettura del documento... attendi"}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    File di grandi dimensioni: il browser sta estraendo il testo. Non chiudere la pagina.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Upload className={cn(
+                    "h-10 w-10 mx-auto mb-3 transition-colors",
+                    isDragging ? "text-violet-400" : "text-muted-foreground"
+                  )} />
+                  <p className="text-sm font-medium">
+                    {isDragging ? "Rilascia per caricare" : "Trascina i file o clicca per selezionare"}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    I documenti vengono divisi in chunk vettoriali da 1000 caratteri ed embeddati con OpenAI
+                  </p>
+                </>
+              )}
             </div>
 
             {/* Pending list */}
