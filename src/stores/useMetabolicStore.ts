@@ -225,6 +225,14 @@ interface MetabolicState {
   carbAdjustmentPct: number;
   /** Telemetry from the most recent adjustment, for UI/audit display. */
   lastAdjustment: MacroAdjustmentResult | null;
+  /**
+   * Cumulative daily intake from logged meals (Snap-to-Macro scanner,
+   * manual entry, etc.). Reset at day rollover via `resetTodayIntake`.
+   * This is a tracking field — it never feeds back into the math engine.
+   */
+  todayIntake: MacroTargets;
+  /** ISO date string (YYYY-MM-DD) the intake was last accumulated for. */
+  intakeDate: string | null;
 }
 
 interface MetabolicActions {
@@ -273,6 +281,16 @@ interface MetabolicActions {
 
   /** Revert `todayMacros` to baseline (e.g. on day rollover or rest day). */
   resetTodayMacros: () => void;
+
+  /**
+   * Append a logged meal's macros to `todayIntake`. Auto-resets the
+   * accumulator on a new calendar day. Pure tracking — does not mutate
+   * the macro target math.
+   */
+  addIntake: (macros: { calories: number; protein: number; carbs: number; fats: number }) => void;
+
+  /** Manually clear today's intake accumulator. */
+  resetTodayIntake: () => void;
 }
 
 // ─── Initial state ────────────────────────────────────────────────────────
@@ -284,6 +302,12 @@ const initialBaselineMacros: MacroTargets = {
   fats: 75,
 };
 
+const ZERO_INTAKE: MacroTargets = { calories: 0, protein: 0, carbs: 0, fats: 0 };
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 const initialState: MetabolicState = {
   baseTDEE: 2400,
   currentPhase: "maintain",
@@ -292,6 +316,8 @@ const initialState: MetabolicState = {
   highLoadThreshold: DEFAULT_HIGH_LOAD_THRESHOLD,
   carbAdjustmentPct: DEFAULT_CARB_ADJUSTMENT_PCT,
   lastAdjustment: null,
+  todayIntake: ZERO_INTAKE,
+  intakeDate: null,
 };
 
 // ─── Store ────────────────────────────────────────────────────────────────
@@ -471,6 +497,25 @@ export const useMetabolicStore = create<MetabolicState & MetabolicActions>()(
         const { baselineMacros } = get();
         set({ todayMacros: { ...baselineMacros }, lastAdjustment: null });
       },
+
+      addIntake: (macros) => {
+        const today = todayIso();
+        const { todayIntake, intakeDate } = get();
+        const base = intakeDate === today ? todayIntake : ZERO_INTAKE;
+        set({
+          intakeDate: today,
+          todayIntake: {
+            calories: Math.max(0, Math.round(base.calories + (macros.calories || 0))),
+            protein: Math.max(0, Math.round(base.protein + (macros.protein || 0))),
+            carbs: Math.max(0, Math.round(base.carbs + (macros.carbs || 0))),
+            fats: Math.max(0, Math.round(base.fats + (macros.fats || 0))),
+          },
+        });
+      },
+
+      resetTodayIntake: () => {
+        set({ todayIntake: ZERO_INTAKE, intakeDate: todayIso() });
+      },
     }),
     {
       name: "metabolic-engine-storage",
@@ -483,6 +528,8 @@ export const useMetabolicStore = create<MetabolicState & MetabolicActions>()(
         todayMacros: state.todayMacros,
         highLoadThreshold: state.highLoadThreshold,
         carbAdjustmentPct: state.carbAdjustmentPct,
+        todayIntake: state.todayIntake,
+        intakeDate: state.intakeDate,
       }),
     },
   ),
