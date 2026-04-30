@@ -897,6 +897,71 @@ export type Database = {
         }
         Relationships: []
       }
+      fms_assessments: {
+        Row: {
+          assessment_date: string
+          athlete_id: string
+          coach_id: string
+          composite_total: number | null
+          created_at: string
+          id: string
+          is_complete: boolean
+          payload: Json
+          updated_at: string
+        }
+        Insert: {
+          assessment_date: string
+          athlete_id: string
+          coach_id: string
+          composite_total?: number | null
+          created_at?: string
+          id: string
+          is_complete?: boolean
+          payload: Json
+          updated_at?: string
+        }
+        Update: {
+          assessment_date?: string
+          athlete_id?: string
+          coach_id?: string
+          composite_total?: number | null
+          created_at?: string
+          id?: string
+          is_complete?: boolean
+          payload?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fms_assessments_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "analytics_athlete_summary"
+            referencedColumns: ["athlete_id"]
+          },
+          {
+            foreignKeyName: "fms_assessments_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fms_assessments_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "analytics_athlete_summary"
+            referencedColumns: ["athlete_id"]
+          },
+          {
+            foreignKeyName: "fms_assessments_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fms_tests: {
         Row: {
           active_straight_leg_l: number | null
