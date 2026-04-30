@@ -684,7 +684,7 @@ export default function ProgramBuilder() {
           aria-label={`Week ${selectedWeek?.order ?? ""} sessions`}
           className="flex min-h-0 flex-1 flex-col rounded-lg border border-border/60 bg-card"
         >
-          <div className="flex items-center justify-between px-3 py-2">
+          <div className="flex items-center justify-between gap-3 px-3 py-2">
             <div className="flex items-baseline gap-2">
               <h2 className="text-sm font-semibold">
                 Week {selectedWeek?.order ?? "—"}
@@ -695,9 +695,24 @@ export default function ProgramBuilder() {
                 </span>
               )}
             </div>
-            <span className="text-[10px] text-muted-foreground">
-              {selectedWeek?.sessions.length ?? 0} sessions
-            </span>
+            <div className="flex items-center gap-3">
+              {previousWeek && selectedWeek && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCopyFromPrevious}
+                  className="h-7 gap-1.5 text-xs"
+                  title={`Replace Week ${selectedWeek.order} with a copy of Week ${previousWeek.order}`}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  Copy from previous week
+                </Button>
+              )}
+              <span className="text-[10px] text-muted-foreground">
+                {selectedWeek?.sessions.length ?? 0} sessions
+              </span>
+            </div>
           </div>
           <Separator className="bg-border/40" />
 
