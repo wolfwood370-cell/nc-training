@@ -1264,6 +1264,77 @@ export type Database = {
           },
         ]
       }
+      knowledge_chunks: {
+        Row: {
+          chunk_index: number
+          coach_id: string
+          content: string
+          created_at: string
+          document_id: string
+          embedding: string | null
+          id: string
+        }
+        Insert: {
+          chunk_index: number
+          coach_id: string
+          content: string
+          created_at?: string
+          document_id: string
+          embedding?: string | null
+          id?: string
+        }
+        Update: {
+          chunk_index?: number
+          coach_id?: string
+          content?: string
+          created_at?: string
+          document_id?: string
+          embedding?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_chunks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_documents: {
+        Row: {
+          chunk_count: number
+          coach_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          status: Database["public"]["Enums"]["knowledge_doc_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          chunk_count?: number
+          coach_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["knowledge_doc_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          chunk_count?: number
+          coach_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["knowledge_doc_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leaderboard_cache: {
         Row: {
           coach_id: string | null
@@ -2556,6 +2627,20 @@ export type Database = {
           similarity: number
         }[]
       }
+      match_knowledge_chunks: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          content: string
+          document_id: string
+          document_title: string
+          id: string
+          similarity: number
+        }[]
+      }
       schedule_program_week: {
         Args: { p_athlete_id: string; p_start_date: string; p_week_id: string }
         Returns: number
@@ -2571,6 +2656,7 @@ export type Database = {
       checkin_status: "pending" | "approved" | "sent" | "skipped"
       content_type: "video" | "pdf" | "link" | "text" | "ai_knowledge"
       cycle_phase: "menstrual" | "follicular" | "ovulatory" | "luteal"
+      knowledge_doc_status: "pending" | "processing" | "processed" | "failed"
       meal_time: "breakfast" | "lunch" | "dinner" | "snack"
       phase_focus_type:
         | "strength"
@@ -2723,6 +2809,7 @@ export const Constants = {
       checkin_status: ["pending", "approved", "sent", "skipped"],
       content_type: ["video", "pdf", "link", "text", "ai_knowledge"],
       cycle_phase: ["menstrual", "follicular", "ovulatory", "luteal"],
+      knowledge_doc_status: ["pending", "processing", "processed", "failed"],
       meal_time: ["breakfast", "lunch", "dinner", "snack"],
       phase_focus_type: [
         "strength",
