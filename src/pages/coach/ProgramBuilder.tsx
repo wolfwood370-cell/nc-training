@@ -90,6 +90,16 @@ const WEEK_PHASE_LABELS = [
   "Deload",
 ] as const;
 
+/**
+ * Mock athlete roster for the assignment dropdown. Replaced by a live
+ * `useCoachAthletes` query in a later slice.
+ */
+const MOCK_ATHLETES = [
+  { id: "athlete-john-doe", name: "John Doe" },
+  { id: "athlete-jane-smith", name: "Jane Smith" },
+  { id: "athlete-mark-rivera", name: "Mark Rivera" },
+] as const;
+
 const weekPhaseLabel = (week: Microcycle): string => {
   if (week.is_deload) return "Deload";
   // `order` is 1-indexed in the V2 model.
