@@ -468,21 +468,70 @@ export default function ProgramBuilder() {
 
   const { saveBlock, isPending: isSaving } = useSaveProgramBlock();
 
-  const handleSave = useCallback(async () => {
-    if (!block) return;
-    try {
-      await saveBlock(block);
-      toast.success("Program saved", {
-        description: `"${block.name}" is up to date.`,
-      });
-    } catch (e) {
-      const message =
-        e instanceof SaveProgramBlockError
-          ? e.message
-          : "Unexpected error while saving the program.";
-      toast.error("Save failed", { description: message });
-    }
-  }, [block, saveBlock]);
+  const runSave = useCallback(
+    async (status: "draft" | "published") => {
+      if (!block) return;
+      try {
+        await saveBlock({ block, status });
+        if (status === "published") {
+          toast.success("Program published", {
+            description: `"${block.name}" is now live for the assigned athlete.`,
+          });
+        } else {
+          toast.success("Program saved", {
+            description: `"${block.name}" is up to date.`,
+          });
+        }
+      } catch (e) {
+        const message =
+          e instanceof SaveProgramBlockError
+            ? e.message
+            : "Unexpected error while saving the program.";
+        toast.error(
+          status === "published" ? "Publish failed" : "Save failed",
+          { description: message }
+        );
+      }
+    },
+    [block, saveBlock]
+  );
+
+  const handleSave = useCallback(() => runSave("draft"), [runSave]);
+  const handlePublish = useCallback(() => runSave("published"), [runSave]);
+
+  // -------------------------------------------------------------------------
+  // Athlete assignment — patches `athlete_id` directly on the active block.
+  // We use `setState` so we don't have to extend the store API for a
+  // single-field write.
+  // -------------------------------------------------------------------------
+
+  const handleAssignAthlete = useCallback((athleteId: string) => {
+    useAdvancedProgramStore.setState((state) => {
+      if (!state.block) return;
+      state.block.athlete_id = athleteId;
+      state.isDirty = true;
+    });
+  }, []);
+
+  // -------------------------------------------------------------------------
+  // Duplicate previous week into the currently-selected week.
+  // -------------------------------------------------------------------------
+
+  const duplicateWeek = useAdvancedProgramStore((s) => s.duplicateWeek);
+
+  const previousWeek: Microcycle | undefined = useMemo(() => {
+    if (!block || !selectedWeek) return undefined;
+    if (selectedWeek.order <= 1) return undefined;
+    return block.weeks.find((w) => w.order === selectedWeek.order - 1);
+  }, [block, selectedWeek]);
+
+  const handleCopyFromPrevious = useCallback(() => {
+    if (!previousWeek || !selectedWeek) return;
+    duplicateWeek(previousWeek.id, selectedWeek.id);
+    toast.success("Week duplicated", {
+      description: `Copied Week ${previousWeek.order} into Week ${selectedWeek.order}.`,
+    });
+  }, [duplicateWeek, previousWeek, selectedWeek]);
 
   // -------------------------------------------------------------------------
   // Handlers
