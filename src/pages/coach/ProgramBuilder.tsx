@@ -585,20 +585,61 @@ export default function ProgramBuilder() {
               </span>
             </div>
           </div>
-          <Button
-            type="button"
-            size="sm"
-            onClick={handleSave}
-            disabled={isSaving}
-            className="shrink-0 gap-2"
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            {isSaving ? "Saving…" : "Save Program"}
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            {/* Athlete assignment selector */}
+            <div className="flex items-center gap-1.5">
+              <User className="h-3.5 w-3.5 text-muted-foreground" />
+              <Select
+                value={block.athlete_id || undefined}
+                onValueChange={handleAssignAthlete}
+              >
+                <SelectTrigger className="h-9 w-[180px] text-xs">
+                  <SelectValue placeholder="Assign athlete…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MOCK_ATHLETES.map((a) => (
+                    <SelectItem key={a.id} value={a.id} className="text-xs">
+                      {a.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Save draft */}
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={handleSave}
+              disabled={isSaving}
+              className="gap-2"
+            >
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {isSaving ? "Saving…" : "Save Draft"}
+            </Button>
+
+            {/* Publish */}
+            <Button
+              type="button"
+              size="sm"
+              onClick={handlePublish}
+              disabled={isSaving || !block.athlete_id}
+              className="gap-2"
+              title={
+                !block.athlete_id
+                  ? "Assign an athlete before publishing"
+                  : "Publish this program"
+              }
+            >
+              <Send className="h-4 w-4" />
+              Publish
+            </Button>
+          </div>
         </div>
 
         {/* ───────────────────────────────────────────────────────────────
