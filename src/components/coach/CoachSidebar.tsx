@@ -16,6 +16,7 @@ import {
   BookOpen,
   Inbox,
   LifeBuoy,
+  Stethoscope,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,7 @@ const mainNavItems = [
   { title: "Messaggi", url: "/coach/messages", icon: MessageSquare },
   { title: "Resources", url: "/coach/library", icon: BookOpen },
   { title: "Exercises", url: "/coach/exercises", icon: Dumbbell },
+  { title: "Movement", url: "/coach/fms", icon: Stethoscope },
   { title: "Analisi", url: "/coach/analytics", icon: BarChart3 },
   { title: "Business", url: "/coach/business", icon: CreditCard },
 ];

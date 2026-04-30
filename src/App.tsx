@@ -30,6 +30,7 @@ const ProgramBuilder = lazy(() => import("./pages/coach/ProgramBuilder"));
 const CoachLibrary = lazy(() => import("./pages/coach/CoachLibrary"));
 const ExerciseDatabase = lazy(() => import("./pages/coach/ExerciseDatabase"));
 const CoachCheckinInbox = lazy(() => import("./pages/coach/CoachCheckinInbox"));
+const FmsScreening = lazy(() => import("./pages/coach/FmsScreening"));
 const FocusDashboard = lazy(() => import("./pages/athlete/FocusDashboard"));
 const AthleteLeaderboard = lazy(() => import("./pages/athlete/AthleteLeaderboard"));
 const AthleteTraining = lazy(() => import("./pages/athlete/AthleteTraining"));
@@ -77,6 +78,7 @@ const App = () => (
               <Route path="/coach/analytics" element={<SubscriptionGuard><CoachAnalytics /></SubscriptionGuard>} />
               <Route path="/coach/business" element={<SubscriptionGuard><CoachBusiness /></SubscriptionGuard>} />
               <Route path="/coach/inbox" element={<SubscriptionGuard><CoachCheckinInbox /></SubscriptionGuard>} />
+              <Route path="/coach/fms" element={<SubscriptionGuard><FmsScreening /></SubscriptionGuard>} />
               <Route path="/coach/settings" element={<SubscriptionGuard><CoachSettings /></SubscriptionGuard>} />
               
               {/* Athlete Routes */}
