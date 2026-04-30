@@ -127,6 +127,13 @@ export interface ProgrammedExerciseCardProps {
   onRemove?: () => void;
   /** Default auto-regulation column header. Can be flipped per-coach upstream. */
   autoRegMode?: AutoRegMode;
+  /**
+   * Optional FMS risk-checker. When provided we cross-reference this
+   * exercise against the assigned athlete's latest assessment and
+   * surface a Biomechanical Traffic Light. When `undefined` (no
+   * athlete assigned) the card renders neutrally — risk is OFF.
+   */
+  checkExercise?: (exercise: ExerciseInfo) => ExerciseRiskAssessment;
 }
 
 export const ProgrammedExerciseCard = memo(function ProgrammedExerciseCard({
@@ -135,6 +142,7 @@ export const ProgrammedExerciseCard = memo(function ProgrammedExerciseCard({
   exercise,
   onRemove,
   autoRegMode = 'rpe',
+  checkExercise,
 }: ProgrammedExerciseCardProps) {
   // Store actions are pulled atomically — using shallow selectors here would
   // be overkill since the function references are stable inside zustand.
@@ -169,21 +177,78 @@ export const ProgrammedExerciseCard = memo(function ProgrammedExerciseCard({
     return n;
   };
 
+  // -------------------------------------------------------------------------
+  // Biomechanical Traffic Light
+  // -------------------------------------------------------------------------
+  // We only flag HIGH risk visually — moderate findings are advisory and
+  // would create too much noise across a populated week. The full reason
+  // list (which can include moderate items) is still surfaced in the
+  // tooltip so the coach can drill in.
+  const verdict = useMemo<ExerciseRiskAssessment | null>(() => {
+    if (!checkExercise) return null;
+    return checkExercise({ name: exercise.exercise_name });
+  }, [checkExercise, exercise.exercise_name]);
+
+  const isHighRisk =
+    verdict !== null && (verdict.isSafe === false || verdict.riskLevel === 'high');
+
   return (
     <div
       className={cn(
-        'group/card rounded-md border border-border/60 bg-card',
-        'shadow-sm hover:border-border transition-colors',
+        'group/card rounded-md border bg-card',
+        'shadow-sm transition-colors',
+        isHighRisk
+          ? 'border-destructive/80 hover:border-destructive'
+          : 'border-border/60 hover:border-border',
       )}
     >
       {/* Header — exercise name + remove */}
-      <div className="flex items-center justify-between gap-1 px-2 py-1.5 border-b border-border/50">
-        <span
-          className="text-xs font-semibold truncate"
-          title={exercise.exercise_name}
-        >
-          {exercise.exercise_name}
-        </span>
+      <div
+        className={cn(
+          'flex items-center justify-between gap-1 px-2 py-1.5 border-b',
+          isHighRisk ? 'border-destructive/40 bg-destructive/5' : 'border-border/50',
+        )}
+      >
+        <div className="flex min-w-0 items-center gap-1.5">
+          {isHighRisk && verdict && (
+            <TooltipProvider delayDuration={120}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="Biomechanical risk warning"
+                    className="flex-shrink-0 outline-none focus-visible:ring-1 focus-visible:ring-destructive rounded-sm"
+                  >
+                    <AlertTriangle className="h-3.5 w-3.5 text-destructive animate-pulse" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  align="start"
+                  className="max-w-xs space-y-1 border-destructive/40 bg-popover text-xs"
+                >
+                  <p className="font-semibold text-destructive">
+                    Rischio biomeccanico elevato
+                  </p>
+                  <ul className="list-disc space-y-0.5 pl-4 text-foreground">
+                    {verdict.reasons.map((r, i) => (
+                      <li key={i}>{r}</li>
+                    ))}
+                  </ul>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          <span
+            className={cn(
+              'text-xs font-semibold truncate',
+              isHighRisk && 'text-destructive',
+            )}
+            title={exercise.exercise_name}
+          >
+            {exercise.exercise_name}
+          </span>
+        </div>
         {onRemove && (
           <Button
             type="button"
