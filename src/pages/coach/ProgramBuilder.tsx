@@ -28,6 +28,7 @@
  */
 
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { CoachLayout } from "@/components/coach/CoachLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +54,10 @@ import {
   useSaveProgramBlock,
   SaveProgramBlockError,
 } from "@/hooks/useSaveProgramBlock";
+import { useAuth } from "@/hooks/useAuth";
+import { useAthleteRiskAnalysis } from "@/hooks/useAthleteRiskAnalysis";
+import { supabase } from "@/integrations/supabase/client";
+import type { ExerciseInfo, ExerciseRiskAssessment } from "@/lib/math/fmsRiskEngine";
 import type {
   Microcycle,
   Session,
