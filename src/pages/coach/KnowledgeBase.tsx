@@ -47,7 +47,8 @@ interface PendingFile {
 }
 
 const ACCEPTED_TYPES = [".pdf", ".txt"];
-const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_MB = 100;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
