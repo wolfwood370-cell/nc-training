@@ -34,7 +34,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Plus, Calendar, Target, Layers, Dumbbell, Save, Loader2 } from "lucide-react";
+import { Plus, Calendar, Target, Layers, Dumbbell, Save, Loader2, Copy, Send, User } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useShallow } from "zustand/shallow";
 import { toast } from "sonner";
@@ -81,6 +88,16 @@ const WEEK_PHASE_LABELS = [
   "Intensification",
   "Realization",
   "Deload",
+] as const;
+
+/**
+ * Mock athlete roster for the assignment dropdown. Replaced by a live
+ * `useCoachAthletes` query in a later slice.
+ */
+const MOCK_ATHLETES = [
+  { id: "athlete-john-doe", name: "John Doe" },
+  { id: "athlete-jane-smith", name: "Jane Smith" },
+  { id: "athlete-mark-rivera", name: "Mark Rivera" },
 ] as const;
 
 const weekPhaseLabel = (week: Microcycle): string => {
@@ -451,21 +468,70 @@ export default function ProgramBuilder() {
 
   const { saveBlock, isPending: isSaving } = useSaveProgramBlock();
 
-  const handleSave = useCallback(async () => {
-    if (!block) return;
-    try {
-      await saveBlock(block);
-      toast.success("Program saved", {
-        description: `"${block.name}" is up to date.`,
-      });
-    } catch (e) {
-      const message =
-        e instanceof SaveProgramBlockError
-          ? e.message
-          : "Unexpected error while saving the program.";
-      toast.error("Save failed", { description: message });
-    }
-  }, [block, saveBlock]);
+  const runSave = useCallback(
+    async (status: "draft" | "published") => {
+      if (!block) return;
+      try {
+        await saveBlock({ block, status });
+        if (status === "published") {
+          toast.success("Program published", {
+            description: `"${block.name}" is now live for the assigned athlete.`,
+          });
+        } else {
+          toast.success("Program saved", {
+            description: `"${block.name}" is up to date.`,
+          });
+        }
+      } catch (e) {
+        const message =
+          e instanceof SaveProgramBlockError
+            ? e.message
+            : "Unexpected error while saving the program.";
+        toast.error(
+          status === "published" ? "Publish failed" : "Save failed",
+          { description: message }
+        );
+      }
+    },
+    [block, saveBlock]
+  );
+
+  const handleSave = useCallback(() => runSave("draft"), [runSave]);
+  const handlePublish = useCallback(() => runSave("published"), [runSave]);
+
+  // -------------------------------------------------------------------------
+  // Athlete assignment — patches `athlete_id` directly on the active block.
+  // We use `setState` so we don't have to extend the store API for a
+  // single-field write.
+  // -------------------------------------------------------------------------
+
+  const handleAssignAthlete = useCallback((athleteId: string) => {
+    useAdvancedProgramStore.setState((state) => {
+      if (!state.block) return;
+      state.block.athlete_id = athleteId;
+      state.isDirty = true;
+    });
+  }, []);
+
+  // -------------------------------------------------------------------------
+  // Duplicate previous week into the currently-selected week.
+  // -------------------------------------------------------------------------
+
+  const duplicateWeek = useAdvancedProgramStore((s) => s.duplicateWeek);
+
+  const previousWeek: Microcycle | undefined = useMemo(() => {
+    if (!block || !selectedWeek) return undefined;
+    if (selectedWeek.order <= 1) return undefined;
+    return block.weeks.find((w) => w.order === selectedWeek.order - 1);
+  }, [block, selectedWeek]);
+
+  const handleCopyFromPrevious = useCallback(() => {
+    if (!previousWeek || !selectedWeek) return;
+    duplicateWeek(previousWeek.id, selectedWeek.id);
+    toast.success("Week duplicated", {
+      description: `Copied Week ${previousWeek.order} into Week ${selectedWeek.order}.`,
+    });
+  }, [duplicateWeek, previousWeek, selectedWeek]);
 
   // -------------------------------------------------------------------------
   // Handlers
@@ -519,20 +585,61 @@ export default function ProgramBuilder() {
               </span>
             </div>
           </div>
-          <Button
-            type="button"
-            size="sm"
-            onClick={handleSave}
-            disabled={isSaving}
-            className="shrink-0 gap-2"
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            {isSaving ? "Saving…" : "Save Program"}
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            {/* Athlete assignment selector */}
+            <div className="flex items-center gap-1.5">
+              <User className="h-3.5 w-3.5 text-muted-foreground" />
+              <Select
+                value={block.athlete_id || undefined}
+                onValueChange={handleAssignAthlete}
+              >
+                <SelectTrigger className="h-9 w-[180px] text-xs">
+                  <SelectValue placeholder="Assign athlete…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MOCK_ATHLETES.map((a) => (
+                    <SelectItem key={a.id} value={a.id} className="text-xs">
+                      {a.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Save draft */}
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={handleSave}
+              disabled={isSaving}
+              className="gap-2"
+            >
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {isSaving ? "Saving…" : "Save Draft"}
+            </Button>
+
+            {/* Publish */}
+            <Button
+              type="button"
+              size="sm"
+              onClick={handlePublish}
+              disabled={isSaving || !block.athlete_id}
+              className="gap-2"
+              title={
+                !block.athlete_id
+                  ? "Assign an athlete before publishing"
+                  : "Publish this program"
+              }
+            >
+              <Send className="h-4 w-4" />
+              Publish
+            </Button>
+          </div>
         </div>
 
         {/* ───────────────────────────────────────────────────────────────
@@ -577,7 +684,7 @@ export default function ProgramBuilder() {
           aria-label={`Week ${selectedWeek?.order ?? ""} sessions`}
           className="flex min-h-0 flex-1 flex-col rounded-lg border border-border/60 bg-card"
         >
-          <div className="flex items-center justify-between px-3 py-2">
+          <div className="flex items-center justify-between gap-3 px-3 py-2">
             <div className="flex items-baseline gap-2">
               <h2 className="text-sm font-semibold">
                 Week {selectedWeek?.order ?? "—"}
@@ -588,9 +695,24 @@ export default function ProgramBuilder() {
                 </span>
               )}
             </div>
-            <span className="text-[10px] text-muted-foreground">
-              {selectedWeek?.sessions.length ?? 0} sessions
-            </span>
+            <div className="flex items-center gap-3">
+              {previousWeek && selectedWeek && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCopyFromPrevious}
+                  className="h-7 gap-1.5 text-xs"
+                  title={`Replace Week ${selectedWeek.order} with a copy of Week ${previousWeek.order}`}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  Copy from previous week
+                </Button>
+              )}
+              <span className="text-[10px] text-muted-foreground">
+                {selectedWeek?.sessions.length ?? 0} sessions
+              </span>
+            </div>
           </div>
           <Separator className="bg-border/40" />
 
