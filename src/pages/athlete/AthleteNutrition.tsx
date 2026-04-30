@@ -12,8 +12,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MacroRings } from "@/components/nutrition/MacroRings";
+import { MealScannerDialog } from "@/components/nutrition/MealScannerDialog";
 import { useMetabolicStore } from "@/stores/useMetabolicStore";
 import { Flame, Plus, Sparkles, Utensils } from "lucide-react";
+import { useState } from "react";
 
 const PHASE_META: Record<
   "cut" | "maintain" | "surplus",
@@ -40,12 +42,14 @@ export default function AthleteNutrition() {
   const baseTDEE = useMetabolicStore((s) => s.baseTDEE);
   const currentPhase = useMetabolicStore((s) => s.currentPhase);
   const todayMacros = useMetabolicStore((s) => s.todayMacros);
+  const todayIntake = useMetabolicStore((s) => s.todayIntake);
   const lastAdjustment = useMetabolicStore((s) => s.lastAdjustment);
 
+  const [scannerOpen, setScannerOpen] = useState(false);
   const phase = PHASE_META[currentPhase];
 
-  // Intake will be wired to the food log once the AI camera scanner ships.
-  const intake = { calories: 0, protein: 0, carbs: 0, fats: 0 };
+  const intake = todayIntake ?? { calories: 0, protein: 0, carbs: 0, fats: 0 };
+  const hasMeals = intake.calories > 0;
 
   return (
     <AthleteLayout title="Nutrition">
@@ -118,7 +122,7 @@ export default function AthleteNutrition() {
           </CardContent>
         </Card>
 
-        {/* Today's Log placeholder */}
+        {/* Today's Log */}
         <Card className="border-border/40 shadow-sm">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
@@ -126,25 +130,53 @@ export default function AthleteNutrition() {
                 <Utensils className="h-4 w-4 text-muted-foreground" />
                 Today's Log
               </CardTitle>
-              <Button size="sm" variant="default" className="h-8">
+              <Button
+                size="sm"
+                variant="default"
+                className="h-8 bg-violet-600 hover:bg-violet-600/90 text-white"
+                onClick={() => setScannerOpen(true)}
+              >
                 <Plus className="h-4 w-4 mr-1" />
                 Quick Add
               </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="h-12 w-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
-                <Utensils className="h-5 w-5 text-muted-foreground" />
+            {hasMeals ? (
+              <div className="grid grid-cols-4 gap-2">
+                <div className="rounded-lg border border-border/40 bg-rose-500/5 p-2 text-center">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Cal</p>
+                  <p className="text-sm font-semibold tabular-nums">{intake.calories}</p>
+                </div>
+                <div className="rounded-lg border border-border/40 bg-violet-500/5 p-2 text-center">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Pro</p>
+                  <p className="text-sm font-semibold tabular-nums">{intake.protein}g</p>
+                </div>
+                <div className="rounded-lg border border-border/40 bg-amber-500/5 p-2 text-center">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Carb</p>
+                  <p className="text-sm font-semibold tabular-nums">{intake.carbs}g</p>
+                </div>
+                <div className="rounded-lg border border-border/40 bg-emerald-500/5 p-2 text-center">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Fat</p>
+                  <p className="text-sm font-semibold tabular-nums">{intake.fats}g</p>
+                </div>
               </div>
-              <p className="text-sm font-medium text-foreground">No meals logged yet</p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-[240px]">
-                Tap Quick Add to log your first meal of the day.
-              </p>
-            </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <div className="h-12 w-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+                  <Utensils className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <p className="text-sm font-medium text-foreground">No meals logged yet</p>
+                <p className="text-xs text-muted-foreground mt-1 max-w-[240px]">
+                  Tap Quick Add to scan your first meal with AI.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      <MealScannerDialog open={scannerOpen} onOpenChange={setScannerOpen} />
     </AthleteLayout>
   );
 }
