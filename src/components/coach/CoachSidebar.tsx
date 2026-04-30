@@ -17,6 +17,7 @@ import {
   Inbox,
   LifeBuoy,
   Stethoscope,
+  BrainCircuit,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,7 @@ const mainNavItems = [
   { title: "Resources", url: "/coach/library", icon: BookOpen },
   { title: "Exercises", url: "/coach/exercises", icon: Dumbbell },
   { title: "Movement", url: "/coach/fms", icon: Stethoscope },
+  { title: "AI Brain", url: "/coach/knowledge", icon: BrainCircuit },
   { title: "Analisi", url: "/coach/analytics", icon: BarChart3 },
   { title: "Business", url: "/coach/business", icon: CreditCard },
 ];
