@@ -256,6 +256,142 @@ const BodyPartChip = ({ part, level, onClick }: { part: BodyPart; level: Sorenes
 );
 
 // ============================================================================
+// NC Design System helpers — Dashboard widgets (§3.1)
+// ============================================================================
+
+function ReadinessGauge({
+  score, isCompleted, primary, track, ink, muted,
+}: {
+  score: number;
+  isCompleted: boolean;
+  primary: string;
+  track: string;
+  ink: string;
+  muted: string;
+}) {
+  const radius = 52;
+  const stroke = 8;
+  const r = radius - stroke / 2;
+  const c = r * 2 * Math.PI;
+  const pct = isCompleted ? Math.max(0, Math.min(100, score)) / 100 : 0;
+  const dash = c * (1 - pct);
+  return (
+    <div className="relative flex-shrink-0" style={{ width: radius * 2, height: radius * 2 }}>
+      <svg width={radius * 2} height={radius * 2} className="-rotate-90">
+        <circle stroke={track} fill="transparent" strokeWidth={stroke} r={r} cx={radius} cy={radius} />
+        <circle
+          stroke={primary} fill="transparent" strokeWidth={stroke}
+          strokeDasharray={`${c} ${c}`} strokeDashoffset={dash} strokeLinecap="round"
+          r={r} cx={radius} cy={radius}
+          style={{ transition: "stroke-dashoffset 0.7s ease-out" }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        {isCompleted ? (
+          <>
+            <span className="font-display text-3xl font-bold tabular-nums leading-none" style={{ color: ink }}>
+              {score}
+            </span>
+            <span className="text-[9px] uppercase tracking-wider mt-0.5" style={{ color: muted }}>
+              Score
+            </span>
+          </>
+        ) : (
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-center px-2" style={{ color: primary }}>
+            Tap<br />Check-in
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MacroRow({
+  label, value, target, ink, muted,
+}: {
+  label: string; value: number; target: number; ink: string; muted: string;
+}) {
+  return (
+    <div className="flex items-baseline justify-between">
+      <span className="text-xs font-medium" style={{ color: muted }}>{label}</span>
+      <span className="text-xs font-semibold tabular-nums" style={{ color: ink }}>
+        {value}<span className="font-normal" style={{ color: muted }}>/{target}g</span>
+      </span>
+    </div>
+  );
+}
+
+function MiniRing({
+  letter, pct, primary, track, ink,
+}: { letter: string; pct: number; primary: string; track: string; ink: string }) {
+  const size = 28;
+  const stroke = 3;
+  const r = (size - stroke) / 2;
+  const c = r * 2 * Math.PI;
+  const dash = c * (1 - Math.max(0, Math.min(100, pct)) / 100);
+  return (
+    <div className="relative flex-1 flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90 absolute inset-0">
+        <circle stroke={track} fill="transparent" strokeWidth={stroke} r={r} cx={size / 2} cy={size / 2} />
+        <circle
+          stroke={primary} fill="transparent" strokeWidth={stroke}
+          strokeDasharray={`${c} ${c}`} strokeDashoffset={dash} strokeLinecap="round"
+          r={r} cx={size / 2} cy={size / 2}
+          style={{ transition: "stroke-dashoffset 0.6s ease-out" }}
+        />
+      </svg>
+      <span className="text-[9px] font-bold" style={{ color: ink }}>{letter}</span>
+    </div>
+  );
+}
+
+function ConcentricMacroRings({
+  proPct, fatPct, carbPct, remainingKcal, primary, track, ink, muted,
+}: {
+  proPct: number; fatPct: number; carbPct: number;
+  remainingKcal: number; primary: string; track: string; ink: string; muted: string;
+}) {
+  const size = 120;
+  const stroke = 8;
+  const gap = 3;
+  const rings = [
+    { pct: proPct, r: (size - stroke) / 2 },                              // Pro outer
+    { pct: fatPct, r: (size - stroke) / 2 - (stroke + gap) },             // Fat mid
+    { pct: carbPct, r: (size - stroke) / 2 - (stroke + gap) * 2 },        // Carb inner
+  ];
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        {rings.map((ring, i) => {
+          const c = ring.r * 2 * Math.PI;
+          const dash = c * (1 - Math.max(0, Math.min(100, ring.pct)) / 100);
+          return (
+            <g key={i}>
+              <circle stroke={track} fill="transparent" strokeWidth={stroke} r={ring.r} cx={size / 2} cy={size / 2} />
+              <circle
+                stroke={primary} fill="transparent" strokeWidth={stroke}
+                strokeDasharray={`${c} ${c}`} strokeDashoffset={dash} strokeLinecap="round"
+                r={ring.r} cx={size / 2} cy={size / 2}
+                opacity={1 - i * 0.22}
+                style={{ transition: "stroke-dashoffset 0.7s ease-out" }}
+              />
+            </g>
+          );
+        })}
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-display text-lg font-bold tabular-nums leading-none" style={{ color: ink }}>
+          {remainingKcal >= 0 ? `-${remainingKcal}` : `+${Math.abs(remainingKcal)}`}
+        </span>
+        <span className="text-[9px] uppercase tracking-wider mt-0.5" style={{ color: muted }}>
+          kcal left
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
 // MAIN — Athlete Dashboard (Widget Control Center)
 // ============================================================================
 export default function AthleteDashboard() {
