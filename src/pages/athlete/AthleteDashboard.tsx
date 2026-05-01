@@ -409,251 +409,306 @@ export default function AthleteDashboard() {
   const firstName = (profile?.full_name || "").split(" ")[0] || "Atleta";
   const brandColor = coachProfile?.brand_color || null;
 
+  // ─── NC Design System tokens ───
+  const NC = {
+    surface: "#FFFFFF",
+    ink: "#043555",
+    muted: "#50768E",
+    primary: "#226FA3",
+    deep: "#093858",
+    track: "#F1F5F9",
+  };
+
+  // Top-3 subjective sub-metrics (Sleep / Energy / Soreness)
+  const sorenessValues = Object.values(readiness.sorenessMap || {}) as number[];
+  const maxSoreness = sorenessValues.length > 0 ? Math.max(...sorenessValues) : 0;
+  const sleepPct = Math.min(100, (readiness.sleepHours / 8) * 100);
+  const energyPct = (readiness.energy / 10) * 100;
+  // Soreness: invert (high soreness → low score)
+  const sorenessPct = Math.max(0, 100 - (maxSoreness / 3) * 100);
+
+  const subMetrics = [
+    { key: "sleep", label: "Sleep", icon: Moon, value: `${readiness.sleepHours.toFixed(1)}h`, pct: sleepPct },
+    { key: "energy", label: "Energy", icon: Zap, value: `${readiness.energy}/10`, pct: energyPct },
+    { key: "soreness", label: "Soreness", icon: HeartPulse, value: maxSoreness === 0 ? "None" : ["—", "Mild", "Mod", "High"][maxSoreness], pct: sorenessPct },
+  ];
+
+  // Nutrition derived
+  const remainingKcal = Math.round(nutritionTargets.calories - todayIntake.calories);
+  const proPct = nutritionTargets.protein > 0 ? Math.min(100, (todayIntake.protein / nutritionTargets.protein) * 100) : 0;
+  const fatPct = nutritionTargets.fats > 0 ? Math.min(100, (todayIntake.fats / nutritionTargets.fats) * 100) : 0;
+  const carbPct = nutritionTargets.carbs > 0 ? Math.min(100, (todayIntake.carbs / nutritionTargets.carbs) * 100) : 0;
+
+  // Micro: Fiber / Water / Sodium (use nutrient store fields if present, else 0)
+  const intakeAny = todayIntake as unknown as Record<string, number | undefined>;
+  const targetsAny = nutritionTargets as unknown as Record<string, number | undefined>;
+  const fiberPct = (targetsAny.fiber ?? 0) > 0 ? Math.min(100, ((intakeAny.fiber ?? 0) / (targetsAny.fiber ?? 1)) * 100) : 0;
+  const waterPct = (targetsAny.water ?? 0) > 0 ? Math.min(100, ((intakeAny.water ?? 0) / (targetsAny.water ?? 1)) * 100) : 0;
+  const sodiumPct = (targetsAny.sodium ?? 0) > 0 ? Math.min(100, ((intakeAny.sodium ?? 0) / (targetsAny.sodium ?? 1)) * 100) : 0;
+
   return (
     <AthleteLayout>
-      <div className="flex flex-col gap-3 p-4 pb-24">
+      <div
+        className="flex flex-col gap-4 p-4 pb-24"
+        style={{ backgroundColor: NC.surface, color: NC.ink }}
+      >
         {/* ===== TOP BAR ===== */}
         <header className="flex items-center justify-between pt-1">
           <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            <p
+              className="text-[10px] uppercase tracking-wider font-medium"
+              style={{ color: NC.muted }}
+            >
               {format(new Date(), "EEEE d MMMM", { locale: it })}
             </p>
-            <h1 className="text-lg font-semibold leading-tight truncate">
+            <h1
+              className="font-display text-lg font-bold leading-tight truncate"
+              style={{ color: NC.ink }}
+            >
               Ready for today, {firstName}?
             </h1>
           </div>
           <button
             onClick={() => navigate("/athlete/profile")}
-            className="flex-shrink-0 active:scale-95 transition-transform"
+            className="flex-shrink-0 active:scale-95 transition-transform min-h-[48px] min-w-[48px] flex items-center justify-center"
             aria-label="Apri profilo"
           >
-            <Avatar className="h-10 w-10 border border-border/50">
+            <Avatar className="h-11 w-11" style={{ borderColor: NC.track, borderWidth: 1 }}>
               {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt={firstName} />}
-              <AvatarFallback className="text-sm font-semibold bg-primary/10 text-primary">
+              <AvatarFallback
+                className="text-sm font-semibold"
+                style={{ backgroundColor: NC.track, color: NC.primary }}
+              >
                 {firstName.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
           </button>
         </header>
 
-        {/* ===== HERO WIDGET — READINESS / FMS STATUS ===== */}
+        {/* ===== WIDGET 1 — READINESS ===== */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <Card
-            className="relative overflow-hidden border-border/40 cursor-pointer rounded-3xl shadow-sm hover:shadow-md transition-shadow"
+          <button
             onClick={() => setDrawerOpen(true)}
+            className="w-full text-left rounded-2xl p-5 transition-shadow active:scale-[0.99]"
+            style={{
+              backgroundColor: NC.surface,
+              boxShadow: "0 1px 3px rgba(4,53,85,0.06), 0 4px 12px rgba(4,53,85,0.05)",
+            }}
           >
-            {/* Soft brand glow */}
-            <div
-              className="absolute -top-16 -right-16 h-40 w-40 rounded-full blur-3xl opacity-20 pointer-events-none"
-              style={{ backgroundColor: brandColor || "hsl(var(--primary))" }}
-            />
-
-            <CardContent className="relative p-5 flex items-center gap-5">
-              <ReadinessHeroRing
-                score={displayScore}
-                brandColor={brandColor}
-                isCompleted={readiness.isCompleted}
-              />
-
-              <div className="flex-1 min-w-0 space-y-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge
-                    variant="outline"
-                    className={cn("text-[10px] font-semibold uppercase tracking-wider border", statusBadge.color)}
+            <div className="flex items-center justify-between gap-4">
+              {/* LEFT: Top 3 subjective sub-metrics */}
+              <div className="flex-1 min-w-0 space-y-3">
+                <div className="flex items-center gap-2">
+                  <p
+                    className="text-[10px] uppercase tracking-wider font-semibold"
+                    style={{ color: NC.muted }}
                   >
-                    {statusBadge.label}
-                  </Badge>
+                    Readiness
+                  </p>
                   {hasFmsRedFlags && (
-                    <Badge
-                      variant="outline"
-                      className="text-[10px] font-semibold uppercase tracking-wider border bg-rose-500/15 text-rose-600 border-rose-500/30 gap-1"
+                    <span
+                      className="text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded"
+                      style={{ backgroundColor: "#FEE2E2", color: "#B91C1C" }}
                     >
-                      <ShieldAlert className="h-3 w-3" />
                       FMS
-                    </Badge>
+                    </span>
                   )}
                 </div>
-                <p className="text-sm font-medium text-foreground leading-snug line-clamp-2">
-                  {readiness.isCompleted
-                    ? readinessResult.reason || "Tutti i parametri ottimali"
-                    : "Sblocca l'allenamento con il check-in mattutino."}
-                </p>
-                {baseline.isNewUser && (
-                  <div className="flex items-center gap-1 text-[10px] text-amber-600">
-                    <AlertCircle className="h-3 w-3" />
-                    Baseline {baseline.dataPoints}/3 giorni
+                {subMetrics.map((m) => (
+                  <div key={m.key} className="space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <m.icon className="h-3.5 w-3.5" style={{ color: NC.muted }} />
+                        <span className="text-xs font-medium" style={{ color: NC.ink }}>
+                          {m.label}
+                        </span>
+                      </div>
+                      <span
+                        className="text-xs font-semibold tabular-nums"
+                        style={{ color: NC.ink }}
+                      >
+                        {readiness.isCompleted ? m.value : "—"}
+                      </span>
+                    </div>
+                    <div
+                      className="h-1 rounded-full overflow-hidden"
+                      style={{ backgroundColor: NC.track }}
+                    >
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{
+                          width: `${readiness.isCompleted ? m.pct : 0}%`,
+                          backgroundColor: NC.primary,
+                        }}
+                      />
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
 
-              <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-            </CardContent>
-          </Card>
+              {/* RIGHT: Circular gauge */}
+              <ReadinessGauge
+                score={displayScore}
+                isCompleted={readiness.isCompleted}
+                primary={NC.primary}
+                track={NC.track}
+                ink={NC.ink}
+                muted={NC.muted}
+              />
+            </div>
+          </button>
         </motion.div>
 
-        {/* ===== ACTION WIDGET — TODAY'S TRAINING ===== */}
+        {/* ===== WIDGET 2 — TODAY'S TRAINING ===== */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.05 }}
         >
-          {todayWorkout ? (
-            <Card
-              className={cn(
-                "relative overflow-hidden border-0 rounded-3xl shadow-md",
-                !canTrain && "opacity-70",
-              )}
-              style={{
-                background: canTrain
-                  ? `linear-gradient(135deg, ${brandColor || "hsl(var(--primary))"} 0%, ${brandColor || "hsl(var(--primary))"}cc 100%)`
-                  : "linear-gradient(135deg, hsl(var(--muted)), hsl(var(--muted)/0.7))",
-              }}
-            >
-              <CardContent className="p-5 flex items-center gap-4 text-white">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">
-                      Today's Mission
+          <div
+            className="rounded-2xl p-5"
+            style={{
+              backgroundColor: NC.surface,
+              boxShadow: "0 1px 3px rgba(4,53,85,0.06), 0 4px 12px rgba(4,53,85,0.05)",
+            }}
+          >
+            {todayWorkout ? (
+              <>
+                <p
+                  className="text-[10px] uppercase tracking-wider font-semibold mb-1"
+                  style={{ color: NC.muted }}
+                >
+                  Today's Training
+                </p>
+                <h2
+                  className="font-display text-xl font-bold leading-tight truncate mb-1"
+                  style={{ color: NC.ink }}
+                >
+                  {todayWorkout.title}
+                </h2>
+                <div
+                  className="flex items-center gap-3 text-xs mb-4"
+                  style={{ color: NC.muted }}
+                >
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {todayWorkout.estimated_duration || 45} min
+                  </span>
+                  {canTrain && isLowReadiness && (
+                    <span className="flex items-center gap-1 font-semibold" style={{ color: "#B45309" }}>
+                      <AlertTriangle className="h-3 w-3" />
+                      Scala intensità
                     </span>
-                  </div>
-                  <h2 className="text-xl font-bold leading-tight truncate">
-                    {todayWorkout.title}
-                  </h2>
-                  <div className="flex items-center gap-3 mt-1.5 text-xs opacity-90">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {todayWorkout.estimated_duration || 45} min
-                    </span>
-                    {canTrain && isLowReadiness && (
-                      <span className="flex items-center gap-1 font-semibold">
-                        <AlertTriangle className="h-3 w-3" />
-                        Scala intensità
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <Button
-                  size="lg"
-                  className={cn(
-                    "h-12 min-h-[48px] px-5 rounded-2xl bg-white text-foreground font-semibold shadow-lg",
-                    "hover:bg-white/95 active:scale-95 transition-all",
                   )}
-                  onClick={(e) => {
-                    e.stopPropagation();
+                </div>
+                <button
+                  onClick={() => {
                     if (!canTrain) { setDrawerOpen(true); return; }
                     navigate(`/athlete/workout/${todayWorkout.id}`);
                   }}
-                  style={{ color: brandColor || "hsl(var(--primary))" }}
+                  className="w-full h-14 min-h-[56px] rounded-xl font-display text-base font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+                  style={{
+                    backgroundColor: canTrain ? NC.primary : NC.muted,
+                    color: NC.surface,
+                    boxShadow: canTrain ? "0 4px 14px rgba(34,111,163,0.35)" : "none",
+                  }}
                 >
-                  <Play className="h-4 w-4 fill-current" />
-                  {canTrain ? "Start" : "Check-in"}
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="rounded-3xl border-border/40 bg-gradient-to-br from-emerald-500/10 to-teal-500/5">
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
-                  <Moon className="h-6 w-6 text-emerald-600" />
+                  <Play className="h-5 w-5 fill-current" />
+                  {canTrain ? "Start Session" : "Complete Check-in First"}
+                </button>
+              </>
+            ) : (
+              <div className="flex items-center gap-4 py-2">
+                <div
+                  className="h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: NC.track }}
+                >
+                  <Moon className="h-6 w-6" style={{ color: NC.primary }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-base font-semibold text-emerald-700 dark:text-emerald-400">
+                  <h2 className="font-display text-base font-bold" style={{ color: NC.ink }}>
                     Rest Day
                   </h2>
-                  <p className="text-xs text-muted-foreground">
-                    Nessun workout programmato. Concentrati sul recupero.
+                  <p className="text-xs" style={{ color: NC.muted }}>
+                    Concentrati sul recupero.
                   </p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="min-h-[48px]"
-                  onClick={() => navigate("/athlete/workout")}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            )}
+          </div>
         </motion.div>
 
-        {/* ===== METABOLIC WIDGET — NUTRITION ===== */}
+        {/* ===== WIDGET 3 — METABOLIC & NUTRITION (50/50) ===== */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          <Card className="relative rounded-3xl border-border/40 shadow-sm overflow-visible">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-                    Metabolic Hub
+          <div
+            className="relative rounded-2xl p-5"
+            style={{
+              backgroundColor: NC.surface,
+              boxShadow: "0 1px 3px rgba(4,53,85,0.06), 0 4px 12px rgba(4,53,85,0.05)",
+            }}
+          >
+            <div className="grid grid-cols-2 gap-4 items-center">
+              {/* LEFT — Macro readout (top) + Micro mini-rings (bottom) */}
+              <div className="flex flex-col gap-4">
+                <div className="space-y-1.5">
+                  <p
+                    className="text-[10px] uppercase tracking-wider font-semibold"
+                    style={{ color: NC.muted }}
+                  >
+                    Macros
                   </p>
-                  <p className="text-sm font-semibold text-foreground tabular-nums">
-                    {Math.round(todayIntake.calories)}
-                    <span className="text-muted-foreground font-normal">
-                      {" / "}
-                      {nutritionTargets.calories} kcal
-                    </span>
-                  </p>
+                  <div className="space-y-1">
+                    <MacroRow label="Pro" value={Math.round(todayIntake.protein)} target={nutritionTargets.protein} ink={NC.ink} muted={NC.muted} />
+                    <MacroRow label="Fat" value={Math.round(todayIntake.fats)} target={nutritionTargets.fats} ink={NC.ink} muted={NC.muted} />
+                    <MacroRow label="Carb" value={Math.round(todayIntake.carbs)} target={nutritionTargets.carbs} ink={NC.ink} muted={NC.muted} />
+                  </div>
                 </div>
-                <button
-                  onClick={() => navigate("/athlete/nutrition")}
-                  className="text-[10px] uppercase tracking-wider text-primary font-semibold flex items-center gap-1 min-h-[44px] px-2"
-                >
-                  Logs
-                  <ChevronRight className="h-3 w-3" />
-                </button>
+
+                <div className="flex items-center gap-3">
+                  <MiniRing letter="F" pct={fiberPct} primary={NC.primary} track={NC.track} ink={NC.ink} />
+                  <MiniRing letter="W" pct={waterPct} primary={NC.primary} track={NC.track} ink={NC.ink} />
+                  <MiniRing letter="S" pct={sodiumPct} primary={NC.primary} track={NC.track} ink={NC.ink} />
+                </div>
               </div>
 
-              <div className="flex items-stretch gap-4">
-                <MacroPill
-                  label="Cal"
-                  current={todayIntake.calories}
-                  target={nutritionTargets.calories}
-                  colorClass="bg-rose-500"
-                />
-                <MacroPill
-                  label="Pro"
-                  current={todayIntake.protein}
-                  target={nutritionTargets.protein}
-                  colorClass="bg-violet-500"
-                />
-                <MacroPill
-                  label="Carb"
-                  current={todayIntake.carbs}
-                  target={nutritionTargets.carbs}
-                  colorClass="bg-amber-500"
-                />
-                <MacroPill
-                  label="Fat"
-                  current={todayIntake.fats}
-                  target={nutritionTargets.fats}
-                  colorClass="bg-emerald-500"
+              {/* RIGHT — Concentric rings */}
+              <div className="flex items-center justify-center">
+                <ConcentricMacroRings
+                  proPct={proPct}
+                  fatPct={fatPct}
+                  carbPct={carbPct}
+                  remainingKcal={remainingKcal}
+                  primary={NC.primary}
+                  track={NC.track}
+                  ink={NC.ink}
+                  muted={NC.muted}
                 />
               </div>
-            </CardContent>
+            </div>
 
             {/* Floating "Snap Meal" camera FAB */}
             <button
               onClick={() => setScannerOpen(true)}
-              className={cn(
-                "absolute -top-3 -right-3 h-12 w-12 rounded-full",
-                "flex items-center justify-center shadow-lg",
-                "bg-foreground text-background active:scale-90 transition-transform",
-                "ring-4 ring-background",
-              )}
+              className="absolute -top-3 -right-3 h-14 w-14 min-h-[48px] min-w-[48px] rounded-full flex items-center justify-center active:scale-90 transition-transform"
+              style={{
+                backgroundColor: NC.deep,
+                color: NC.surface,
+                boxShadow: "0 6px 20px rgba(9,56,88,0.4)",
+                border: `4px solid ${NC.surface}`,
+              }}
               aria-label="Snap meal"
             >
               <Camera className="h-5 w-5" />
             </button>
-          </Card>
+          </div>
         </motion.div>
       </div>
 
