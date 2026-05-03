@@ -7,10 +7,10 @@ import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const navItems = [
-  { title: "Home", url: "/athlete", icon: Home },
+  { title: "Home", url: "/athlete/dashboard", icon: Home },
   { title: "Training", url: "/athlete/workout", icon: Dumbbell },
   { title: "Nutrition", url: "/athlete/nutrition", icon: Utensils },
-  { title: "Copilot", url: "/athlete/messages", icon: Sparkles },
+  { title: "Copilot", url: "/athlete/copilot", icon: Sparkles },
 ];
 
 export function AthleteBottomNav() {
