@@ -2613,6 +2613,8 @@ export type Database = {
         Returns: string
       }
       is_coach_of_athlete: { Args: { p_athlete_id: string }; Returns: boolean }
+      is_my_athlete: { Args: { _athlete_id: string }; Returns: boolean }
+      is_my_coach: { Args: { _coach_id: string }; Returns: boolean }
       match_documents: {
         Args: {
           match_count?: number
