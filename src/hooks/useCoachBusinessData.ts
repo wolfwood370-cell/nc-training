@@ -228,7 +228,7 @@ export function useCoachBusinessData() {
 
       const { error } = await supabase
         .from("profiles")
-        .update(updateData)
+        .update(updateData as never)
         .eq("id", payload.athleteId);
       if (error) throw error;
     },
