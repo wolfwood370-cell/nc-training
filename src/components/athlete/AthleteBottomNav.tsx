@@ -7,10 +7,10 @@ import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const navItems = [
-  { title: "Home", url: "/athlete", icon: Home },
+  { title: "Home", url: "/athlete/dashboard", icon: Home },
   { title: "Training", url: "/athlete/workout", icon: Dumbbell },
   { title: "Nutrition", url: "/athlete/nutrition", icon: Utensils },
-  { title: "Copilot", url: "/athlete/messages", icon: Sparkles },
+  { title: "Copilot", url: "/athlete/copilot", icon: Sparkles },
 ];
 
 export function AthleteBottomNav() {
@@ -61,7 +61,7 @@ export function AthleteBottomNav() {
           <NavLink
             key={item.title}
             to={item.url}
-            end={item.url === "/athlete"}
+            end={item.url === "/athlete/dashboard"}
             onClick={() => light()}
             className="relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full min-h-[48px] min-w-[48px] text-zinc-500 transition-transform duration-150 active:scale-90"
             activeClassName="text-primary"

@@ -33,17 +33,11 @@ const CoachCheckinInbox = lazy(() => import("./pages/coach/CoachCheckinInbox"));
 const FmsScreening = lazy(() => import("./pages/coach/FmsScreening"));
 const KnowledgeBase = lazy(() => import("./pages/coach/KnowledgeBase"));
 const MasterCopilot = lazy(() => import("./pages/coach/MasterCopilot"));
-const FocusDashboard = lazy(() => import("./pages/athlete/FocusDashboard"));
-const AthleteLeaderboard = lazy(() => import("./pages/athlete/AthleteLeaderboard"));
+const AthleteDashboard = lazy(() => import("./pages/athlete/AthleteDashboard"));
 const AthleteTraining = lazy(() => import("./pages/athlete/AthleteTraining"));
 const AthleteNutrition = lazy(() => import("./pages/athlete/AthleteNutrition"));
-const AthleteHealth = lazy(() => import("./pages/athlete/AthleteHealth"));
-const AthleteProfile = lazy(() => import("./pages/athlete/AthleteProfile"));
-const WorkoutPlayer = lazy(() => import("./pages/athlete/WorkoutPlayer"));
-const WorkoutSummary = lazy(() => import("./pages/athlete/WorkoutSummary"));
-const AthleteDashboard = lazy(() => import("./pages/athlete/AthleteDashboard"));
-const AthleteHabits = lazy(() => import("./pages/athlete/AthleteHabits"));
-const AthleteMessages = lazy(() => import("./pages/athlete/AthleteMessages"));
+const AthleteCopilot = lazy(() => import("./pages/athlete/AthleteCopilot"));
+const ActiveWorkout = lazy(() => import("./pages/athlete/ActiveWorkout"));
 const OnboardingWizard = lazy(() => import("./pages/onboarding/OnboardingWizard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
@@ -86,18 +80,12 @@ const App = () => (
               <Route path="/coach/settings" element={<SubscriptionGuard><CoachSettings /></SubscriptionGuard>} />
               
               {/* Athlete Routes */}
-              <Route path="/athlete" element={<FocusDashboard />} />
+              <Route path="/athlete" element={<AthleteDashboard />} />
               <Route path="/athlete/dashboard" element={<AthleteDashboard />} />
-              <Route path="/athlete/focus" element={<FocusDashboard />} />
               <Route path="/athlete/workout" element={<AthleteTraining />} />
-              <Route path="/athlete/workout/:id" element={<WorkoutPlayer />} />
-              <Route path="/athlete/workout/summary/:sessionId" element={<WorkoutSummary />} />
-              <Route path="/athlete/messages" element={<AthleteMessages />} />
+              <Route path="/athlete/workout/active" element={<ActiveWorkout />} />
               <Route path="/athlete/nutrition" element={<AthleteNutrition />} />
-              <Route path="/athlete/health" element={<AthleteHealth />} />
-              <Route path="/athlete/leaderboard" element={<AthleteLeaderboard />} />
-              <Route path="/athlete/habits" element={<AthleteHabits />} />
-              <Route path="/athlete/profile" element={<AthleteProfile />} />
+              <Route path="/athlete/copilot" element={<AthleteCopilot />} />
               
               {/* Onboarding */}
               <Route path="/onboarding" element={<OnboardingWizard />} />
