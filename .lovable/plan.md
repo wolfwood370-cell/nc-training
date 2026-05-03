@@ -1,41 +1,99 @@
-## Goal
+## Diagnosi
 
-Route all AI edge function calls back through the **Lovable AI Gateway** (`https://ai.gateway.lovable.dev/v1/chat/completions`) using `LOVABLE_API_KEY`, eliminating direct OpenAI billing for chat/generation/analysis. Embeddings (`text-embedding-3-small`) stay on OpenAI directly — the gateway is for chat completions only.
+L'app è attualmente **non avviabile**. La preview mostra una schermata bianca perché il dev server di Vite restituisce errori bloccanti su quasi tutte le pagine.
 
-## Model routing
+### Problema 1 — `src/App.tsx` punta a un'app fantasma "Lumina"
 
-| Function | New Model | Reason |
-|---|---|---|
-| `generate-program` | `openai/gpt-5.2` | Highest reasoning for program design |
-| `analyze-athlete-week` | `openai/gpt-5-mini` | Cost-effective structured summarization |
-| `chat-with-coach` | `openai/gpt-5-mini` | Cost-effective streaming chat |
-| `analyze-meal-photo` | `google/gemini-3-flash-preview` | Fast multimodal vision (already on gateway, model swap from `gemini-2.5-flash`) |
+Il file `App.tsx` definisce solo 5 rotte (`/dashboard`, `/training`, `/nutrition`, `/copilot`, `/notifications`) che renderizzano pagine top-level (`src/pages/Dashboard.tsx`, `Training.tsx`, ecc.). Queste pagine importano moduli **inesistenti**:
 
-## Changes per function
+- `@/components/layout` → la cartella esiste ma contiene solo `Footer.tsx`, nessun `Header`/`BottomNav` esportato
+- `@/components/dashboard` → cartella **non esiste**
+- `@/data` → cartella **non esiste** (mock `mockReadiness`, `mockTodayWorkout`, ecc.)
 
-### 1. `supabase/functions/generate-program/index.ts`
-- Replace `OPENAI_API_KEY` env read with `LOVABLE_API_KEY`.
-- Change endpoint from `https://api.openai.com/v1/chat/completions` to `https://ai.gateway.lovable.dev/v1/chat/completions`.
-- Change `model: "gpt-4o-mini"` → `"openai/gpt-5.2"`.
-- Update missing-key error message to reference the gateway.
-- Keep tool-calling (`submit_program`) and 429/402 handling intact.
+Risultato: ogni rotta crasha con `Failed to resolve import "@/components/layout"`.
 
-### 2. `supabase/functions/analyze-athlete-week/index.ts`
-- Same swap pattern: `OPENAI_API_KEY` → `LOVABLE_API_KEY`, endpoint → gateway, `model` → `"openai/gpt-5-mini"`.
-- Keep `submit_analysis` tool-call + sentiment-clamp logic + DB insert unchanged.
+Nel frattempo l'app **reale** (athlete + coach + auth + Supabase + onboarding) vive in `src/pages/athlete/`, `src/pages/coach/`, `src/pages/Auth.tsx`, `src/pages/onboarding/` ed esiste anche un `AppShell` con `BottomNavigation` e tutta l'infrastruttura (`useAuth`, `RoleRedirect`, `SubscriptionGuard`, layout coach/athlete, ecc.) — ma **non è collegata al router**.
 
-### 3. `supabase/functions/chat-with-coach/index.ts`
-- Keep `OPENAI_API_KEY` (still needed for `getEmbedding` → `text-embedding-3-small`).
-- Add a separate `LOVABLE_API_KEY` env read for the chat call.
-- Change chat endpoint to gateway, `model: "gpt-4o-mini"` → `"openai/gpt-5-mini"`.
-- Streaming SSE response and quota-tracking logic unchanged.
+### Problema 2 — Dipendenze mancanti
 
-### 4. `supabase/functions/analyze-meal-photo/index.ts`
-- Already uses Lovable Gateway + `LOVABLE_API_KEY`. Only swap model from `"google/gemini-2.5-flash"` to `"google/gemini-3-flash-preview"`.
+`src/lib/utils.ts` (usato da praticamente tutti i componenti shadcn) importa `clsx` e `tailwind-merge`, ma **nessuno dei due è in `package.json`**. Vite logga: `Failed to resolve import "clsx" from "src/lib/utils.ts"`.
 
-## Out of scope (intentionally untouched)
-- Embeddings in `chat-with-coach` and `ingest-knowledge` continue to call OpenAI directly (`text-embedding-3-small`) — the Lovable Gateway is chat-completions only.
-- No changes to RLS, schema, frontend, quota tables, or `supabase/config.toml`.
+Probabilmente mancano anche altre dipendenze runtime (es. `@tanstack/react-query`, providers, ecc.) usate dai componenti reali — andranno verificate al primo riavvio pulito.
 
-## Verification
-After deploy I'll confirm each function compiles (no TS errors in Deno) and report back the routing summary. No client code needs updates — function contracts are identical.
+### Problema 3 — Provider globali assenti
+
+`src/main.tsx` monta `<App />` nudo. Mancano: `QueryClientProvider` (TanStack Query), `TooltipProvider`, `<Toaster />`, `MaterialYouProvider`, `OfflineSyncProvider`, `ErrorBoundary`, `MetaHead` — tutti file presenti nel codebase ma non istanziati. Senza di essi, qualunque hook `useQuery` o toast crasha appena la pagina monta.
+
+---
+
+## Piano di intervento
+
+### Step 1 — Reinstallare le dipendenze base
+Aggiungere via `bun add`:
+- `clsx`
+- `tailwind-merge`
+
+E verificare presenza di: `@tanstack/react-query`, `@supabase/supabase-js`, `zustand`, `idb-keyval`, `date-fns`, `lucide-react`, `sonner`, `recharts`. Aggiungere quelle mancanti.
+
+### Step 2 — Riscrivere `src/App.tsx` per usare l'app reale
+Sostituire le 5 rotte fantasma con il routing effettivo:
+
+```text
+/auth                         → Auth
+/onboarding                   → OnboardingWizard
+/                             → RoleRedirect (coach→/coach, athlete→/athlete)
+/athlete/*                    → AthleteLayout
+   ├─ dashboard                → AthleteDashboard
+   ├─ training                 → AthleteTraining
+   ├─ nutrition                → AthleteNutrition
+   ├─ habits / health / messages / profile / leaderboard
+   ├─ workout/:id              → WorkoutPlayer
+   └─ workout/:id/summary      → WorkoutSummary
+/coach/*                      → CoachLayout
+   ├─ home / athletes / athlete/:id
+   ├─ analytics / business / calendar / checkin-inbox
+   ├─ library / messages / settings
+   ├─ exercises / fms / knowledge / copilot / program-builder
+*                             → NotFound
+```
+
+Avvolgere le rotte private con `SubscriptionGuard` dove rilevante (coerente con il pattern già definito).
+
+### Step 3 — Aggiornare `src/main.tsx` con i provider
+Wrapping nell'ordine corretto:
+```text
+ErrorBoundary
+└─ QueryClientProvider (con queryPersister offline-first)
+   └─ TooltipProvider
+      └─ MaterialYouProvider
+         └─ OfflineSyncProvider
+            └─ App
+            └─ Toaster (sonner) + SwUpdatePrompt
+```
+
+### Step 4 — Eliminare il codice morto "Lumina"
+Cancellare le pagine top-level obsolete che importano moduli inesistenti, così Vite non prova più a pre-trasformarle:
+- `src/pages/Dashboard.tsx`
+- `src/pages/Training.tsx`
+- `src/pages/Nutrition.tsx`
+- `src/pages/Copilot.tsx`
+- `src/pages/Notifications.tsx`
+- `src/pages/Index.tsx` (se non più referenziato)
+- `src/pages/shell/*` (duplicato del flusso "Lumina") — da confermare
+
+In alternativa, se vuoi conservare uno scaffolding "Lumina" come prototipo, possiamo spostare quei file in `src/_legacy/` ed escluderli dal build.
+
+### Step 5 — Smoke test
+Dopo le modifiche, verificare:
+1. `/auth` carica senza errori console
+2. Login → redirect corretto a `/athlete/dashboard` o `/coach/home`
+3. Bottom nav atleta e sidebar coach visibili
+4. Nessun errore Vite "Failed to resolve import"
+
+---
+
+## Domanda per te prima di procedere
+
+Le pagine top-level "Lumina" (`Dashboard.tsx`, `Training.tsx`, ecc.) e la cartella `src/pages/shell/` sembrano un **prototipo separato** mai integrato. Confermi che posso **eliminarle** insieme alle rotte fantasma in `App.tsx`, oppure preferisci che le **conservi** in un branch/cartella legacy?
+
+Una volta che approvi, applico tutto in un'unica passata e l'app torna avviabile.

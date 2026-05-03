@@ -36,7 +36,7 @@ import {
   Bell,
   Scale,
   Calendar,
-  Instagram,
+  AtSign as Instagram,
   Globe,
   CheckCircle2,
   ImageIcon,
