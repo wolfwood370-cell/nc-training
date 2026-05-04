@@ -44,15 +44,15 @@ const AchievementStreak = () => {
           <div className="relative flex items-center justify-center w-40 h-40 rounded-full bg-white border-[6px] border-[#F59E0B] shadow-[0_8px_30px_rgba(245,158,11,0.2)] mx-auto">
             <div className="flex flex-col items-center justify-center">
               <Flame className="text-[#F59E0B] w-12 h-12 mb-[-4px]" />
-              <span className="font-display text-5xl font-bold text-on-surface">7</span>
+              <span className="font-display text-5xl font-bold text-on-surface">{streak}</span>
             </div>
           </div>
           <div className="flex flex-col gap-2">
             <h2 className="font-display text-3xl font-bold text-on-surface">
-              Settimana Perfetta!
+              {title}
             </h2>
             <p className="font-body-md text-base text-on-surface-variant">
-              Hai registrato i tuoi parametri per 7 giorni consecutivi.
+              {subtitle}
             </p>
           </div>
         </section>
