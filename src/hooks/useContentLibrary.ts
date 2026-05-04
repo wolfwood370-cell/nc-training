@@ -62,7 +62,7 @@ export function useContentLibrary() {
         .insert({
           coach_id: user.id,
           title: payload.title,
-          type: payload.type as any,
+          type: payload.type,
           url: payload.url || null,
           tags,
         })
