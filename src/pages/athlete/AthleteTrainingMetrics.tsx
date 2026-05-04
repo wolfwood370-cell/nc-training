@@ -54,6 +54,89 @@ function buildSparklinePath(
 
 export default function AthleteTrainingMetrics() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const athleteId = user?.id;
+
+  // Default tracked exercise — TODO: wire to a "primary lift" preference picker.
+  const trackedExercise = "Back Squat";
+  const { data: strengthData = [] } = useAthleteStrengthProgression(
+    athleteId,
+    trackedExercise,
+  );
+  const { data: volumeData = [] } = useAthleteVolumeIntensity(athleteId);
+
+  // e1RM derived stats
+  const latestE1RM = strengthData.length
+    ? strengthData[strengthData.length - 1].estimated1RM
+    : null;
+  const monthAgoCutoff = subDays(new Date(), 30);
+  const baselineE1RM = useMemo(() => {
+    const older = strengthData.filter(
+      (p) => parseISO(p.date) < monthAgoCutoff,
+    );
+    return older.length ? older[older.length - 1].estimated1RM : null;
+  }, [strengthData, monthAgoCutoff]);
+  const monthDelta =
+    latestE1RM !== null && baselineE1RM !== null
+      ? latestE1RM - baselineE1RM
+      : null;
+  const sparkline = useMemo(
+    () => buildSparklinePath(strengthData.map((p) => p.estimated1RM)),
+    [strengthData],
+  );
+  const xLabels = useMemo(() => {
+    if (strengthData.length === 0) return [] as string[];
+    const idxs =
+      strengthData.length >= 3
+        ? [
+            0,
+            Math.floor(strengthData.length / 2),
+            strengthData.length - 1,
+          ]
+        : strengthData.map((_, i) => i);
+    return idxs.map((i) =>
+      format(parseISO(strengthData[i].date), "MMM", { locale: it }),
+    );
+  }, [strengthData]);
+
+  // Volume + RPE stats (last 7 days vs previous 7)
+  const now = new Date();
+  const last7 = volumeData.filter((p) => parseISO(p.date) >= subDays(now, 7));
+  const prev7 = volumeData.filter(
+    (p) =>
+      parseISO(p.date) >= subDays(now, 14) &&
+      parseISO(p.date) < subDays(now, 7),
+  );
+  const weeklyVolume = last7.reduce((s, p) => s + p.totalTonnage, 0);
+  const prevVolume = prev7.reduce((s, p) => s + p.totalTonnage, 0);
+  const volumeDeltaPct =
+    prevVolume > 0
+      ? Math.round(((weeklyVolume - prevVolume) / prevVolume) * 100)
+      : null;
+  const avgRpe = last7.length
+    ? last7.reduce((s, p) => s + p.avgRpe, 0) / last7.length
+    : null;
+  const formatK = (n: number) =>
+    n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n.toFixed(0);
+
+  // Personal records — derived from strength progression for the tracked exercise.
+  // TODO: aggregate PRs across all tracked lifts when a multi-exercise hook is available.
+  const personalRecords = useMemo(() => {
+    if (strengthData.length === 0) return [];
+    let best = 0;
+    const records: { title: string; detail: string; date: string }[] = [];
+    for (const point of strengthData) {
+      if (point.estimated1RM > best) {
+        best = point.estimated1RM;
+        records.push({
+          title: point.exerciseName,
+          detail: `Nuovo e1RM: ${point.estimated1RM.toFixed(1)} kg`,
+          date: format(parseISO(point.date), "d MMM", { locale: it }),
+        });
+      }
+    }
+    return records.slice(-2).reverse();
+  }, [strengthData]);
 
   return (
     <div className="min-h-screen bg-background relative">
