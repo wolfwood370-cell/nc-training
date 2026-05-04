@@ -1,9 +1,9 @@
 import { useQuery } from"@tanstack/react-query";
 import { supabase } from"@/integrations/supabase/client";
 import { format, subDays } from"date-fns";
-import type { Database } from "@/integrations/supabase/types";
-
-type FmsTestRow = Database["public"]["Tables"]["fms_tests"]["Row"];
+// Note: FMS test rows have ~20 dynamic columns (`*_l`, `*_r`, single-side).
+// We dynamically index them via a `Record` cast below — typed via supabase
+// generated types where applicable.
 
 // FMS test configuration
 const FMS_TEST_CONFIG = {
