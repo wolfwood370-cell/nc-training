@@ -1,8 +1,26 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Flame, Quote, Brain } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useGamification } from "@/hooks/useGamification";
 
 const AchievementStreak = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { currentStreak, longestStreak, loading } = useGamification(user?.id);
+
+  const streak = loading ? 0 : currentStreak;
+  const best = loading ? 0 : Math.max(longestStreak, currentStreak);
+  const subtitle = loading
+    ? "Caricamento dei tuoi traguardi..."
+    : streak > 0
+    ? `Hai registrato i tuoi parametri per ${streak} giorni consecutivi.`
+    : "Inizia oggi a costruire la tua streak.";
+  const title =
+    streak >= 7
+      ? "Settimana Perfetta!"
+      : streak > 1
+      ? "Streak in Corso!"
+      : "Costruisci la tua Streak";
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative">
