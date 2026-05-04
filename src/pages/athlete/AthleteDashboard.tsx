@@ -319,9 +319,9 @@ export default function AthleteDashboard() {
               </button>
             </div>
           ) : (
-            <div className="flex flex-col items-center text-center py-2">
-              <div className="h-14 w-14 rounded-full bg-surface-variant flex items-center justify-center">
-                <Moon className="h-7 w-7 text-brand" />
+            <div className="flex flex-col items-center text-center py-4">
+              <div className="h-16 w-16 rounded-full bg-surface-variant flex items-center justify-center shadow-inner">
+                <Moon className="h-8 w-8 text-brand" strokeWidth={1.75} />
               </div>
               <h3 className="mt-3 font-display text-xl font-bold text-on-surface">
                 Giorno di riposo
