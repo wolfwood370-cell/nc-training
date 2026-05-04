@@ -1,20 +1,53 @@
 import { useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, HelpCircle, Minus, Plus, Camera, Send } from "lucide-react";
+import { X, HelpCircle, Minus, Plus, Camera, Send, Loader2 } from "lucide-react";
+import { format } from "date-fns";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const WeeklyCheckin = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [weight, setWeight] = useState<number>(75.5);
   const [feedback, setFeedback] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const decrement = () => setWeight((w) => Math.max(0, +(w - 0.1).toFixed(1)));
   const increment = () => setWeight((w) => +(w + 0.1).toFixed(1));
 
   const handleClose = () => navigate(-1);
 
-  const handleSubmit = () => {
-    // TODO: Wire up to weekly check-in mutation
-    navigate("/athlete/dashboard");
+  const handleSubmit = async () => {
+    if (!user?.id) {
+      toast.error("Devi effettuare l'accesso");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const today = format(new Date(), "yyyy-MM-dd");
+      // Persist body weight + weekly narrative into daily_readiness for today.
+      // TODO: Wire upload of progress photos to a storage bucket once available.
+      const { error } = await supabase
+        .from("daily_readiness")
+        .upsert(
+          {
+            athlete_id: user.id,
+            date: today,
+            body_weight: weight,
+            notes: feedback || null,
+          },
+          { onConflict: "athlete_id,date" }
+        );
+      if (error) throw error;
+      toast.success("Check-in settimanale inviato al coach!");
+      navigate("/athlete/dashboard");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Errore nel salvataggio";
+      toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -131,10 +164,20 @@ const WeeklyCheckin = () => {
         <button
           type="button"
           onClick={handleSubmit}
-          className="w-full max-w-md bg-primary-container text-white font-semibold py-4 rounded-full shadow-lg flex items-center justify-center gap-2 hover:opacity-95 transition-opacity"
+          disabled={isSubmitting}
+          className="w-full max-w-md bg-primary-container text-white font-semibold py-4 rounded-full shadow-lg flex items-center justify-center gap-2 hover:opacity-95 transition-opacity disabled:opacity-60"
         >
-          Invia al Coach
-          <Send size={18} />
+          {isSubmitting ? (
+            <>
+              Invio in corso...
+              <Loader2 size={18} className="animate-spin" />
+            </>
+          ) : (
+            <>
+              Invia al Coach
+              <Send size={18} />
+            </>
+          )}
         </button>
       </div>
     </div>

@@ -1,8 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, TrendingUp, Dumbbell, Utensils } from "lucide-react";
+import { useNutritionTargets } from "@/hooks/useNutritionTargets";
+import { useActiveProgram } from "@/hooks/useActiveProgram";
 
 const PlanUpdate = () => {
   const navigate = useNavigate();
+  const { targets } = useNutritionTargets();
+  const { activeProgram } = useActiveProgram();
+
+  const phaseTitle = activeProgram?.name ?? "Nuova Fase di Allenamento";
+  const phaseDescription =
+    activeProgram?.description ??
+    "Il volume è stato aggiornato. Concentrati sul tempo sotto tensione e sulle eccentriche controllate.";
 
   return (
     <div className="min-h-screen bg-background pb-32">
@@ -32,7 +41,7 @@ const PlanUpdate = () => {
             La tua Nuova Fase è Pronta
           </h2>
           <p className="font-sans text-base text-on-surface-variant max-w-[280px]">
-            Coach Lumina ha adattato i tuoi protocolli per le prossime settimane.
+            Il tuo coach ha adattato i tuoi protocolli per le prossime settimane.
           </p>
         </section>
 
@@ -51,10 +60,10 @@ const PlanUpdate = () => {
             </header>
             <div className="ml-11">
               <p className="font-display text-xl text-brand-container mb-2">
-                Fase 3: Blocco Ipertrofia
+                {phaseTitle}
               </p>
               <p className="font-sans text-base text-on-surface-variant">
-                Il volume è stato aumentato. Concentrati sul tempo sotto tensione e sulle eccentriche controllate.
+                {phaseDescription}
               </p>
             </div>
           </article>
@@ -74,21 +83,28 @@ const PlanUpdate = () => {
               <div className="flex items-center justify-between bg-surface-container/50 p-4 rounded-2xl">
                 <div className="flex flex-col items-center flex-1">
                   <span className="text-xs text-on-surface-variant mb-1">Pro</span>
-                  <span className="font-sans font-semibold text-xl text-on-surface">160g</span>
+                  <span className="font-sans font-semibold text-xl text-on-surface">
+                    {Math.round(targets.protein)}g
+                  </span>
                 </div>
                 <div className="w-px h-8 bg-surface-variant/50" />
                 <div className="flex flex-col items-center flex-1">
                   <span className="text-xs text-on-surface-variant mb-1">Grassi</span>
-                  <span className="font-sans font-semibold text-xl text-on-surface">55g</span>
+                  <span className="font-sans font-semibold text-xl text-on-surface">
+                    {Math.round(targets.fats)}g
+                  </span>
                 </div>
                 <div className="w-px h-8 bg-surface-variant/50" />
                 <div className="flex flex-col items-center flex-1">
                   <span className="text-xs text-on-surface-variant mb-1">Carb</span>
-                  <span className="font-sans font-semibold text-xl text-on-surface">220g</span>
+                  <span className="font-sans font-semibold text-xl text-on-surface">
+                    {Math.round(targets.carbs)}g
+                  </span>
                 </div>
               </div>
               <p className="font-sans text-base text-on-surface-variant">
-                Calorie aumentate di +200kcal per supportare il nuovo blocco di ipertrofia.
+                Obiettivo calorico giornaliero: {Math.round(targets.calories)} kcal
+                {targets.isTrainingDay ? " (giorno di allenamento)" : " (giorno di riposo)"}.
               </p>
             </div>
           </article>
