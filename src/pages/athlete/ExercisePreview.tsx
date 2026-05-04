@@ -1,14 +1,50 @@
-import { ArrowLeft, MoreVertical, Play, MessageSquare, Lock, PlayCircle } from "lucide-react";
+import { useMemo } from "react";
+import { ArrowLeft, MoreVertical, Play, MessageSquare, Lock, PlayCircle, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-const PREVIEW_SETS = [
-  { id: 1, target: "10 reps", prev: "80kg x 10" },
-  { id: 2, target: "10 reps", prev: "80kg x 10" },
-  { id: 3, target: "8 reps", prev: "85kg x 8" },
-];
+import { useTodaysWorkout } from "@/hooks/useTodaysWorkout";
+import { useExerciseHistory } from "@/hooks/useExerciseHistory";
+import { useActiveSessionStore } from "@/stores/useActiveSessionStore";
 
 const ExercisePreview = () => {
   const navigate = useNavigate();
+  const { workout, isLoading } = useTodaysWorkout();
+  const startSession = useActiveSessionStore((s) => s.startSession);
+
+  // Use the first exercise of the day as the previewed one (entry point from Today's plan).
+  const exercise = workout?.structure?.[0] ?? null;
+
+  const exerciseNames = useMemo(
+    () => (exercise?.name ? [exercise.name] : []),
+    [exercise?.name],
+  );
+  const { data: historyMap } = useExerciseHistory(exerciseNames);
+  const lastPerf = exercise?.name ? historyMap?.[exercise.name] : null;
+  const prevLabel = lastPerf
+    ? `${lastPerf.weight_kg}kg x ${lastPerf.reps}`
+    : "—";
+
+  const plannedSets = exercise?.sets ?? 3;
+  const repsTarget = exercise?.reps ? `${exercise.reps} reps` : `${plannedSets} set`;
+  const previewRows = Array.from({ length: plannedSets }, (_, i) => ({
+    id: i + 1,
+    target: repsTarget,
+    prev: prevLabel,
+  }));
+
+  const title = exercise
+    ? `A1. ${exercise.name}`
+    : isLoading
+    ? "Caricamento..."
+    : "Nessun esercizio disponibile";
+  const coachNote =
+    (exercise as any)?.notes ??
+    "Mantieni esecuzione controllata e tecnica pulita.";
+
+  const handleStart = () => {
+    if (!workout) return;
+    startSession(crypto.randomUUID(), workout.id);
+    navigate("/athlete/exercise-execution");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -50,8 +86,9 @@ const ExercisePreview = () => {
         </div>
 
         {/* Title */}
-        <h2 className="font-display text-2xl font-bold text-on-surface">
-          A1. Barbell Back Squat
+        <h2 className="font-display text-2xl font-bold text-on-surface flex items-center gap-2">
+          {isLoading && <Loader2 className="w-5 h-5 animate-spin text-on-surface-variant" />}
+          {title}
         </h2>
 
         {/* Coach Notes */}
@@ -60,9 +97,7 @@ const ExercisePreview = () => {
           <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">
             Note del Coach
           </p>
-          <p className="text-sm text-on-surface-variant leading-relaxed">
-            Focus sulla profondità e concentrica esplosiva.
-          </p>
+          <p className="text-sm text-on-surface-variant leading-relaxed">{coachNote}</p>
         </div>
 
         {/* Preview Mode Banner */}
@@ -83,30 +118,37 @@ const ExercisePreview = () => {
             <span className="text-[10px] text-outline font-bold uppercase text-center">Reps</span>
           </div>
 
-          {PREVIEW_SETS.map((s) => (
-            <div
-              key={s.id}
-              className="grid grid-cols-[30px_1fr_1fr_60px_60px] gap-2 items-center px-2 py-4"
-            >
-              <span className="text-xs font-bold text-outline text-center">{s.id}</span>
-              <span className="text-sm text-outline text-center">{s.target}</span>
-              <span className="text-sm text-outline text-center">{s.prev}</span>
-              <div className="h-10 bg-surface-container-low rounded-xl border border-dashed border-outline-variant/50 flex items-center justify-center text-outline">
-                -
+          {!exercise && !isLoading ? (
+            <p className="text-sm text-on-surface-variant text-center py-8">
+              Nessun dato disponibile.
+            </p>
+          ) : (
+            previewRows.map((s) => (
+              <div
+                key={s.id}
+                className="grid grid-cols-[30px_1fr_1fr_60px_60px] gap-2 items-center px-2 py-4"
+              >
+                <span className="text-xs font-bold text-outline text-center">{s.id}</span>
+                <span className="text-sm text-outline text-center">{s.target}</span>
+                <span className="text-sm text-outline text-center">{s.prev}</span>
+                <div className="h-10 bg-surface-container-low rounded-xl border border-dashed border-outline-variant/50 flex items-center justify-center text-outline">
+                  -
+                </div>
+                <div className="h-10 bg-surface-container-low rounded-xl border border-dashed border-outline-variant/50 flex items-center justify-center text-outline">
+                  -
+                </div>
               </div>
-              <div className="h-10 bg-surface-container-low rounded-xl border border-dashed border-outline-variant/50 flex items-center justify-center text-outline">
-                -
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </main>
 
       {/* Sticky Bottom Actions */}
       <div className="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-background via-background/90 to-transparent z-50 flex flex-col gap-4 pb-10">
         <button
-          onClick={() => navigate("/athlete/exercise-execution")}
-          className="w-full max-w-md mx-auto bg-primary-container text-white font-bold py-4 rounded-full flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
+          onClick={handleStart}
+          disabled={!workout}
+          className="w-full max-w-md mx-auto bg-primary-container text-white font-bold py-4 rounded-full flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform disabled:opacity-60"
         >
           <PlayCircle className="size-5" />
           Inizia Allenamento Ora
