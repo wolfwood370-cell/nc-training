@@ -431,6 +431,12 @@ export default function AthleteDashboard() {
               − {macros.kcalRemaining} kcal rimanenti
             </span>
           </div>
+
+          <div className="mt-4 pt-4 border-t border-surface-variant grid grid-cols-3 gap-2">
+            <MiniMetricRing letter="F" label="Fibre" progress={60} color="#7cc78a" />
+            <MiniMetricRing letter="A" label="Acqua" progress={45} color="#5bb6e8" />
+            <MiniMetricRing letter="S" label="Sodio" progress={80} color="#e8a25b" />
+          </div>
         </section>
       </main>
     </div>
