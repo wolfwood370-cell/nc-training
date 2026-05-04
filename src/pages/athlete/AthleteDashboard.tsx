@@ -9,10 +9,10 @@ import { useAthleteProfile } from "@/hooks/useAthleteProfile";
 import { useReadiness } from "@/hooks/useReadiness";
 import { useTodaysWorkout } from "@/hooks/useTodaysWorkout";
 
-import { SectionHeader } from "@/components/common/SectionHeader";
-import { MetricCard } from "@/components/common/MetricCard";
-import { StatusBadge } from "@/components/common/StatusBadge";
-import { CircularProgress } from "@/components/common/CircularProgress";
+import { SectionHeader } from "@/components/ui/section-header";
+import { MetricCard } from "@/components/ui/metric-card";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { CircularProgress } from "@/components/ui/circular-progress";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
