@@ -41,7 +41,7 @@ export default function ExerciseExecution() {
     setSets((prev) => [
       ...prev,
       {
-        id: (prev.at(-1)?.id ?? 0) + 1,
+        id: (prev[prev.length - 1]?.id ?? 0) + 1,
         prev: "—",
         kg: "",
         reps: "",
