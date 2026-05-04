@@ -43,6 +43,7 @@ const DailyCheckin = lazy(() => import("./pages/athlete/DailyCheckin"));
 const WeeklyCheckin = lazy(() => import("./pages/athlete/WeeklyCheckin"));
 const Notifications = lazy(() => import("./pages/athlete/Notifications"));
 const CoachChat = lazy(() => import("./pages/athlete/CoachChat"));
+const FormAnalysis = lazy(() => import("./pages/athlete/FormAnalysis"));
 import { AthleteLayout } from "./components/athlete/AthleteLayout";
 const OnboardingWizard = lazy(() => import("./pages/onboarding/OnboardingWizard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -94,6 +95,7 @@ const App = () => (
                 <Route path="checkin/weekly" element={<WeeklyCheckin />} />
                 <Route path="notifications" element={<Notifications />} />
                 <Route path="chat" element={<CoachChat />} />
+                <Route path="form-analysis" element={<FormAnalysis />} />
                 <Route path="training" element={<AthleteTraining />} />
                 <Route path="training/active" element={<ActiveWorkout />} />
                 <Route path="nutrition" element={<AthleteNutrition />} />
