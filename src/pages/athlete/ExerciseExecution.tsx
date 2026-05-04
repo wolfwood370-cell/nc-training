@@ -205,115 +205,22 @@ export default function ExerciseExecution() {
           </div>
 
           {/* Logging Table */}
-          <div>
-            {/* Header */}
-            <div className="grid grid-cols-[1fr_2fr_1fr_1fr_1fr_auto] gap-2 px-2 items-end mb-2">
-              <span className="text-[10px] text-secondary uppercase font-semibold">
-                Set
-              </span>
-              <span className="text-[10px] text-secondary uppercase font-semibold">
-                Prec.
-              </span>
-              <span className="text-[10px] text-secondary uppercase font-semibold text-center">
-                Kg
-              </span>
-              <span className="text-[10px] text-secondary uppercase font-semibold text-center">
-                Reps
-              </span>
-              <span className="text-[10px] text-secondary uppercase font-semibold text-center">
-                RPE
-              </span>
-              <Check className="w-4 h-4 text-secondary" />
-            </div>
+          <LoggingTable
+            sets={sets}
+            activeId={activeId}
+            isIsometric={isIsometric}
+            onUpdate={updateField}
+            onToggle={toggleCompleted}
+            onAdd={addSet}
+          />
 
-            <div className="space-y-2">
-              {sets.map((s, idx) => {
-                const isActive = s.id === activeId && !s.completed;
-                const rowBase =
-                  "grid grid-cols-[1fr_2fr_1fr_1fr_1fr_auto] gap-2 items-center p-2";
-                const rowStyle = s.completed
-                  ? `${rowBase} bg-primary-container/10 rounded-xl`
-                  : isActive
-                  ? `${rowBase} bg-white rounded-xl border border-surface-variant`
-                  : `${rowBase} bg-white rounded-xl border border-surface-variant`;
-
-                const inputBase =
-                  "h-9 text-center text-sm rounded-lg outline-none transition-colors w-full";
-                const completedInput = `${inputBase} bg-white/50 text-on-surface-variant`;
-                const activeFocusInput = `${inputBase} bg-white border border-primary-container shadow-sm focus:ring-2 focus:ring-primary-container`;
-                const activeIdleInput = `${inputBase} bg-surface-container-low border border-transparent focus:bg-white focus:border-primary-container`;
-
-                return (
-                  <div key={s.id} className={rowStyle}>
-                    <span className="text-sm font-semibold text-on-surface text-center">
-                      {idx + 1}
-                    </span>
-                    <span className="text-xs text-on-surface-variant">
-                      {s.prev}
-                    </span>
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      value={s.kg}
-                      onChange={updateField(s.id, "kg")}
-                      disabled={s.completed}
-                      placeholder="—"
-                      className={
-                        s.completed
-                          ? completedInput
-                          : isActive
-                          ? activeFocusInput
-                          : activeIdleInput
-                      }
-                    />
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={s.reps}
-                      onChange={updateField(s.id, "reps")}
-                      disabled={s.completed}
-                      placeholder="—"
-                      className={
-                        s.completed ? completedInput : activeIdleInput
-                      }
-                    />
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      value={s.rpe}
-                      onChange={updateField(s.id, "rpe")}
-                      disabled={s.completed}
-                      placeholder="—"
-                      className={
-                        s.completed ? completedInput : activeIdleInput
-                      }
-                    />
-                    <button
-                      onClick={() => toggleCompleted(s.id)}
-                      className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${
-                        s.completed
-                          ? "bg-primary-container text-white shadow-sm"
-                          : "border-2 border-outline-variant/60 text-transparent hover:border-primary-container"
-                      }`}
-                      aria-label={
-                        s.completed ? "Annulla completamento" : "Completa set"
-                      }
-                    >
-                      <Check className="w-4 h-4" strokeWidth={3} />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={addSet}
-              className="w-full mt-4 py-3 bg-surface-container-low text-primary-container font-semibold text-xs rounded-xl flex items-center justify-center gap-1 uppercase tracking-wider hover:bg-surface-container transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Aggiungi Set
-            </button>
-          </div>
+          {/* Bottom Action */}
+          <button
+            onClick={() => navigate(-1)}
+            className="w-full py-4 bg-primary-container text-white font-display font-bold text-sm rounded-2xl uppercase tracking-wider shadow-lg active:scale-[0.99] transition-transform"
+          >
+            Termina Esercizio
+          </button>
         </div>
       </div>
     </div>
