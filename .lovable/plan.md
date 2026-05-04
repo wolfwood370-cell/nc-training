@@ -1,41 +1,91 @@
-## Goal
+## Obiettivo
 
-Route all AI edge function calls back through the **Lovable AI Gateway** (`https://ai.gateway.lovable.dev/v1/chat/completions`) using `LOVABLE_API_KEY`, eliminating direct OpenAI billing for chat/generation/analysis. Embeddings (`text-embedding-3-small`) stay on OpenAI directly — the gateway is for chat completions only.
+"Tabula rasa" del lato Athlete dell'app: rimuovere tutto il codice UI gonfio/duplicato per riportarlo a uno scheletro minimale pronto per essere ricostruito con architettura Smart/Dumb agganciata correttamente a Supabase. Coach app, hooks, stores, UI primitives, Supabase e routing globale **non vengono toccati**.
 
-## Model routing
+## Stato attuale (verificato)
 
-| Function | New Model | Reason |
-|---|---|---|
-| `generate-program` | `openai/gpt-5.2` | Highest reasoning for program design |
-| `analyze-athlete-week` | `openai/gpt-5-mini` | Cost-effective structured summarization |
-| `chat-with-coach` | `openai/gpt-5-mini` | Cost-effective streaming chat |
-| `analyze-meal-photo` | `google/gemini-3-flash-preview` | Fast multimodal vision (already on gateway, model swap from `gemini-2.5-flash`) |
+- **5 pagine Athlete** in `src/pages/athlete/`: `AthleteDashboard.tsx`, `AthleteTraining.tsx`, `ActiveWorkout.tsx`, `AthleteNutrition.tsx`, `AthleteCopilot.tsx`.
+- **~40 componenti** in `src/components/athlete/` + 5 sottocartelle: `cycle/`, `gamification/`, `nutrition/`, `vision/`, `workout/`.
+- **Solo file Athlete** importano da `@/components/athlete/*`. Nessuna dipendenza dal Coach o da altre aree → cancellazione sicura.
+- `App.tsx` lazy-importa le 5 pagine Athlete. Manterremo gli import e le route invariati: punteranno alle nuove pagine vuote.
 
-## Changes per function
+## Cosa farò
 
-### 1. `supabase/functions/generate-program/index.ts`
-- Replace `OPENAI_API_KEY` env read with `LOVABLE_API_KEY`.
-- Change endpoint from `https://api.openai.com/v1/chat/completions` to `https://ai.gateway.lovable.dev/v1/chat/completions`.
-- Change `model: "gpt-4o-mini"` → `"openai/gpt-5.2"`.
-- Update missing-key error message to reference the gateway.
-- Keep tool-calling (`submit_program`) and 429/402 handling intact.
+### 1. Wipe pagine Athlete (`src/pages/athlete/`)
 
-### 2. `supabase/functions/analyze-athlete-week/index.ts`
-- Same swap pattern: `OPENAI_API_KEY` → `LOVABLE_API_KEY`, endpoint → gateway, `model` → `"openai/gpt-5-mini"`.
-- Keep `submit_analysis` tool-call + sentiment-clamp logic + DB insert unchanged.
+Sovrascrivere tutti i 5 file con un componente funzionale minimale, **senza alcun import da `@/components/athlete`**, mock data o stato. Esempio:
 
-### 3. `supabase/functions/chat-with-coach/index.ts`
-- Keep `OPENAI_API_KEY` (still needed for `getEmbedding` → `text-embedding-3-small`).
-- Add a separate `LOVABLE_API_KEY` env read for the chat call.
-- Change chat endpoint to gateway, `model: "gpt-4o-mini"` → `"openai/gpt-5-mini"`.
-- Streaming SSE response and quota-tracking logic unchanged.
+```tsx
+export default function AthleteDashboard() {
+  return <div className="p-4">Dashboard Shell</div>;
+}
+```
 
-### 4. `supabase/functions/analyze-meal-photo/index.ts`
-- Already uses Lovable Gateway + `LOVABLE_API_KEY`. Only swap model from `"google/gemini-2.5-flash"` to `"google/gemini-3-flash-preview"`.
+Stessa struttura per `AthleteTraining` ("Training Shell"), `ActiveWorkout` ("Active Workout Shell"), `AthleteNutrition` ("Nutrition Shell"), `AthleteCopilot` ("Copilot Shell").
 
-## Out of scope (intentionally untouched)
-- Embeddings in `chat-with-coach` and `ingest-knowledge` continue to call OpenAI directly (`text-embedding-3-small`) — the Lovable Gateway is chat-completions only.
-- No changes to RLS, schema, frontend, quota tables, or `supabase/config.toml`.
+### 2. Wipe componenti Athlete (`src/components/athlete/`)
 
-## Verification
-After deploy I'll confirm each function compiles (no TS errors in Deno) and report back the routing summary. No client code needs updates — function contracts are identical.
+**Cancellare** tutti i file e sottocartelle:
+
+- Tutti i ~40 file `.tsx` a livello root (ACWRAnalysis, ActiveWorkoutHub, AmrapExecutionDrawer, BillingReceipt, CoachDirectChat, CopilotMacroIntervention/RiskIntervention, DailyNutritionLog, DailyReadinessLog, DailyRings, DailyTrainingHub, ExerciseExecutionDrawer, ExercisePreview, ExitWorkoutDialog, FormAnalysis, IntensityExecutionDrawer/Preview, MainSessionPreview, MealAnalysis, NotificationsCenter, NutritionStrategyOverview, PerformanceMilestones, PhoneMockup, PlanUpdateSummary, PostWorkoutDebrief, ReadinessAnalysisDetail, ReadinessLogging, SessionBuilderDialog, SorenessDeepDive, SupersetExecutionDrawer, SyncIndicator, ThemeCustomizationCard, TimeBasedProtocolPreview, TimedExecutionDrawer, TimedExercisePreview, TrainingMetrics, WeeklyCheckIn, WeightTrendAnalysis, WorkoutOverviewHub, AcwrCard).
+- Sottocartelle complete: `cycle/`, `gamification/`, `nutrition/`, `vision/`, `workout/`.
+
+**Conservare e riscrivere** solo 2 file: `AthleteLayout.tsx` e `AthleteBottomNav.tsx` (vedi step 3).
+
+### 3. Reset di `AthleteLayout.tsx` e `AthleteBottomNav.tsx`
+
+**`AthleteBottomNav.tsx`** — minimal, 4 link a `/athlete/dashboard`, `/athlete/workout`, `/athlete/nutrition`, `/athlete/copilot` con `react-router-dom` `NavLink`. Solo classi Tailwind di base (`flex`, `justify-around`, `border-t`). Nessuna icona custom, nessun PhoneMockup, nessun SyncIndicator/NotificationBell.
+
+**`AthleteLayout.tsx`** — wrapper barebones:
+
+```tsx
+import { Outlet } from "react-router-dom";
+import { AthleteBottomNav } from "./AthleteBottomNav";
+
+export function AthleteLayout() {
+  return (
+    <div className="flex flex-col h-screen">
+      <main className="flex-1 overflow-y-auto"><Outlet /></main>
+      <AthleteBottomNav />
+    </div>
+  );
+}
+```
+
+Rimossi: `PhoneMockup`/`ResponsivePhoneWrapper`, `SyncIndicator`, `NotificationBell`, `SunThemeToggle`, header con titolo, safe-area paddings, theming complesso.
+
+### 4. Aggiornamento minimo di `App.tsx`
+
+Le pagine Athlete attualmente sono renderizzate **direttamente** senza passare per `AthleteLayout`. Per sfruttare il nuovo layout pulito + `<Outlet />` userò una route nidificata:
+
+```tsx
+<Route path="/athlete" element={<AthleteLayout />}>
+  <Route index element={<AthleteDashboard />} />
+  <Route path="dashboard" element={<AthleteDashboard />} />
+  <Route path="workout" element={<AthleteTraining />} />
+  <Route path="workout/active" element={<ActiveWorkout />} />
+  <Route path="nutrition" element={<AthleteNutrition />} />
+  <Route path="copilot" element={<AthleteCopilot />} />
+</Route>
+```
+
+Aggiunta solo: import di `AthleteLayout` + ristrutturazione delle 6 route Athlete in nested. **Tutto il resto di `App.tsx` resta identico** (Coach routes, providers, lazy imports).
+
+### 5. Verifiche post-wipe
+
+- Nessun file fuori da `src/pages/athlete/` o `src/components/athlete/` viene modificato (eccezione: l'aggiornamento mirato delle route Athlete in `App.tsx`).
+- `rg "components/athlete/(workout|nutrition|cycle|gamification|vision|ACWRAnalysis|...)"` deve restituire 0 risultati dopo la pulizia.
+- Build TypeScript/Vite deve passare → schermo bianco con testo "Dashboard Shell" (e simili) sulle route `/athlete/*`.
+
+## Vincoli rispettati (NON toccati)
+
+- `src/pages/coach/**` e `src/components/coach/**` — intatti.
+- `src/components/ui/**` (shadcn) — intatti.
+- `src/hooks/**` (useAthleteProfile, useReadiness, ecc.) — intatti, pronti per la ricostruzione.
+- `src/stores/**` (Zustand) — intatti.
+- `supabase/**` (migrations, functions, types) — intatti.
+- `src/App.tsx` — modifica chirurgica solo al blocco delle route Athlete per agganciare `AthleteLayout`.
+
+## Risultato atteso
+
+Dopo l'esecuzione: l'app compila senza errori, navigando su `/athlete/dashboard` (o qualsiasi route Athlete) si vede una shell vuota con testo placeholder e una bottom nav minimale a 4 voci. Pronto per ricostruire passo-passo con architettura Smart/Dumb.
