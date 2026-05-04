@@ -105,7 +105,7 @@ export default function AthleteTraining() {
     ? "—"
     : acwr.zone === "optimal"
     ? "Ottima"
-    : acwr.zone === "undertraining"
+    : acwr.zone === "detraining"
     ? "Bassa"
     : acwr.zone === "high-risk"
     ? "Critica"
