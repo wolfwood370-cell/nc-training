@@ -151,13 +151,15 @@ export default function ACWRAnalysis() {
           </svg>
 
           <p className="font-display text-5xl font-bold text-primary-container leading-none mt-4">
-            1.15
+            {ratio !== null ? ratio.toFixed(2) : "—"}
           </p>
-          <span className="inline-flex items-center px-4 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold mt-4">
-            Sweet Spot
+          <span
+            className={`inline-flex items-center px-4 py-1 rounded-full ${status.pillBg} ${status.pillText} text-xs font-semibold mt-4`}
+          >
+            {isLoading ? "Calcolo in corso..." : status.label}
           </span>
           <p className="text-sm text-on-surface-variant text-center max-w-xs mt-4">
-            Adattamento ottimale. Rischio infortuni minimizzato.
+            {status.insight}
           </p>
         </section>
 
