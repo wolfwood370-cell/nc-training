@@ -14,7 +14,7 @@ export function useAiQuota(enabled = true) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("ai_usage_tracking")
         .select("message_count, daily_limit, last_reset_at")
         .eq("user_id", user.id)
@@ -22,7 +22,7 @@ export function useAiQuota(enabled = true) {
 
       if (error) throw error;
 
-      const row = data as { message_count: number; daily_limit: number; last_reset_at: string } | null;
+      const row = data;
 
       // If no row yet, user hasn't sent any messages
       if (!row) {
