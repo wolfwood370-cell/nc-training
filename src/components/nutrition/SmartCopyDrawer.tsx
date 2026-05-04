@@ -128,7 +128,8 @@ export function SmartCopyDrawer({ open, onOpenChange, onLogged }: SmartCopyDrawe
   const [sliderValue, setSliderValue] = useState([500]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const now = useMemo(() => new Date(), [open]); // refresh window on open
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally re-evaluate `new Date()` whenever the drawer opens
+  const now = useMemo(() => new Date(), [open]);
   const window = useMemo(() => getTimeWindow(now), [now]);
   const yesterday = format(subDays(now, 1), "yyyy-MM-dd");
   const sevenDaysAgo = format(subDays(now, 7), "yyyy-MM-dd");

@@ -35,10 +35,12 @@ export default function CoachMessages() {
     if (roomIdParam && rooms.length > 0 && !selectedRoom) {
       const room = rooms.find((r) => r.id === roomIdParam);
       if (room) {
-        handleSelectRoom(room);
+        setSelectedRoom(room);
+        markRoomAsRead.mutate(room.id);
+        if (isMobile) setShowRoomList(false);
       }
     }
-  }, [roomIdParam, rooms]);
+  }, [roomIdParam, rooms, selectedRoom, markRoomAsRead, isMobile]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -50,11 +52,11 @@ export default function CoachMessages() {
   useEffect(() => {
     if (selectedRoom) {
       const updated = rooms.find(r => r.id === selectedRoom.id);
-      if (updated) {
+      if (updated && updated !== selectedRoom) {
         setSelectedRoom(updated);
       }
     }
-  }, [rooms, selectedRoom?.id]);
+  }, [rooms, selectedRoom]);
 
   const handleSelectRoom = (room: ChatRoom) => {
     setSelectedRoom(room);

@@ -222,7 +222,7 @@ export function MacroCycleTimeline({
 
   const months = useMemo(
     () => eachMonthOfInterval({ start: timelineStart, end: timelineEnd }),
-    [monthsToShow],
+    [timelineStart, timelineEnd],
   );
 
   const totalDays = differenceInDays(timelineEnd, timelineStart) + 1;
