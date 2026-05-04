@@ -52,6 +52,7 @@ const TodayPlan = lazy(() => import("./pages/athlete/TodayPlan"));
 const AthleteTrainingMetrics = lazy(() => import("./pages/athlete/AthleteTrainingMetrics"));
 const ExerciseExecution = lazy(() => import("./pages/athlete/ExerciseExecution"));
 const ExerciseDetail = lazy(() => import("./pages/athlete/ExerciseDetail"));
+const ExercisePreview = lazy(() => import("./pages/athlete/ExercisePreview"));
 import { AthleteLayout } from "./components/athlete/AthleteLayout";
 const OnboardingWizard = lazy(() => import("./pages/onboarding/OnboardingWizard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
