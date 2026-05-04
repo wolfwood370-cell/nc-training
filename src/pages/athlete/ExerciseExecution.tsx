@@ -20,7 +20,11 @@ function exerciseKey(ex: WorkoutStructureExercise | null, idx: number): string {
   return ex?.id ?? `${ex?.name ?? "exercise"}-${idx}`;
 }
 
-export default function ExerciseExecution() {
+interface ExerciseExecutionProps {
+  isIsometric?: boolean;
+}
+
+export default function ExerciseExecution({ isIsometric = true }: ExerciseExecutionProps) {
   const navigate = useNavigate();
   const { workout, isLoading } = useTodaysWorkout();
   const currentIndex = useActiveSessionStore((s) => s.currentExerciseIndex);
@@ -205,117 +209,214 @@ export default function ExerciseExecution() {
           </div>
 
           {/* Logging Table */}
-          <div>
-            {/* Header */}
-            <div className="grid grid-cols-[1fr_2fr_1fr_1fr_1fr_auto] gap-2 px-2 items-end mb-2">
-              <span className="text-[10px] text-secondary uppercase font-semibold">
-                Set
-              </span>
-              <span className="text-[10px] text-secondary uppercase font-semibold">
-                Prec.
-              </span>
-              <span className="text-[10px] text-secondary uppercase font-semibold text-center">
-                Kg
-              </span>
-              <span className="text-[10px] text-secondary uppercase font-semibold text-center">
-                Reps
-              </span>
-              <span className="text-[10px] text-secondary uppercase font-semibold text-center">
-                RPE
-              </span>
-              <Check className="w-4 h-4 text-secondary" />
-            </div>
+          <LoggingTable
+            sets={sets}
+            activeId={activeId}
+            isIsometric={isIsometric}
+            onUpdate={updateField}
+            onToggle={toggleCompleted}
+            onAdd={addSet}
+          />
 
-            <div className="space-y-2">
-              {sets.map((s, idx) => {
-                const isActive = s.id === activeId && !s.completed;
-                const rowBase =
-                  "grid grid-cols-[1fr_2fr_1fr_1fr_1fr_auto] gap-2 items-center p-2";
-                const rowStyle = s.completed
-                  ? `${rowBase} bg-primary-container/10 rounded-xl`
-                  : isActive
-                  ? `${rowBase} bg-white rounded-xl border border-surface-variant`
-                  : `${rowBase} bg-white rounded-xl border border-surface-variant`;
-
-                const inputBase =
-                  "h-9 text-center text-sm rounded-lg outline-none transition-colors w-full";
-                const completedInput = `${inputBase} bg-white/50 text-on-surface-variant`;
-                const activeFocusInput = `${inputBase} bg-white border border-primary-container shadow-sm focus:ring-2 focus:ring-primary-container`;
-                const activeIdleInput = `${inputBase} bg-surface-container-low border border-transparent focus:bg-white focus:border-primary-container`;
-
-                return (
-                  <div key={s.id} className={rowStyle}>
-                    <span className="text-sm font-semibold text-on-surface text-center">
-                      {idx + 1}
-                    </span>
-                    <span className="text-xs text-on-surface-variant">
-                      {s.prev}
-                    </span>
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      value={s.kg}
-                      onChange={updateField(s.id, "kg")}
-                      disabled={s.completed}
-                      placeholder="—"
-                      className={
-                        s.completed
-                          ? completedInput
-                          : isActive
-                          ? activeFocusInput
-                          : activeIdleInput
-                      }
-                    />
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={s.reps}
-                      onChange={updateField(s.id, "reps")}
-                      disabled={s.completed}
-                      placeholder="—"
-                      className={
-                        s.completed ? completedInput : activeIdleInput
-                      }
-                    />
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      value={s.rpe}
-                      onChange={updateField(s.id, "rpe")}
-                      disabled={s.completed}
-                      placeholder="—"
-                      className={
-                        s.completed ? completedInput : activeIdleInput
-                      }
-                    />
-                    <button
-                      onClick={() => toggleCompleted(s.id)}
-                      className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${
-                        s.completed
-                          ? "bg-primary-container text-white shadow-sm"
-                          : "border-2 border-outline-variant/60 text-transparent hover:border-primary-container"
-                      }`}
-                      aria-label={
-                        s.completed ? "Annulla completamento" : "Completa set"
-                      }
-                    >
-                      <Check className="w-4 h-4" strokeWidth={3} />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={addSet}
-              className="w-full mt-4 py-3 bg-surface-container-low text-primary-container font-semibold text-xs rounded-xl flex items-center justify-center gap-1 uppercase tracking-wider hover:bg-surface-container transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Aggiungi Set
-            </button>
-          </div>
+          {/* Bottom Action */}
+          <button
+            onClick={() => navigate(-1)}
+            className="w-full py-4 bg-primary-container text-white font-display font-bold text-sm rounded-2xl uppercase tracking-wider shadow-lg active:scale-[0.99] transition-transform"
+          >
+            Termina Esercizio
+          </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+interface LoggingTableProps {
+  sets: SetRow[];
+  activeId: number;
+  isIsometric: boolean;
+  onUpdate: (
+    id: number,
+    field: keyof Pick<SetRow, "kg" | "reps" | "rpe">
+  ) => (e: ChangeEvent<HTMLInputElement>) => void;
+  onToggle: (id: number) => void;
+  onAdd: () => void;
+}
+
+function LoggingTable({
+  sets,
+  activeId,
+  isIsometric,
+  onUpdate,
+  onToggle,
+  onAdd,
+}: LoggingTableProps) {
+  // Grid: SET | PREC. | +KG | SECS/REPS | (timer or RPE) | check
+  const gridCols = "grid-cols-[0.5fr_1.5fr_1fr_1fr_1.4fr_auto]";
+
+  return (
+    <div>
+      {/* Header */}
+      <div className={`grid ${gridCols} gap-2 px-3 items-end mb-2`}>
+        <span className="text-[10px] text-secondary uppercase font-semibold">Set</span>
+        <span className="text-[10px] text-secondary uppercase font-semibold">Prec.</span>
+        <span className="text-[10px] text-secondary uppercase font-semibold text-center">
+          {isIsometric ? "+Kg" : "Kg"}
+        </span>
+        <span className="text-[10px] text-secondary uppercase font-semibold text-center">
+          {isIsometric ? "Secs" : "Reps"}
+        </span>
+        <span className="text-[10px] text-secondary uppercase font-semibold text-center">
+          {isIsometric ? "" : "RPE"}
+        </span>
+        <Check className="w-4 h-4 text-secondary" />
+      </div>
+
+      <div className="space-y-2">
+        {sets.map((s, idx) => {
+          const isActive = s.id === activeId && !s.completed;
+
+          if (isActive) {
+            return (
+              <div
+                key={s.id}
+                className={`grid ${gridCols} gap-2 items-center bg-primary-container/5 rounded-2xl py-3 px-3 relative overflow-hidden`}
+              >
+                {/* Solid blue left border */}
+                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary-container" />
+
+                <span className="text-sm font-bold text-on-surface text-center">
+                  {idx + 1}
+                </span>
+                <span className="text-xs text-on-surface-variant truncate">
+                  {s.prev}
+                </span>
+
+                {/* +KG input */}
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={s.kg}
+                  onChange={onUpdate(s.id, "kg")}
+                  placeholder="0"
+                  className="w-14 h-10 rounded-full bg-white border border-primary-container text-center font-semibold text-sm text-on-surface focus:ring-2 focus:ring-primary-container outline-none shadow-sm mx-auto"
+                />
+
+                {/* SECS / REPS input */}
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={s.reps}
+                  onChange={onUpdate(s.id, "reps")}
+                  placeholder={isIsometric ? "60" : "0"}
+                  className="w-14 h-10 rounded-full bg-white border border-primary-container text-center font-semibold text-sm text-on-surface focus:ring-2 focus:ring-primary-container outline-none shadow-sm mx-auto"
+                />
+
+                {/* Timer button (isometric) OR RPE input */}
+                {isIsometric ? (
+                  <button
+                    type="button"
+                    className="h-10 px-4 bg-primary-container/20 rounded-full flex items-center justify-center gap-1 active:scale-95 transition-transform mx-auto"
+                    aria-label="Avvia timer"
+                  >
+                    <Play size={14} className="text-primary-container fill-current" />
+                    <span className="text-xs font-bold text-primary-container whitespace-nowrap">
+                      Start {s.reps || 60}s
+                    </span>
+                  </button>
+                ) : (
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={s.rpe}
+                    onChange={onUpdate(s.id, "rpe")}
+                    placeholder="—"
+                    className="w-14 h-10 rounded-full bg-white border border-primary-container text-center font-semibold text-sm text-on-surface focus:ring-2 focus:ring-primary-container outline-none shadow-sm mx-auto"
+                  />
+                )}
+
+                <button
+                  onClick={() => onToggle(s.id)}
+                  className="w-8 h-8 rounded-full border-2 border-outline-variant flex items-center justify-center cursor-pointer hover:border-primary-container transition-colors"
+                  aria-label="Completa set"
+                />
+              </div>
+            );
+          }
+
+          if (s.completed) {
+            return (
+              <div
+                key={s.id}
+                className={`grid ${gridCols} gap-2 items-center bg-primary-container/10 rounded-2xl py-3 px-3`}
+              >
+                <span className="text-sm font-semibold text-on-surface text-center">
+                  {idx + 1}
+                </span>
+                <span className="text-xs text-on-surface-variant truncate">{s.prev}</span>
+                <span className="w-14 h-10 rounded-full bg-white/60 text-center text-sm font-semibold text-on-surface flex items-center justify-center mx-auto">
+                  {s.kg || "—"}
+                </span>
+                <span className="w-14 h-10 rounded-full bg-white/60 text-center text-sm font-semibold text-on-surface flex items-center justify-center mx-auto">
+                  {s.reps || "—"}
+                </span>
+                <span className="text-xs text-on-surface-variant text-center">
+                  {isIsometric ? "✓" : s.rpe || "—"}
+                </span>
+                <button
+                  onClick={() => onToggle(s.id)}
+                  className="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center shadow-sm"
+                  aria-label="Annulla completamento"
+                >
+                  <Check className="w-4 h-4" strokeWidth={3} />
+                </button>
+              </div>
+            );
+          }
+
+          // Pending row
+          return (
+            <div
+              key={s.id}
+              className={`grid ${gridCols} gap-2 items-center bg-transparent py-3 px-3`}
+            >
+              <span className="text-sm font-semibold text-outline-variant text-center">
+                {idx + 1}
+              </span>
+              <span className="text-xs text-outline-variant truncate">{s.prev}</span>
+              <span className="w-14 h-10 rounded-full bg-surface-container text-center text-outline-variant flex items-center justify-center mx-auto">
+                -
+              </span>
+              <span className="w-14 h-10 rounded-full bg-surface-container text-center text-outline-variant flex items-center justify-center mx-auto">
+                -
+              </span>
+              {isIsometric ? (
+                <button
+                  type="button"
+                  disabled
+                  className="bg-surface-container text-outline-variant px-4 h-10 rounded-full flex items-center justify-center gap-1 opacity-60 cursor-not-allowed mx-auto"
+                >
+                  <Play size={14} />
+                  <span className="text-xs font-bold whitespace-nowrap">Start</span>
+                </button>
+              ) : (
+                <span className="w-14 h-10 rounded-full bg-surface-container text-center text-outline-variant flex items-center justify-center mx-auto">
+                  -
+                </span>
+              )}
+              <div className="w-8 h-8 rounded-full border-2 border-outline-variant/40 flex items-center justify-center" />
+            </div>
+          );
+        })}
+      </div>
+
+      <button
+        onClick={onAdd}
+        className="flex items-center gap-1 px-4 py-2 text-primary font-bold text-xs uppercase tracking-wider hover:bg-surface-container-low rounded-full transition-colors w-max mt-4"
+      >
+        <Plus size={16} />
+        Aggiungi Set
+      </button>
     </div>
   );
 }
