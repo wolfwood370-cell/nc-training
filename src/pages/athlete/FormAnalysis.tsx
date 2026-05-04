@@ -7,15 +7,29 @@ import {
   Clock,
   Send,
 } from "lucide-react";
+import { useAthleteProfile } from "@/hooks/useAthleteProfile";
 
 const VIDEO_THUMBNAIL =
   "https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=1200&h=800&fit=crop";
 
-const COACH_AVATAR =
+const FALLBACK_AVATAR =
   "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=200&h=200&fit=crop&crop=faces";
+
+// TODO: Wire to a real exercise-video / coach-feedback record once a
+// dedicated table or hook (e.g. useExerciseVideoFeedback) is available.
+// For now the page consumes the athlete's coach branding from the database
+// and keeps a static placeholder for the set / feedback content.
+const STATIC_SET_TITLE = "Squat con Bilanciere - Set 2";
+const STATIC_RECORDED_AT = "Registrato ieri alle 18:30";
+const STATIC_FEEDBACK =
+  "Ottima profondità in questo set! Tuttavia, nota come i tuoi fianchi si alzino leggermente più veloci del petto nella terza ripetizione. Concentrati sullo spingere la parte alta della schiena contro il bilanciere mentre esci dalla buca.";
 
 export default function FormAnalysis() {
   const navigate = useNavigate();
+  const { coach } = useAthleteProfile();
+
+  const coachName = coach.coachName ?? "Coach";
+  const coachAvatar = coach.logoUrl ?? FALLBACK_AVATAR;
 
   return (
     <div className="min-h-screen bg-background font-sans">
@@ -66,11 +80,11 @@ export default function FormAnalysis() {
         {/* Meta-Data */}
         <section>
           <h2 className="font-display text-3xl font-bold text-on-surface mb-2">
-            Squat con Bilanciere - Set 2
+            {STATIC_SET_TITLE}
           </h2>
           <div className="flex items-center text-on-surface-variant font-medium text-sm gap-2">
             <Clock className="w-4 h-4" />
-            Registrato ieri alle 18:30
+            {STATIC_RECORDED_AT}
           </div>
         </section>
 
@@ -78,22 +92,19 @@ export default function FormAnalysis() {
         <article className="bg-white rounded-3xl p-6 border-l-4 border-primary-container shadow-sm relative overflow-hidden">
           <div className="flex items-center gap-4 mb-4">
             <img
-              src={COACH_AVATAR}
-              alt="Coach Lumina"
+              src={coachAvatar}
+              alt={coachName}
               className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
             />
             <div>
               <h3 className="font-display text-lg font-bold text-on-surface">
-                Note di Coach Lumina
+                Note di {coachName}
               </h3>
               <p className="text-sm text-on-surface-variant">Coach di Forza</p>
             </div>
           </div>
           <p className="text-on-surface-variant leading-relaxed text-base">
-            Ottima profondità in questo set! Tuttavia, nota come i tuoi fianchi
-            si alzino leggermente più veloci del petto nella terza ripetizione.
-            Concentrati sullo spingere la parte alta della schiena contro il
-            bilanciere mentre esci dalla buca.
+            {STATIC_FEEDBACK}
           </p>
         </article>
       </main>
