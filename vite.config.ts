@@ -15,7 +15,19 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "prompt",
+      // Disable the service worker entirely in dev — it intercepts every
+      // request through Workbox and can produce stale 412 responses on the
+      // Lovable preview origin. The SW is still generated/served in builds.
+      devOptions: {
+        enabled: false,
+      },
+      // When the SW *is* active (production), make sure a self-update is
+      // detected even after long sessions, and that any previously cached
+      // navigation responses are invalidated when a deploy ships.
       workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: false,
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         navigateFallbackDenylist: [/^\/~oauth/],
         runtimeCaching: [
