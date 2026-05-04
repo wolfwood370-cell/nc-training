@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { parseSetsData } from "@/types/database";
 
 export interface LastSetData {
   weight_kg: number;
@@ -11,6 +12,14 @@ export interface LastSetData {
 
 export interface ExerciseHistoryMap {
   [exerciseName: string]: LastSetData | null;
+}
+
+/** Subset of `workout_logs` columns embedded by the inner-join below. */
+interface EmbeddedWorkoutLog {
+  athlete_id: string;
+  status: string | null;
+  completed_at: string | null;
+  scheduled_date: string | null;
 }
 
 /**
@@ -62,21 +71,16 @@ export function useExerciseHistory(exerciseNames: string[], athleteId?: string) 
 
       for (const ex of exercises) {
         const name = ex.exercise_name;
-        
+
         // Skip if we already have data for this exercise (we want the most recent)
         if (historyMap[name] !== undefined) {
           continue;
         }
 
-        // Parse sets_data to find the best set (highest weight with completed status)
-        const setsData = ex.sets_data as Array<{
-          weight_kg?: number;
-          reps?: number;
-          rpe?: number;
-          completed?: boolean;
-        }> | null;
+        // Strongly-typed sets via centralized parser
+        const setsData = parseSetsData(ex.sets_data);
 
-        if (!setsData || setsData.length === 0) {
+        if (setsData.length === 0) {
           historyMap[name] = null;
           continue;
         }
@@ -97,10 +101,19 @@ export function useExerciseHistory(exerciseNames: string[], athleteId?: string) 
         }
 
         if (bestSet) {
-          const workoutLog = ex.workout_logs as any;
-          const date = workoutLog?.completed_at 
+          // Supabase types the embedded relation as an array OR a single object
+          // depending on the FK cardinality. Normalise both shapes safely.
+          const wlRaw = ex.workout_logs as
+            | EmbeddedWorkoutLog
+            | EmbeddedWorkoutLog[]
+            | null;
+          const workoutLog: EmbeddedWorkoutLog | null = Array.isArray(wlRaw)
+            ? wlRaw[0] ?? null
+            : wlRaw;
+
+          const date = workoutLog?.completed_at
             ? new Date(workoutLog.completed_at).toISOString().split("T")[0]
-            : workoutLog?.scheduled_date || "";
+            : workoutLog?.scheduled_date ?? "";
 
           historyMap[name] = {
             ...bestSet,
