@@ -253,10 +253,14 @@ export default function AthleteTrainingMetrics() {
               Volume Settimanale
             </span>
             <span className="text-3xl font-display font-bold text-primary">
-              42.8k
+              {weeklyVolume > 0 ? formatK(weeklyVolume) : "—"}
             </span>
-            <span className="text-emerald-500 font-semibold text-sm">
-              +5% vs w1
+            <span
+              className={`font-semibold text-sm ${volumeDeltaPct === null ? "text-outline" : volumeDeltaPct >= 0 ? "text-emerald-500" : "text-rose-500"}`}
+            >
+              {volumeDeltaPct === null
+                ? "Dati insufficienti"
+                : `${volumeDeltaPct >= 0 ? "+" : ""}${volumeDeltaPct}% vs w-1`}
             </span>
           </div>
           <div className="bg-white/70 rounded-[24px] p-5 flex flex-col justify-between h-36 border border-surface-variant">
@@ -264,9 +268,17 @@ export default function AthleteTrainingMetrics() {
               Sforzo Medio (RPE)
             </span>
             <span className="text-3xl font-display font-bold text-primary">
-              8.2
+              {avgRpe !== null ? avgRpe.toFixed(1) : "—"}
             </span>
-            <span className="text-outline text-sm">Ottimale per ipertrofia</span>
+            <span className="text-outline text-sm">
+              {avgRpe === null
+                ? "Nessun dato recente"
+                : avgRpe >= 7 && avgRpe <= 8.5
+                ? "Ottimale per ipertrofia"
+                : avgRpe > 8.5
+                ? "Carico molto elevato"
+                : "Carico contenuto"}
+            </span>
           </div>
         </section>
 
