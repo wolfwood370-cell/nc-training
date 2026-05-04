@@ -49,8 +49,7 @@ export function useTodaysWorkout() {
         .maybeSingle();
 
       if (logs?.workouts) {
-        const workout = logs.workouts as any;
-        const structure = workout.structure as any[];
+        const structure = (workout.structure as WorkoutStructureExercise[]) ?? [];
         return {
           id: workout.id,
           title: workout.title,
@@ -59,6 +58,7 @@ export function useTodaysWorkout() {
           status: logs.status === "scheduled" ? "pending" : "completed",
           exerciseCount: Array.isArray(structure) ? structure.length : 0,
           programWorkoutId: logs.program_workout_id,
+          structure: Array.isArray(structure) ? structure : [],
         };
       }
 
