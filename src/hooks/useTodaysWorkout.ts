@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
+import type { WorkoutStructureExercise } from "@/types/database";
 
 const FIVE_MINUTES = 5 * 60 * 1000;
 
@@ -13,6 +14,7 @@ export interface TodayWorkout {
   status: "pending" | "in_progress" | "completed" | "skipped";
   exerciseCount: number;
   programWorkoutId?: string | null;
+  structure: WorkoutStructureExercise[];
 }
 
 export function useTodaysWorkout() {
@@ -47,16 +49,20 @@ export function useTodaysWorkout() {
         .maybeSingle();
 
       if (logs?.workouts) {
-        const workout = logs.workouts as any;
-        const structure = workout.structure as any[];
+        const w = logs.workouts as any;
+        const rawStructure = w.structure;
+        const structure: WorkoutStructureExercise[] = Array.isArray(rawStructure)
+          ? (rawStructure as WorkoutStructureExercise[])
+          : [];
         return {
-          id: workout.id,
-          title: workout.title,
-          description: workout.description,
-          estimatedDuration: workout.estimated_duration,
+          id: w.id,
+          title: w.title,
+          description: w.description,
+          estimatedDuration: w.estimated_duration,
           status: logs.status === "scheduled" ? "pending" : "completed",
-          exerciseCount: Array.isArray(structure) ? structure.length : 0,
+          exerciseCount: structure.length,
           programWorkoutId: logs.program_workout_id,
+          structure,
         };
       }
 
@@ -72,15 +78,19 @@ export function useTodaysWorkout() {
 
       if (!workout) return null;
 
-      const structure = workout.structure as any[];
+      const rawStructure = (workout as any).structure;
+      const structure: WorkoutStructureExercise[] = Array.isArray(rawStructure)
+        ? (rawStructure as WorkoutStructureExercise[])
+        : [];
       return {
         id: workout.id,
         title: workout.title,
         description: workout.description,
         estimatedDuration: workout.estimated_duration,
         status: workout.status as TodayWorkout["status"],
-        exerciseCount: Array.isArray(structure) ? structure.length : 0,
+        exerciseCount: structure.length,
         programWorkoutId: null,
+        structure,
       };
     },
     enabled: !!athleteId,

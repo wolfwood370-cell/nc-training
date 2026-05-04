@@ -1,6 +1,11 @@
-import { useState, ChangeEvent } from "react";
+import { useState, useEffect, useMemo, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, MoreVertical, Play, Headset, Check, Plus } from "lucide-react";
+import { X, MoreVertical, Play, Headset, Check, Plus, Loader2 } from "lucide-react";
+import { useTodaysWorkout } from "@/hooks/useTodaysWorkout";
+import { useExerciseHistory } from "@/hooks/useExerciseHistory";
+import { useSetMutation } from "@/hooks/useSetMutation";
+import { useActiveSessionStore } from "@/stores/useActiveSessionStore";
+import type { WorkoutStructureExercise } from "@/types/database";
 
 interface SetRow {
   id: number;
@@ -11,30 +16,84 @@ interface SetRow {
   completed: boolean;
 }
 
-const INITIAL_SETS: SetRow[] = [
-  { id: 1, prev: "100kg x 8", kg: "100", reps: "8", rpe: "8", completed: true },
-  { id: 2, prev: "105kg x 8", kg: "105", reps: "8", rpe: "8", completed: true },
-  { id: 3, prev: "105kg x 8", kg: "105", reps: "8", rpe: "", completed: false },
-  { id: 4, prev: "105kg x 8", kg: "", reps: "", rpe: "", completed: false },
-];
+function exerciseKey(ex: WorkoutStructureExercise | null, idx: number): string {
+  return ex?.id ?? `${ex?.name ?? "exercise"}-${idx}`;
+}
 
 export default function ExerciseExecution() {
   const navigate = useNavigate();
-  const [sets, setSets] = useState<SetRow[]>(INITIAL_SETS);
+  const { workout, isLoading } = useTodaysWorkout();
+  const currentIndex = useActiveSessionStore((s) => s.currentExerciseIndex);
+  const sessionLogs = useActiveSessionStore((s) => s.sessionLogs);
+  const setMutation = useSetMutation();
+
+  // Resolve current exercise from the day's structure
+  const exercise: WorkoutStructureExercise | null = useMemo(() => {
+    const list = workout?.structure ?? [];
+    if (!list.length) return null;
+    return list[Math.min(currentIndex, list.length - 1)] ?? null;
+  }, [workout?.structure, currentIndex]);
+
+  const exId = useMemo(() => exerciseKey(exercise, currentIndex), [exercise, currentIndex]);
+  const plannedSets = exercise?.sets ?? 4;
+
+  // Last performance lookup
+  const exerciseNames = useMemo(
+    () => (exercise?.name ? [exercise.name] : []),
+    [exercise?.name]
+  );
+  const { data: historyMap } = useExerciseHistory(exerciseNames);
+  const lastPrev = exercise?.name ? historyMap?.[exercise.name] : null;
+  const prevLabel = lastPrev
+    ? `${lastPrev.weight_kg}kg x ${lastPrev.reps}`
+    : "—";
+
+  // Local row state — hydrated from store + planned sets
+  const [sets, setSets] = useState<SetRow[]>([]);
+
+  useEffect(() => {
+    if (!exercise) return;
+    const stored = sessionLogs[exId] ?? [];
+    const rows: SetRow[] = Array.from({ length: plannedSets }, (_, i) => {
+      const log = stored.find((l) => l.setIndex === i);
+      return {
+        id: i + 1,
+        prev: prevLabel,
+        kg: log?.actualKg ?? "",
+        reps: log?.actualReps ?? "",
+        rpe: log?.rpe ?? "",
+        completed: log?.completed ?? false,
+      };
+    });
+    setSets(rows);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exId, plannedSets, prevLabel]);
 
   const updateField = (
     id: number,
     field: keyof Pick<SetRow, "kg" | "reps" | "rpe">
   ) => (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
     setSets((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, [field]: e.target.value } : s))
+      prev.map((s) => (s.id === id ? { ...s, [field]: value } : s))
     );
+    const setIndex = id - 1;
+    const dbField = field === "kg" ? "actualKg" : field === "reps" ? "actualReps" : "rpe";
+    setMutation.mutate({ exerciseId: exId, setIndex, field: dbField, value });
   };
 
   const toggleCompleted = (id: number) => {
+    const setIndex = id - 1;
+    const next = !sets.find((s) => s.id === id)?.completed;
     setSets((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, completed: !s.completed } : s))
+      prev.map((s) => (s.id === id ? { ...s, completed: next } : s))
     );
+    setMutation.mutate({
+      exerciseId: exId,
+      setIndex,
+      field: "completed",
+      value: next,
+    });
   };
 
   const addSet = () => {
@@ -42,7 +101,7 @@ export default function ExerciseExecution() {
       ...prev,
       {
         id: (prev[prev.length - 1]?.id ?? 0) + 1,
-        prev: "—",
+        prev: prevLabel,
         kg: "",
         reps: "",
         rpe: "",
@@ -53,6 +112,20 @@ export default function ExerciseExecution() {
 
   // The active row is the first non-completed row
   const activeId = sets.find((s) => !s.completed)?.id ?? -1;
+
+  const title = exercise?.name
+    ? `${String.fromCharCode(65 + currentIndex)}1. ${exercise.name}`
+    : isLoading
+    ? "Caricamento..."
+    : "Esercizio";
+  const phaseLabel = exercise
+    ? `Fase: Sessione • ${
+        exercise.reps ? `Reps: ${exercise.reps}` : `Serie: ${plannedSets}`
+      }`
+    : "—";
+  const coachNotes =
+    exercise?.notes ??
+    "Nessuna nota dal coach per questo esercizio. Mantieni esecuzione controllata e tecnica pulita.";
 
   return (
     <div className="h-screen w-full flex flex-col justify-end overflow-hidden bg-surface relative">
@@ -91,6 +164,7 @@ export default function ExerciseExecution() {
           {/* Video & Header */}
           <div>
             <div className="relative w-full aspect-video bg-slate-100 rounded-2xl overflow-hidden shadow-sm flex items-center justify-center group">
+              {/* TODO: Connect to backend — exercise videoUrl thumbnail */}
               <img
                 src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80"
                 alt="Anteprima esercizio"
@@ -105,10 +179,17 @@ export default function ExerciseExecution() {
               </button>
             </div>
             <h2 className="font-display text-2xl font-bold text-on-surface mt-4">
-              A1. Squat con Bilanciere
+              {isLoading ? (
+                <span className="inline-flex items-center gap-2 text-on-surface-variant">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Caricamento...
+                </span>
+              ) : (
+                title
+              )}
             </h2>
             <p className="text-[10px] text-secondary uppercase tracking-widest font-semibold mt-1">
-              Fase: Forza Primaria • RPE Target: 8
+              {phaseLabel}
             </p>
           </div>
 
@@ -119,8 +200,7 @@ export default function ExerciseExecution() {
               Note del Coach
             </div>
             <p className="text-sm text-on-surface leading-relaxed">
-              Controlla l'eccentrica per 3 secondi. Esplodi in salita. Non
-              compromettere la profondità per il peso.
+              {coachNotes}
             </p>
           </div>
 
