@@ -248,9 +248,7 @@ export default function ACWRAnalysis() {
         <section className="bg-surface-container-low rounded-[32px] p-6 flex gap-4 items-start shadow-sm relative overflow-hidden border-l-4 border-primary-container">
           <Lightbulb className="text-primary-container mt-1 shrink-0 w-5 h-5" />
           <p className="text-on-surface text-base leading-relaxed">
-            <span className="font-bold">Insight:</span> Il carico è aumentato
-            gradualmente. Puoi procedere con il sovraccarico progressivo
-            programmato per la seduta odierna.
+            <span className="font-bold">Insight:</span> {status.insight}
           </p>
         </section>
 
