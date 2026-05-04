@@ -1,6 +1,9 @@
 import { useQuery } from"@tanstack/react-query";
 import { supabase } from"@/integrations/supabase/client";
 import { format, subDays } from"date-fns";
+import type { Database } from "@/integrations/supabase/types";
+
+type FmsTestRow = Database["public"]["Tables"]["fms_tests"]["Row"];
 
 // FMS test configuration
 const FMS_TEST_CONFIG = {
@@ -147,15 +150,16 @@ export function useAthleteHealthProfile(athleteId: string | null) {
           const testKey = key as FmsTestKey;
           
           if ("bilateral"in config && config.bilateral) {
-            // Bilateral test
-            const leftScore = (fmsData as any)[`${testKey}_l`] as number | null;
-            const rightScore = (fmsData as any)[`${testKey}_r`] as number | null;
+            // Bilateral test — read both sides via typed dynamic key access
+            const fms = fmsData as unknown as Record<string, number | null | undefined>;
+            const leftScore = (fms[`${testKey}_l`] ?? null) as number | null;
+            const rightScore = (fms[`${testKey}_r`] ?? null) as number | null;
             const minScore = leftScore !== null && rightScore !== null
               ? Math.min(leftScore, rightScore)
               : leftScore ?? rightScore ?? 0;
-            
+
             fmsTotalScore += minScore;
-            
+
             fmsScores.push({
               testKey,
               testName: config.name,
@@ -168,7 +172,8 @@ export function useAthleteHealthProfile(athleteId: string | null) {
             });
           } else {
             // Unilateral test
-            const score = (fmsData as any)[testKey] as number | null;
+            const fms = fmsData as unknown as Record<string, number | null | undefined>;
+            const score = (fms[testKey] ?? null) as number | null;
             const scoreValue = score ?? 0;
             fmsTotalScore += scoreValue;
             
