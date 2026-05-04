@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { Activity, Clock, Flame, Heart, Moon, Play, Zap } from "lucide-react";
+import { Activity, Flame, HeartPulse, Moon } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useReadiness } from "@/hooks/useReadiness";
@@ -19,32 +19,44 @@ function getFirstName(fullName: string | null | undefined): string {
   return fullName.trim().split(/\s+/)[0] ?? "Atleta";
 }
 
-function getReadinessTone(score: number): {
-  stroke: string;
-  label: string;
-  glow: string;
-} {
-  if (score >= 80)
-    return { stroke: "#10b981", label: "Ottima", glow: "rgba(16,185,129,0.2)" };
-  if (score >= 50)
-    return { stroke: "#f59e0b", label: "Moderata", glow: "rgba(245,158,11,0.2)" };
-  return { stroke: "#f43f5e", label: "Bassa", glow: "rgba(244,63,94,0.2)" };
+function getReadinessTone(score: number) {
+  if (score >= 80) return { stroke: "#10b981", label: "Ottima" };
+  if (score >= 50) return { stroke: "#f59e0b", label: "Moderata" };
+  return { stroke: "#f43f5e", label: "Bassa" };
 }
 
 /* ─────────────────────────  Sub-components  ───────────────────────── */
 
-interface ReadinessGaugeProps {
-  score: number;
-  size?: number;
+interface ReadinessRingProps {
+  state: "pending" | "completed";
+  score?: number;
   stroke?: string;
+  onClick?: () => void;
 }
 
-function ReadinessGauge({ score, size = 112, stroke = "#005685" }: ReadinessGaugeProps) {
+function ReadinessRing({
+  state,
+  score = 0,
+  stroke = "#005685",
+  onClick,
+}: ReadinessRingProps) {
+  const size = 112;
   const strokeWidth = 9;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const clamped = Math.max(0, Math.min(100, score));
-  const offset = circumference * (1 - clamped / 100);
+  const offset = circumference * (1 - Math.max(0, Math.min(100, score)) / 100);
+
+  if (state === "pending") {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex h-28 w-28 items-center justify-center rounded-full border-2 border-dashed border-brand text-brand font-display text-sm font-semibold hover:bg-surface-container transition-colors"
+      >
+        Check-in
+      </button>
+    );
+  }
 
   return (
     <div
@@ -74,13 +86,10 @@ function ReadinessGauge({ score, size = 112, stroke = "#005685" }: ReadinessGaug
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span
-          className="font-display text-4xl font-semibold tabular-nums leading-none"
-          style={{ color: "#005685" }}
-        >
+        <span className="font-display text-4xl font-bold tabular-nums leading-none text-brand">
           {Math.round(score)}
         </span>
-        <span className="mt-1 text-[10px] uppercase tracking-wider text-on-surface-variant">
+        <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
           Score
         </span>
       </div>
@@ -96,56 +105,61 @@ interface MicroMetricProps {
 
 function MicroMetric({ icon, label, value }: MicroMetricProps) {
   return (
-    <div className="flex items-center justify-between">
-      <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">
+    <div className="flex items-center justify-between gap-3">
+      <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
         <span className="[&_svg]:h-3 [&_svg]:w-3">{icon}</span>
         {label}
       </span>
-      <span className="text-xs font-medium text-on-surface tabular-nums">
+      <span className="text-sm font-semibold text-on-surface tabular-nums">
         {value}
       </span>
     </div>
   );
 }
 
-interface MacroRowProps {
+interface MacroBlockProps {
   label: string;
-  value: number | null | undefined;
-  unit?: string;
+  value: number;
 }
 
-function MacroRow({ label, value, unit = "g" }: MacroRowProps) {
+function MacroBlock({ label, value }: MacroBlockProps) {
   return (
     <div className="flex flex-col">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-brand-container">
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-container">
         {label}
       </span>
       <div className="flex items-baseline gap-1">
-        <span className="font-display text-3xl font-bold leading-tight text-on-surface tabular-nums">
-          {value ?? "—"}
+        <span className="font-display text-4xl font-bold leading-tight text-on-surface tabular-nums">
+          {value}
         </span>
-        <span className="text-xs font-semibold text-brand-container">
-          {unit}
-        </span>
+        <span className="text-sm font-semibold text-brand-container">g</span>
       </div>
     </div>
   );
 }
 
 interface MacroRingProps {
-  size: string;
+  sizeClass: string;
   stroke: number;
   color: string;
   progress: number;
 }
 
-function MacroRing({ size, stroke, color, progress }: MacroRingProps) {
+function MacroRing({ sizeClass, stroke, color, progress }: MacroRingProps) {
   const radius = 45;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - Math.max(0, Math.min(100, progress)) / 100);
+  const offset =
+    circumference * (1 - Math.max(0, Math.min(100, progress)) / 100);
   return (
-    <svg className={cn("absolute -rotate-90", size)} viewBox="0 0 100 100">
-      <circle cx="50" cy="50" r={radius} fill="transparent" stroke="#c5e7ff" strokeWidth={stroke} />
+    <svg className={cn("absolute -rotate-90", sizeClass)} viewBox="0 0 100 100">
+      <circle
+        cx="50"
+        cy="50"
+        r={radius}
+        fill="transparent"
+        stroke="#f1f5f9"
+        strokeWidth={stroke}
+      />
       <circle
         cx="50"
         cy="50"
@@ -192,51 +206,51 @@ export default function AthleteDashboard() {
     ? Object.values(readiness.sorenessMap).filter((v) => v >= 1).length
     : 0;
 
-  // Macro mock targets (placeholders driven by hook when available)
   const macros = {
-    protein: targets?.protein ?? 120,
-    fat: targets?.fats ?? 45,
-    carbs: targets?.carbs ?? 180,
+    protein: targets?.protein ?? 180,
+    fat: targets?.fats ?? 75,
+    carbs: targets?.carbs ?? 260,
     kcalRemaining: 350,
   };
 
   return (
     <div className="font-sans bg-background min-h-screen text-on-surface">
-      {/* Greeting */}
-      <div className="px-5 pt-6 pb-3">
+      {/* Header */}
+      <header className="px-5 pt-6 pb-3">
         {authLoading ? (
           <>
-            <Skeleton className="h-7 w-48 mb-2" />
+            <Skeleton className="h-9 w-56 mb-2" />
             <Skeleton className="h-4 w-32" />
           </>
         ) : (
           <>
-            <h1 className="font-display text-2xl font-bold text-on-surface">
-              Ciao, {firstName} 👋
+            <h1 className="font-display text-3xl font-bold text-on-surface">
+              Ciao, {firstName} <span aria-hidden>👋</span>
             </h1>
-            <p className="text-sm text-on-surface-variant capitalize">
+            <p className="mt-1 text-sm text-on-surface-variant capitalize">
               {todayLabel}
             </p>
           </>
         )}
-      </div>
+      </header>
 
-      {/* Stack of widgets */}
-      <main className="px-5 pb-28 space-y-3">
+      <main className="px-5 pb-28 space-y-4">
         {/* A. Readiness widget */}
-        <section
-          className="relative overflow-hidden rounded-3xl border border-surface-variant bg-white/70 backdrop-blur-md shadow-sm p-5"
-        >
+        <section className="relative overflow-hidden rounded-3xl bg-white border border-surface-variant shadow-[0_4px_20px_-12px_rgba(0,30,45,0.08)] p-6">
           <div
-            className="pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full blur-3xl"
-            style={{ background: tone.glow }}
+            className="pointer-events-none absolute -top-16 -right-16 h-44 w-44 rounded-full blur-3xl opacity-70"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(255,180,171,0.45) 0%, rgba(165,222,254,0.25) 60%, transparent 80%)",
+            }}
             aria-hidden="true"
           />
+
           {readinessLoading ? (
             <Skeleton className="h-32 w-full rounded-2xl" />
           ) : (
             <div className="relative flex items-center justify-between gap-4">
-              <div className="flex flex-col gap-3 flex-1 min-w-0">
+              <div className="flex flex-col gap-4 flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <h2 className="font-display text-xl font-semibold text-brand">
                     Readiness
@@ -245,7 +259,7 @@ export default function AthleteDashboard() {
                     <span
                       className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
                       style={{
-                        backgroundColor: tone.glow,
+                        backgroundColor: `${tone.stroke}1a`,
                         color: tone.stroke,
                       }}
                     >
@@ -253,14 +267,15 @@ export default function AthleteDashboard() {
                     </span>
                   )}
                 </div>
-                <div className="space-y-2.5">
+
+                <div className="space-y-3">
                   <MicroMetric
                     icon={<Moon />}
                     label="Qualità Sonno"
                     value={sleepHours ? `${sleepHours}h` : "—"}
                   />
                   <MicroMetric
-                    icon={<Heart />}
+                    icon={<HeartPulse />}
                     label="HRV"
                     value={hrv ? `${hrv} ms` : "Baseline"}
                   />
@@ -272,110 +287,94 @@ export default function AthleteDashboard() {
                 </div>
               </div>
 
-              {readinessResult ? (
-                <ReadinessGauge score={score} stroke={tone.stroke} />
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => navigate("/athlete/dashboard?checkin=1")}
-                  className="flex flex-col items-center justify-center h-28 w-28 rounded-full border-2 border-dashed border-surface-variant text-brand text-xs font-semibold hover:bg-surface-container transition-colors"
-                >
-                  Check-in
-                </button>
-              )}
+              <ReadinessRing
+                state={readinessResult ? "completed" : "pending"}
+                score={score}
+                stroke={tone.stroke}
+                onClick={() => navigate("/athlete/dashboard?checkin=1")}
+              />
             </div>
           )}
         </section>
 
         {/* B. Today's training widget */}
-        <section className="relative overflow-hidden rounded-3xl border border-surface-variant bg-white/70 backdrop-blur-md shadow-sm p-5">
-          <div
-            className="pointer-events-none absolute inset-0 opacity-60"
-            style={{
-              background:
-                "radial-gradient(circle at top right, rgba(34,111,163,0.15), transparent 60%)",
-            }}
-            aria-hidden="true"
-          />
+        <section className="rounded-3xl bg-surface-container p-6">
           {workoutLoading ? (
-            <Skeleton className="h-36 w-full rounded-2xl" />
+            <Skeleton className="h-32 w-full rounded-2xl" />
           ) : workout ? (
-            <div className="relative flex flex-col gap-5">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-brand-container/80">
-                  Focus di Oggi
-                </span>
-                <div className="mt-1 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">
-                  {workout.estimatedDuration && (
-                    <span className="inline-flex items-center gap-1">
-                      <Clock className="h-3 w-3" /> {workout.estimatedDuration} min
-                    </span>
-                  )}
-                  <span className="inline-flex items-center gap-1">
-                    <Zap className="h-3 w-3" /> Alta intensità
-                  </span>
-                </div>
-                <h2 className="mt-2 font-display text-2xl font-semibold leading-tight text-brand">
-                  {workout.title}
-                </h2>
-              </div>
-
-              {workout.status !== "completed" ? (
-                <Link
-                  to="/athlete/training/active"
-                  className="w-full bg-brand text-on-primary font-semibold py-4 px-6 rounded-full flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-md hover:shadow-lg"
-                >
-                  Inizia Sessione
-                  <Play className="h-5 w-5 fill-current" />
-                </Link>
-              ) : (
-                <div className="w-full bg-surface-container text-brand font-semibold py-4 px-6 rounded-full flex items-center justify-center gap-2">
-                  ✓ Sessione completata
-                </div>
-              )}
+            <div className="flex flex-col gap-4">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-brand-container">
+                Focus di Oggi
+              </span>
+              <h2 className="font-display text-2xl font-bold text-brand leading-tight">
+                {workout.title}
+              </h2>
+              <button
+                type="button"
+                onClick={() => navigate("/athlete/training/active")}
+                className="w-full bg-brand text-on-primary font-display font-semibold py-4 px-6 rounded-full hover:opacity-95 active:scale-[0.98] transition-all shadow-md"
+              >
+                Inizia Sessione
+              </button>
             </div>
           ) : (
-            <div className="relative flex flex-col items-center text-center py-4 gap-2">
-              <div className="h-12 w-12 rounded-full bg-surface-container flex items-center justify-center">
-                <Moon className="h-6 w-6 text-brand" />
+            <div className="flex flex-col items-center text-center py-2">
+              <div className="h-14 w-14 rounded-full bg-surface-variant flex items-center justify-center">
+                <Moon className="h-7 w-7 text-brand" />
               </div>
-              <h3 className="font-display text-lg font-semibold text-on-surface">
+              <h3 className="mt-3 font-display text-xl font-bold text-on-surface">
                 Giorno di riposo
               </h3>
-              <p className="text-sm text-on-surface-variant max-w-xs">
-                Goditi il recupero. Il riposo è parte fondamentale del progresso.
+              <p className="mt-2 text-sm text-on-surface-variant max-w-[250px] mx-auto">
+                Goditi il recupero. Il riposo è parte fondamentale del
+                progresso.
               </p>
             </div>
           )}
         </section>
 
         {/* C. Nutrition widget */}
-        <section className="rounded-3xl border border-surface-variant bg-white shadow-sm p-5">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col w-1/2 gap-4">
-              <h2 className="font-display text-xl font-semibold text-on-surface">
-                Nutrizione
-              </h2>
-              <div className="space-y-3">
-                <MacroRow label="Proteine" value={macros.protein} />
-                <MacroRow label="Grassi" value={macros.fat} />
-                <MacroRow label="Carboidrati" value={macros.carbs} />
-              </div>
-              <div className="text-[11px] font-bold uppercase tracking-wider text-brand-container">
-                {macros.kcalRemaining} kcal rimanenti
-              </div>
+        <section className="rounded-3xl bg-white border border-surface-variant shadow-[0_4px_20px_-12px_rgba(0,30,45,0.08)] p-6">
+          <h2 className="font-display text-xl font-semibold text-on-surface mb-5">
+            Nutrizione
+          </h2>
+
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-4 w-1/2">
+              <MacroBlock label="Proteine" value={macros.protein} />
+              <MacroBlock label="Grassi" value={macros.fat} />
+              <MacroBlock label="Carboidrati" value={macros.carbs} />
             </div>
 
             <div className="w-1/2 flex items-center justify-center">
               <div className="relative h-32 w-32 flex items-center justify-center">
-                <MacroRing size="w-full h-full" stroke={6} color="#f43f5e" progress={70} />
-                <MacroRing size="w-[78%] h-[78%]" stroke={7} color="#f59e0b" progress={55} />
-                <MacroRing size="w-[56%] h-[56%]" stroke={9} color="#226fa3" progress={82} />
-                <div className="absolute flex flex-col items-center text-center">
-                  <Flame className="h-4 w-4 text-brand" />
-                </div>
+                <MacroRing
+                  sizeClass="w-full h-full"
+                  stroke={6}
+                  color="#ffb4ab"
+                  progress={70}
+                />
+                <MacroRing
+                  sizeClass="w-[78%] h-[78%]"
+                  stroke={7}
+                  color="#ffd899"
+                  progress={55}
+                />
+                <MacroRing
+                  sizeClass="w-[56%] h-[56%]"
+                  stroke={9}
+                  color="#a3defe"
+                  progress={82}
+                />
+                <Flame className="absolute h-5 w-5 text-brand" />
               </div>
             </div>
+          </div>
+
+          <div className="mt-5 pt-4 border-t border-surface-variant text-center">
+            <span className="font-display text-xs font-bold uppercase tracking-widest text-brand">
+              − {macros.kcalRemaining} kcal rimanenti
+            </span>
           </div>
         </section>
       </main>
