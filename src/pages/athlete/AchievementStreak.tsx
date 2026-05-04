@@ -2,14 +2,17 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Flame, Quote, Brain } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useGamification } from "@/hooks/useGamification";
+import { useWorkoutStreak } from "@/hooks/useWorkoutStreak";
 
 const AchievementStreak = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { currentStreak, longestStreak, loading } = useGamification(user?.id);
+  const { longestStreak, loading: gamificationLoading } = useGamification(user?.id);
+  const { currentStreak: workoutStreak, loading: workoutLoading } = useWorkoutStreak(user?.id);
 
-  const streak = loading ? 0 : currentStreak;
-  const best = loading ? 0 : Math.max(longestStreak, currentStreak);
+  const loading = gamificationLoading || workoutLoading;
+  const streak = loading ? 0 : workoutStreak;
+  const best = loading ? 0 : Math.max(longestStreak, workoutStreak);
   const subtitle = loading
     ? "Caricamento dei tuoi traguardi..."
     : streak > 0
