@@ -194,9 +194,9 @@ export default function AthleteDashboard() {
 
   // Macro mock targets (placeholders driven by hook when available)
   const macros = {
-    protein: targets?.protein_g ?? 120,
-    fat: targets?.fat_g ?? 45,
-    carbs: targets?.carbs_g ?? 180,
+    protein: targets?.protein ?? 120,
+    fat: targets?.fat ?? 45,
+    carbs: targets?.carbs ?? 180,
     kcalRemaining: 350,
   };
 
