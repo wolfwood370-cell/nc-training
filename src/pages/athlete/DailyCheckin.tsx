@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, ArrowRight } from "lucide-react";
+import { X, ArrowRight, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+
+import { useReadiness, initialReadiness } from "@/hooks/useReadiness";
 
 type MetricKey = "sonno" | "energia" | "stress" | "umore" | "digestione";
 
@@ -34,8 +37,14 @@ const INITIAL_METRICS: MetricsState = {
   digestione: null,
 };
 
+// Map 1-5 button to 1-10 scale used by daily_readiness
+function toTenScale(v: number): number {
+  return Math.max(1, Math.min(10, v * 2));
+}
+
 export default function DailyCheckin() {
   const navigate = useNavigate();
+  const { saveReadiness, isSaving } = useReadiness();
   const [metrics, setMetrics] = useState<MetricsState>(INITIAL_METRICS);
   const [soreMuscles, setSoreMuscles] = useState<string[]>([]);
 
@@ -49,9 +58,40 @@ export default function DailyCheckin() {
     );
   };
 
-  const handleSave = () => {
-    // TODO: persist to backend
-    navigate("/athlete/dashboard");
+  const allMetricsAnswered = METRICS.every(({ key }) => metrics[key] !== null);
+
+  const handleSave = async () => {
+    if (!allMetricsAnswered) {
+      toast.error("Compila tutte le metriche prima di salvare.");
+      return;
+    }
+
+    // Build sorenessMap (level 2 = "Moderate" by default for selected muscles)
+    const sorenessMap: Record<string, 0 | 1 | 2 | 3> = {};
+    soreMuscles.forEach((m) => {
+      sorenessMap[m] = 2;
+    });
+
+    try {
+      await saveReadiness({
+        ...initialReadiness,
+        sleepHours: toTenScale(metrics.sonno!) > 8 ? 8 : toTenScale(metrics.sonno!),
+        sleepQuality: toTenScale(metrics.sonno!),
+        energy: toTenScale(metrics.energia!),
+        stress: toTenScale(metrics.stress!),
+        mood: toTenScale(metrics.umore!),
+        digestion: toTenScale(metrics.digestione!),
+        sorenessMap,
+        bodyWeight: null,
+        hrvRmssd: null,
+        restingHr: null,
+      });
+      toast.success("Check-in completato!");
+      navigate("/athlete/dashboard", { replace: true });
+    } catch (err) {
+      console.error(err);
+      toast.error("Errore nel salvataggio del check-in.");
+    }
   };
 
   return (
@@ -161,10 +201,20 @@ export default function DailyCheckin() {
         <button
           type="button"
           onClick={handleSave}
-          className="w-full max-w-2xl mx-auto bg-primary-container text-white font-semibold py-4 rounded-full shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+          disabled={isSaving}
+          className="w-full max-w-2xl mx-auto bg-primary-container text-white font-semibold py-4 rounded-full shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Salva e Sblocca Dashboard
-          <ArrowRight className="w-4 h-4" />
+          {isSaving ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Salvataggio...
+            </>
+          ) : (
+            <>
+              Salva e Sblocca Dashboard
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
         </button>
       </div>
     </div>

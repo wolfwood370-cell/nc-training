@@ -1,43 +1,109 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, MoreVertical, Activity } from "lucide-react";
+import { format, subDays } from "date-fns";
+
+import { useAuth } from "@/hooks/useAuth";
+import { useReadiness } from "@/hooks/useReadiness";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Factor {
   key: string;
   label: string;
   value: number; // 0-10
-  active?: boolean;
 }
 
-const FACTORS: Factor[] = [
-  { key: "sonno", label: "Sonno", value: 8 },
-  { key: "energia", label: "Energia", value: 7 },
-  { key: "dolori", label: "Dolori", value: 4, active: true },
-  { key: "stress", label: "Stress", value: 3 },
-  { key: "umore", label: "Umore", value: 9 },
-  { key: "digestione", label: "Digestione", value: 8 },
-];
-
-const TREND: { day: string; score: number }[] = [
-  { day: "L", score: 5 },
-  { day: "M", score: 6 },
-  { day: "M", score: 4 },
-  { day: "G", score: 7 },
-  { day: "V", score: 5 },
-  { day: "S", score: 6 },
-  { day: "D", score: 4 },
-];
-
-const SCORE = 82;
+const DAY_LETTERS = ["L", "M", "M", "G", "V", "S", "D"];
 
 export default function AthleteReadinessDetails() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { readiness, isLoading, calculateReadiness } = useReadiness();
+
+  const result = useMemo(() => {
+    if (!readiness?.isCompleted) return null;
+    return calculateReadiness(readiness);
+  }, [readiness, calculateReadiness]);
+
+  const score = result?.score ?? 0;
+
+  // Build factors from current readiness data (1-10 scale).
+  // Sleep is hours (cap at 10). Soreness ("Dolori") = 10 - max(soreness intensity).
+  const factors: Factor[] = useMemo(() => {
+    const r = readiness;
+    const sorenessLevels = Object.values(r?.sorenessMap ?? {}) as number[];
+    const maxSoreness = sorenessLevels.length
+      ? Math.max(...sorenessLevels) // 0-3
+      : 0;
+    const doloriValue = Math.max(0, 10 - maxSoreness * 3); // invert: 0->10, 3->1
+
+    return [
+      { key: "sonno", label: "Sonno", value: Math.min(10, Math.round(r?.sleepHours ?? 0)) },
+      { key: "energia", label: "Energia", value: Math.round(r?.energy ?? 0) },
+      { key: "dolori", label: "Dolori", value: doloriValue },
+      { key: "stress", label: "Stress", value: Math.round(11 - (r?.stress ?? 0)) },
+      { key: "umore", label: "Umore", value: Math.round(r?.mood ?? 0) },
+      { key: "digestione", label: "Digestione", value: Math.round(r?.digestion ?? 0) },
+    ];
+  }, [readiness]);
+
+  // Highlight the worst factor (lowest value) when check-in completed
+  const activeKey = useMemo(() => {
+    if (!result) return null;
+    return factors.reduce((min, f) => (f.value < min.value ? f : min), factors[0])?.key ?? null;
+  }, [factors, result]);
+
+  // 7-day score history
+  const { data: trendData } = useQuery({
+    queryKey: ["readiness-trend-7d", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [] as { day: string; score: number }[];
+      const start = format(subDays(new Date(), 6), "yyyy-MM-dd");
+      const { data, error } = await supabase
+        .from("daily_readiness")
+        .select("date, score")
+        .eq("athlete_id", user.id)
+        .gte("date", start)
+        .order("date", { ascending: true });
+      if (error) throw error;
+
+      // Map to last 7 days, fill missing with 0
+      const out: { day: string; score: number }[] = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = format(subDays(new Date(), i), "yyyy-MM-dd");
+        const match = data?.find((x) => x.date === d);
+        const dayIdx = (new Date(d).getDay() + 6) % 7; // Monday=0..Sunday=6
+        out.push({
+          day: DAY_LETTERS[dayIdx],
+          score: Math.round(((match?.score ?? 0) / 100) * 10), // scale to 0-10 for chart
+        });
+      }
+      return out;
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const TREND = trendData && trendData.length === 7
+    ? trendData
+    : [
+        { day: "L", score: 0 },
+        { day: "M", score: 0 },
+        { day: "M", score: 0 },
+        { day: "G", score: 0 },
+        { day: "V", score: 0 },
+        { day: "S", score: 0 },
+        { day: "D", score: 0 },
+      ];
 
   // Score ring math
   const ringSize = 200;
   const ringStroke = 14;
   const ringRadius = (ringSize - ringStroke) / 2;
   const ringCircumference = 2 * Math.PI * ringRadius;
-  const ringOffset = ringCircumference * (1 - SCORE / 100);
+  const ringOffset = ringCircumference * (1 - score / 100);
 
   // Trend chart math
   const chartWidth = 320;
@@ -100,46 +166,53 @@ export default function AthleteReadinessDetails() {
         {/* Hero Section — no card, ring directly on background */}
         <section className="flex flex-col items-center pt-2">
           <div className="relative" style={{ width: ringSize, height: ringSize }}>
-            <svg
-              width={ringSize}
-              height={ringSize}
-              viewBox={`0 0 ${ringSize} ${ringSize}`}
-              className="-rotate-90"
-            >
-              <circle
-                cx={ringSize / 2}
-                cy={ringSize / 2}
-                r={ringRadius}
-                fill="transparent"
-                strokeWidth={ringStroke}
-                className="text-primary opacity-10"
-                stroke="currentColor"
-              />
-              <circle
-                cx={ringSize / 2}
-                cy={ringSize / 2}
-                r={ringRadius}
-                fill="transparent"
-                strokeWidth={ringStroke}
-                strokeLinecap="round"
-                strokeDasharray={ringCircumference}
-                strokeDashoffset={ringOffset}
-                className="text-primary-container transition-[stroke-dashoffset] duration-700"
-                stroke="currentColor"
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="font-display text-5xl font-bold text-primary-container leading-none">
-                {SCORE}
-              </span>
-              <span className="mt-2 text-[10px] tracking-widest uppercase text-on-surface-variant font-semibold">
-                Overall
-              </span>
-            </div>
+            {isLoading ? (
+              <Skeleton className="w-full h-full rounded-full" />
+            ) : (
+              <>
+                <svg
+                  width={ringSize}
+                  height={ringSize}
+                  viewBox={`0 0 ${ringSize} ${ringSize}`}
+                  className="-rotate-90"
+                >
+                  <circle
+                    cx={ringSize / 2}
+                    cy={ringSize / 2}
+                    r={ringRadius}
+                    fill="transparent"
+                    strokeWidth={ringStroke}
+                    className="text-primary opacity-10"
+                    stroke="currentColor"
+                  />
+                  <circle
+                    cx={ringSize / 2}
+                    cy={ringSize / 2}
+                    r={ringRadius}
+                    fill="transparent"
+                    strokeWidth={ringStroke}
+                    strokeLinecap="round"
+                    strokeDasharray={ringCircumference}
+                    strokeDashoffset={ringOffset}
+                    className="text-primary-container transition-[stroke-dashoffset] duration-700"
+                    stroke="currentColor"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="font-display text-5xl font-bold text-primary-container leading-none">
+                    {Math.round(score)}
+                  </span>
+                  <span className="mt-2 text-[10px] tracking-widest uppercase text-on-surface-variant font-semibold">
+                    Overall
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
           <button
             type="button"
+            onClick={() => navigate("/athlete/checkin")}
             className="w-full bg-primary-container text-white rounded-full py-4 font-semibold text-sm tracking-wide mt-6 hover:opacity-90 transition-opacity shadow-sm"
           >
             Registra Prontezza
@@ -152,57 +225,66 @@ export default function AthleteReadinessDetails() {
             Fattori di Oggi
           </h2>
 
-          <ul className="space-y-4">
-            {FACTORS.map((f) => {
-              const pct = Math.max(0, Math.min(100, (f.value / 10) * 100));
+          {isLoading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-8 w-full" />
+              ))}
+            </div>
+          ) : (
+            <ul className="space-y-4">
+              {factors.map((f) => {
+                const pct = Math.max(0, Math.min(100, (f.value / 10) * 100));
+                const isActive = f.key === activeKey;
 
-              if (f.active) {
+                if (isActive) {
+                  return (
+                    <li
+                      key={f.key}
+                      className="p-3 -mx-3 bg-primary-container/10 rounded-xl border border-primary-container/20"
+                    >
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1.5 text-xs uppercase font-semibold text-primary-container tracking-wide">
+                            <Activity className="w-3.5 h-3.5" />
+                            {f.label}
+                          </span>
+                          <span className="text-xs font-bold text-primary-container">
+                            {f.value}/10
+                          </span>
+                        </div>
+                        <div className="h-1.5 bg-surface-container rounded-full overflow-hidden">
+                          <div
+                            className="bg-primary-container h-full rounded-full transition-[width] duration-500"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    </li>
+                  );
+                }
+
                 return (
-                  <li
-                    key={f.key}
-                    className="p-3 -mx-3 bg-primary-container/10 rounded-xl border border-primary-container/20"
-                  >
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <span className="flex items-center gap-1.5 text-xs uppercase font-semibold text-primary-container tracking-wide">
-                          <Activity className="w-3.5 h-3.5" />
-                          {f.label}
-                        </span>
-                        <span className="text-xs font-bold text-primary-container">
-                          {f.value}/10
-                        </span>
-                      </div>
-                      <div className="h-1.5 bg-surface-container rounded-full overflow-hidden">
-                        <div
-                          className="bg-primary-container h-full rounded-full transition-[width] duration-500"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
+                  <li key={f.key} className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs uppercase font-semibold text-on-surface-variant tracking-wide">
+                        {f.label}
+                      </span>
+                      <span className="text-xs font-bold text-on-surface">
+                        {f.value}/10
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-surface-container rounded-full overflow-hidden">
+                      <div
+                        className="bg-outline h-full rounded-full transition-[width] duration-500"
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
                   </li>
                 );
-              }
-
-              return (
-                <li key={f.key} className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs uppercase font-semibold text-on-surface-variant tracking-wide">
-                      {f.label}
-                    </span>
-                    <span className="text-xs font-bold text-on-surface">
-                      {f.value}/10
-                    </span>
-                  </div>
-                  <div className="h-1.5 bg-surface-container rounded-full overflow-hidden">
-                    <div
-                      className="bg-outline h-full rounded-full transition-[width] duration-500"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+              })}
+            </ul>
+          )}
         </section>
 
         {/* Trend */}
@@ -210,11 +292,10 @@ export default function AthleteReadinessDetails() {
           <div className="absolute left-0 top-0 w-1.5 h-full bg-primary-container" />
 
           <h2 className="font-display text-xl font-semibold text-on-surface pl-2">
-            Trend 7 Giorni: Dolori
+            Trend 7 Giorni: Punteggio
           </h2>
           <p className="text-sm text-on-surface-variant mb-6 pl-2">
-            Il recupero sta andando bene. Livelli mantenuti moderati questa
-            settimana.
+            Andamento della prontezza negli ultimi sette giorni.
           </p>
 
           <div className="w-full pl-2">
@@ -223,7 +304,6 @@ export default function AthleteReadinessDetails() {
               className="w-full h-auto"
               preserveAspectRatio="none"
             >
-              {/* Vertical drop lines from each point to the baseline */}
               {points.map((p, i) => (
                 <line
                   key={`drop-${i}`}
@@ -238,7 +318,6 @@ export default function AthleteReadinessDetails() {
                 />
               ))}
 
-              {/* Wavy spline line */}
               <path
                 d={splinePath}
                 fill="none"
@@ -248,7 +327,6 @@ export default function AthleteReadinessDetails() {
                 className="stroke-primary-container"
               />
 
-              {/* Data points */}
               {points.map((p, i) => {
                 const isLast = i === points.length - 1;
                 return (
