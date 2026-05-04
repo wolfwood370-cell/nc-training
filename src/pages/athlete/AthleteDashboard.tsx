@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { Activity, Flame, HeartPulse, Moon } from "lucide-react";
+import { Battery, Flame, Moon, Zap } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useReadiness } from "@/hooks/useReadiness";
@@ -202,10 +202,16 @@ export default function AthleteDashboard() {
   const tone = getReadinessTone(score);
 
   const sleepHours = readiness?.sleepHours ?? null;
-  const hrv = readiness?.hrvRmssd ?? null;
-  const sorenessCount = readiness?.sorenessMap
-    ? Object.values(readiness.sorenessMap).filter((v) => v >= 1).length
-    : 0;
+  const sleepQuality = readiness?.sleepQuality ?? null;
+  const energy = readiness?.energy ?? null;
+  const stress = readiness?.stress ?? null;
+
+  const sleepLabel = sleepHours
+    ? `${sleepHours}h${sleepQuality ? ` · ${sleepQuality}/10` : ""}`
+    : "—";
+  // Fatigue is the inverse of energy (1-10 scale)
+  const fatigueLabel = energy ? `${11 - energy}/10` : "—";
+  const stressLabel = stress ? `${stress}/10` : "—";
 
   const macros = {
     protein: targets?.protein ?? 180,
@@ -254,7 +260,7 @@ export default function AthleteDashboard() {
               <div className="flex flex-col gap-4 flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <h2 className="font-display text-xl font-semibold text-brand">
-                    Readiness
+                    Prontezza
                   </h2>
                   {readinessResult && (
                     <span
@@ -273,17 +279,17 @@ export default function AthleteDashboard() {
                   <MicroMetric
                     icon={<Moon />}
                     label="Qualità Sonno"
-                    value={sleepHours ? `${sleepHours}h` : "—"}
+                    value={sleepLabel}
                   />
                   <MicroMetric
-                    icon={<HeartPulse />}
-                    label="HRV"
-                    value={hrv ? `${hrv} ms` : "Baseline"}
+                    icon={<Battery />}
+                    label="Affaticamento"
+                    value={fatigueLabel}
                   />
                   <MicroMetric
-                    icon={<Activity />}
-                    label="Dolori"
-                    value={sorenessCount > 0 ? `${sorenessCount} aree` : "Nessuno"}
+                    icon={<Zap />}
+                    label="Stress"
+                    value={stressLabel}
                   />
                 </div>
               </div>
