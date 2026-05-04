@@ -44,8 +44,10 @@ export function useWeeklyCheckins() {
 
       if (error) throw error;
 
+      const rows = (data ?? []) as unknown as WeeklyCheckin[];
+
       // Fetch athlete profiles
-      const athleteIds = [...new Set((data || []).map((c: any) => c.athlete_id))];
+      const athleteIds = [...new Set(rows.map((c) => c.athlete_id))];
       if (athleteIds.length === 0) return [];
 
       const { data: profiles } = await supabase
@@ -57,10 +59,10 @@ export function useWeeklyCheckins() {
         (profiles || []).map((p) => [p.id, p])
       );
 
-      return (data || []).map((c: any) => ({
+      return rows.map((c) => ({
         ...c,
-        athlete: profileMap.get(c.athlete_id) || null,
-      })) as WeeklyCheckin[];
+        athlete: profileMap.get(c.athlete_id) ?? undefined,
+      }));
     },
     enabled: !!user?.id,
   });
