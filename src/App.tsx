@@ -47,6 +47,7 @@ const FormAnalysis = lazy(() => import("./pages/athlete/FormAnalysis"));
 const PlanUpdate = lazy(() => import("./pages/athlete/PlanUpdate"));
 const AchievementStreak = lazy(() => import("./pages/athlete/AchievementStreak"));
 const ACWRAnalysis = lazy(() => import("./pages/athlete/ACWRAnalysis"));
+const AMRAPExecution = lazy(() => import("./pages/athlete/AMRAPExecution"));
 import { AthleteLayout } from "./components/athlete/AthleteLayout";
 const OnboardingWizard = lazy(() => import("./pages/onboarding/OnboardingWizard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
