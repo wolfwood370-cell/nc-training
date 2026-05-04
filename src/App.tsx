@@ -48,6 +48,7 @@ const PlanUpdate = lazy(() => import("./pages/athlete/PlanUpdate"));
 const AchievementStreak = lazy(() => import("./pages/athlete/AchievementStreak"));
 const ACWRAnalysis = lazy(() => import("./pages/athlete/ACWRAnalysis"));
 const AMRAPExecution = lazy(() => import("./pages/athlete/AMRAPExecution"));
+const TodayPlan = lazy(() => import("./pages/athlete/TodayPlan"));
 import { AthleteLayout } from "./components/athlete/AthleteLayout";
 const OnboardingWizard = lazy(() => import("./pages/onboarding/OnboardingWizard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
