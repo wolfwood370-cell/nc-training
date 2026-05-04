@@ -41,7 +41,7 @@ export function AthleteBottomNav() {
                   className={cn(
                     "h-5 w-5",
                     isActive
-                      ? "text-on-primary stroke-[2.25]"
+                      ? "text-white stroke-[2.25]"
                       : "text-on-surface-variant"
                   )}
                   aria-hidden="true"

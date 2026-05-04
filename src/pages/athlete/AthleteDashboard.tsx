@@ -367,7 +367,7 @@ export default function AthleteDashboard() {
               <button
                 type="button"
                 onClick={() => navigate("/athlete/training/active")}
-                className="w-full bg-brand text-on-primary font-display font-semibold py-4 px-6 rounded-full hover:opacity-95 active:scale-[0.98] transition-all shadow-md"
+                className="w-full bg-brand text-white font-display font-semibold py-4 px-6 rounded-full hover:opacity-95 active:scale-[0.98] transition-all shadow-md"
               >
                 Inizia Sessione
               </button>
