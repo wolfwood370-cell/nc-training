@@ -2615,6 +2615,10 @@ export type Database = {
       is_coach_of_athlete: { Args: { p_athlete_id: string }; Returns: boolean }
       is_my_athlete: { Args: { _athlete_id: string }; Returns: boolean }
       is_my_coach: { Args: { _coach_id: string }; Returns: boolean }
+      is_room_member: {
+        Args: { _room_id: string; _user_id: string }
+        Returns: boolean
+      }
       match_documents: {
         Args: {
           match_count?: number
@@ -2646,6 +2650,10 @@ export type Database = {
       schedule_program_week: {
         Args: { p_athlete_id: string; p_start_date: string; p_week_id: string }
         Returns: number
+      }
+      shares_room_with: {
+        Args: { _other_user_id: string; _user_id: string }
+        Returns: boolean
       }
     }
     Enums: {
