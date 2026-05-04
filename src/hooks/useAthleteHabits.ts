@@ -12,6 +12,26 @@ export interface HabitWithDetails {
   isCompleted: boolean;
 }
 
+/** Shape returned by the embedded `habit:habits_library(...)` join. */
+interface EmbeddedHabit {
+  id: string;
+  name: string;
+  category: string;
+  description: string | null;
+}
+
+interface AthleteHabitWithJoin {
+  id: string;
+  frequency: string;
+  active: boolean;
+  habit: EmbeddedHabit | EmbeddedHabit[] | null;
+}
+
+function pickHabit(h: EmbeddedHabit | EmbeddedHabit[] | null): EmbeddedHabit | null {
+  if (!h) return null;
+  return Array.isArray(h) ? h[0] ?? null : h;
+}
+
 /**
  * Hook to fetch athlete's assigned habits and their completion status for today
  */
@@ -63,17 +83,22 @@ export function useAthleteHabits(athleteId?: string) {
       );
 
       // Combine habits with completion status
-      const habitsWithStatus: HabitWithDetails[] = assignments
-        .filter((a) => a.habit) // Filter out any with missing habit data
-        .map((assignment) => ({
-          id: (assignment.habit as any).id,
-          athlete_habit_id: assignment.id,
-          name: (assignment.habit as any).name,
-          category: (assignment.habit as any).category,
-          description: (assignment.habit as any).description,
-          frequency: assignment.frequency,
-          isCompleted: logsMap.get(assignment.id) ?? false,
-        }));
+      const typedAssignments = assignments as unknown as AthleteHabitWithJoin[];
+      const habitsWithStatus: HabitWithDetails[] = typedAssignments
+        .map((assignment) => {
+          const habit = pickHabit(assignment.habit);
+          if (!habit) return null;
+          return {
+            id: habit.id,
+            athlete_habit_id: assignment.id,
+            name: habit.name,
+            category: habit.category,
+            description: habit.description,
+            frequency: assignment.frequency,
+            isCompleted: logsMap.get(assignment.id) ?? false,
+          };
+        })
+        .filter((h): h is HabitWithDetails => h !== null);
 
       return habitsWithStatus;
     },
