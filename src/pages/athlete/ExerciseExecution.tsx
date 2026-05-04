@@ -20,7 +20,11 @@ function exerciseKey(ex: WorkoutStructureExercise | null, idx: number): string {
   return ex?.id ?? `${ex?.name ?? "exercise"}-${idx}`;
 }
 
-export default function ExerciseExecution() {
+interface ExerciseExecutionProps {
+  isIsometric?: boolean;
+}
+
+export default function ExerciseExecution({ isIsometric = true }: ExerciseExecutionProps) {
   const navigate = useNavigate();
   const { workout, isLoading } = useTodaysWorkout();
   const currentIndex = useActiveSessionStore((s) => s.currentExerciseIndex);
