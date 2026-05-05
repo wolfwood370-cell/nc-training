@@ -114,6 +114,7 @@ const App = () => (
                 <Route path="exercise-execution" element={<ExerciseExecution />} />
                 <Route path="exercise-detail" element={<ExerciseDetail />} />
                 <Route path="exercise-preview" element={<ExercisePreview />} />
+                <Route path="workout/:workoutId/phase/:phaseIndex" element={<WorkoutPhaseDetail />} />
                 <Route path="training" element={<AthleteTraining />} />
                 <Route path="training/active" element={<ActiveWorkout />} />
                 <Route path="nutrition" element={<AthleteNutrition />} />
