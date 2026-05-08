@@ -399,3 +399,78 @@ export function AthleteViewerDialog({
     </Dialog>
   );
 }
+
+interface ReviewWorkoutItemProps {
+  logId: string;
+  title: string;
+  rpe: number | null;
+  srpe: number | null;
+  athleteNotes: string | null;
+  existingFeedback: string | null;
+  onSaved: () => void;
+}
+
+function ReviewWorkoutItem({
+  logId,
+  title,
+  rpe,
+  srpe,
+  athleteNotes,
+  existingFeedback,
+  onSaved,
+}: ReviewWorkoutItemProps) {
+  const [feedback, setFeedback] = useState(existingFeedback ?? "");
+  const review = useReviewWorkout();
+  const reviewed = !!existingFeedback;
+
+  const handleSubmit = async () => {
+    await review.mutateAsync({ logId, feedback });
+    onSaved();
+  };
+
+  return (
+    <div className="rounded-md border border-border/60 p-3 space-y-2 bg-muted/20">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-semibold truncate">{title}</p>
+        <div className="flex items-center gap-1">
+          {rpe != null && (
+            <Badge variant="secondary" className="text-[10px]">RPE {rpe}</Badge>
+          )}
+          {srpe != null && (
+            <Badge variant="outline" className="text-[10px]">sRPE {srpe}</Badge>
+          )}
+          {reviewed && (
+            <Badge variant="default" className="text-[10px] bg-success text-success-foreground">
+              Recensito
+            </Badge>
+          )}
+        </div>
+      </div>
+      {athleteNotes && (
+        <p className="text-[11px] text-muted-foreground italic">"{athleteNotes}"</p>
+      )}
+      <Textarea
+        value={feedback}
+        onChange={(e) => setFeedback(e.target.value)}
+        placeholder="Scrivi il tuo feedback per l'atleta..."
+        className="min-h-[64px] text-xs"
+        maxLength={500}
+      />
+      <div className="flex justify-end">
+        <Button
+          size="sm"
+          onClick={handleSubmit}
+          disabled={review.isPending || !feedback.trim()}
+          className="h-8 text-xs"
+        >
+          {review.isPending ? (
+            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+          ) : (
+            <Send className="h-3 w-3 mr-1" />
+          )}
+          {reviewed ? "Aggiorna" : "Invia Feedback"}
+        </Button>
+      </div>
+    </div>
+  );
+}
