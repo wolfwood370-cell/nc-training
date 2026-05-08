@@ -247,32 +247,47 @@ const AthleteCopilotIntervention = () => {
                 </h2>
               </div>
 
-              {/* TODO: Connect to backend - generate adaptations dynamically via AI based on workout + readiness */}
               <ul className="flex flex-col gap-4 relative z-10">
-                <li className="flex items-start gap-3 bg-white/50 p-4 rounded-xl border border-surface-variant/30">
-                  <ArrowRightLeft className="text-secondary mt-0.5 size-5 shrink-0" />
-                  <div className="flex flex-col">
-                    <span className="line-through text-on-surface-variant/70 mr-2">
-                      {heaviestExercise}
-                    </span>
-                    <div className="font-bold text-primary flex items-center gap-1 mt-1">
-                      <ArrowRight size={16} /> Variante a basso impatto
-                    </div>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3 bg-white/50 p-4 rounded-xl border border-surface-variant/30">
-                  <TrendingDown className="text-secondary mt-0.5 size-5 shrink-0" />
-                  <p className="text-on-surface font-medium">
-                    Volume totale ridotto del 20%
-                  </p>
-                </li>
-                <li className="flex items-start gap-3 bg-white/50 p-4 rounded-xl border border-surface-variant/30">
-                  <PlusCircle className="text-secondary mt-0.5 size-5 shrink-0" />
-                  <p className="text-on-surface font-medium">
-                    Aggiunti 10 min di mobilità mirata
-                  </p>
-                </li>
+                {adaptations.length === 0 ? (
+                  <li className="text-sm text-on-surface-variant italic">
+                    Nessun adattamento generato.
+                  </li>
+                ) : (
+                  adaptations.map((a, i) => {
+                    const Icon =
+                      a.type === "swap"
+                        ? ArrowRightLeft
+                        : a.type === "reduce"
+                          ? TrendingDown
+                          : PlusCircle;
+                    return (
+                      <li
+                        key={i}
+                        className="flex items-start gap-3 bg-white/50 p-4 rounded-xl border border-surface-variant/30"
+                      >
+                        <Icon className="text-secondary mt-0.5 size-5 shrink-0" />
+                        <div className="flex flex-col">
+                          {a.type === "swap" && a.from && (
+                            <span className="line-through text-on-surface-variant/70 mr-2">
+                              {a.from}
+                            </span>
+                          )}
+                          <div className="font-bold text-primary flex items-center gap-1 mt-1">
+                            {a.type === "swap" && <ArrowRight size={16} />}
+                            {a.to}
+                          </div>
+                          {a.detail && (
+                            <p className="text-xs text-on-surface-variant mt-1">
+                              {a.detail}
+                            </p>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })
+                )}
               </ul>
+
             </section>
           </>
         )}
