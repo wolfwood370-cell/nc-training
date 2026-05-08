@@ -45,6 +45,7 @@ const PaymentSuccess = lazy(() => import("./pages/athlete/PaymentSuccess"));
 const WorkoutDebrief = lazy(() => import("./pages/athlete/WorkoutDebrief"));
 const SupersetExecution = lazy(() => import("./pages/athlete/SupersetExecution"));
 const ConditioningPreview = lazy(() => import("./pages/athlete/ConditioningPreview"));
+const AthleteWeightAnalytics = lazy(() => import("./pages/athlete/AthleteWeightAnalytics"));
 const ActiveWorkout = lazy(() => import("./pages/athlete/ActiveWorkout"));
 const AthleteReadinessDetails = lazy(() => import("./pages/athlete/AthleteReadinessDetails"));
 const DailyCheckin = lazy(() => import("./pages/athlete/DailyCheckin"));
