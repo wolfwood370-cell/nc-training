@@ -93,6 +93,13 @@ export default function WorkoutDebrief() {
       const completedAt = new Date().toISOString();
       const exercisesData = JSON.parse(JSON.stringify(sessionLogs));
 
+      // === Foster's sRPE: session RPE × duration in minutes ===
+      const durationSeconds = startedAt
+        ? Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000))
+        : 0;
+      const durationMinutes = Math.max(1, Math.floor(durationSeconds / 60));
+      const calculatedSrpe = rpe * durationMinutes;
+
       // Try to update an existing workout_log for this workout
       const targetWorkoutId = workout?.id ?? workoutId ?? null;
 
@@ -103,6 +110,8 @@ export default function WorkoutDebrief() {
           .update({
             status: "completed",
             rpe_global: rpe,
+            srpe: calculatedSrpe,
+            duration_seconds: durationSeconds,
             notes: notes || null,
             completed_at: completedAt,
             exercises_data: exercisesData,
@@ -119,6 +128,8 @@ export default function WorkoutDebrief() {
           workout_id: targetWorkoutId,
           status: "completed",
           rpe_global: rpe,
+          srpe: calculatedSrpe,
+          duration_seconds: durationSeconds,
           notes: notes || null,
           completed_at: completedAt,
           started_at: startedAt,
