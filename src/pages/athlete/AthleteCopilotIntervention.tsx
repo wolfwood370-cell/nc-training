@@ -12,9 +12,13 @@ import {
   CheckCircle,
   Loader2,
 } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useReadiness } from "@/hooks/useReadiness";
 import { useTodaysWorkout } from "@/hooks/useTodaysWorkout";
+import { showAiGatewayError } from "@/lib/ai-error";
 
 const SORENESS_LABELS: Record<string, string> = {
   quads: "Quadricipiti",
@@ -30,22 +34,129 @@ const SORENESS_LABELS: Record<string, string> = {
   core: "Core",
 };
 
+interface Adaptation {
+  type: "swap" | "reduce" | "add";
+  from: string | null;
+  to: string;
+  detail: string;
+}
+interface SafePlanExercise {
+  name: string;
+  sets: number;
+  reps: string;
+  load: string;
+  notes: string;
+}
+interface AdaptationResponse {
+  rationale: string;
+  adaptations: Adaptation[];
+  safePlan: SafePlanExercise[];
+}
+
 const AthleteCopilotIntervention = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { readiness, isLoading: loadingReadiness } = useReadiness();
   const { workout: todayWorkout, isLoading: loadingWorkout } = useTodaysWorkout();
 
+  const adaptationQuery = useQuery({
+    queryKey: ["copilot-adaptation", todayWorkout?.id, readiness?.score],
+    enabled: !!todayWorkout && !!readiness,
+    staleTime: 5 * 60_000,
+    retry: false,
+    queryFn: async (): Promise<AdaptationResponse> => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 30_000);
+      try {
+        const { data, error } = await supabase.functions.invoke("ask-copilot", {
+          body: {
+            mode: "session_adaptation",
+            readiness: {
+              score: readiness?.score,
+              sleepHours: readiness?.sleepHours,
+              sorenessMap: readiness?.sorenessMap,
+              stress: readiness?.stress,
+              energy: readiness?.energy,
+            },
+            todayWorkout: {
+              title: todayWorkout?.title,
+              structure: todayWorkout?.structure,
+            },
+          },
+        });
+        if (error) throw error;
+        const payload = (data as { data?: AdaptationResponse } | null)?.data;
+        if (!payload || !Array.isArray(payload.adaptations)) {
+          throw new Error("Risposta AI non valida");
+        }
+        return payload;
+      } finally {
+        clearTimeout(timer);
+      }
+    },
+  });
+
+  // Surface AI errors as toast (once per error)
+  if (adaptationQuery.error && !adaptationQuery.isFetching) {
+    void showAiGatewayError(adaptationQuery.error);
+  }
+
+  const acceptMutation = useMutation({
+    mutationFn: async () => {
+      if (!todayWorkout?.id) throw new Error("Nessun allenamento di oggi");
+      const safePlan = adaptationQuery.data?.safePlan;
+      if (!safePlan || safePlan.length === 0) throw new Error("Piano sicuro non disponibile");
+      const { error } = await supabase
+        .from("workouts")
+        .update({ structure: safePlan as unknown as never })
+        .eq("id", todayWorkout.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Piano sicuro applicato");
+      navigate(-1);
+    },
+    onError: (e) => {
+      console.error(e);
+      toast.error("Errore nell'applicare il piano sicuro");
+    },
+  });
+
+  const overrideMutation = useMutation({
+    mutationFn: async () => {
+      if (!user?.id) throw new Error("Not authenticated");
+      // Look up coach for the alert
+      const { data: profile, error: pErr } = await supabase
+        .from("profiles")
+        .select("coach_id, full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (pErr) throw pErr;
+      if (!profile?.coach_id) return; // no coach → silently skip alert
+      const { error } = await supabase.from("coach_alerts").insert({
+        coach_id: profile.coach_id,
+        athlete_id: user.id,
+        type: "fatigue_override",
+        severity: "medium",
+        message: `${profile.full_name ?? "L'atleta"} ha ignorato l'avviso di affaticamento e mantenuto il piano originale ("${todayWorkout?.title ?? "allenamento"}").`,
+        link: `/coach/athletes/${user.id}`,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.message("Mantenuto piano originale. Il coach è stato avvisato.");
+      navigate(-1);
+    },
+    onError: (e) => {
+      console.error(e);
+      toast.message("Mantenuto piano originale");
+      navigate(-1);
+    },
+  });
+
   const handleClose = () => navigate(-1);
-  const handleAcceptSafePlan = () => {
-    // TODO: Connect to backend - mutate today's workout structure with adapted exercises
-    toast.success("Piano sicuro applicato");
-    navigate(-1);
-  };
-  const handleKeepOriginal = () => {
-    // TODO: Connect to backend - log the override decision
-    toast.message("Mantenuto piano originale");
-    navigate(-1);
-  };
+  const handleAcceptSafePlan = () => acceptMutation.mutate();
+  const handleKeepOriginal = () => overrideMutation.mutate();
 
   // Derive worst soreness zone
   const worstSoreness = useMemo(() => {
@@ -62,13 +173,8 @@ const AthleteCopilotIntervention = () => {
     return bestKey ? { zone: SORENESS_LABELS[bestKey] ?? bestKey, level: best } : null;
   }, [readiness?.sorenessMap]);
 
-  // Derive heaviest exercise from today's workout (first compound)
-  const heaviestExercise = useMemo(() => {
-    const ex = todayWorkout?.structure?.[0];
-    return ex?.name ?? "Esercizio principale";
-  }, [todayWorkout]);
-
-  const isLoading = loadingReadiness || loadingWorkout;
+  const isLoading = loadingReadiness || loadingWorkout || adaptationQuery.isLoading;
+  const adaptations = adaptationQuery.data?.adaptations ?? [];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
