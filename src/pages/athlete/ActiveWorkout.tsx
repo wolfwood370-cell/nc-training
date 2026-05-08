@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { ExitWorkoutDialog } from "@/components/athlete/ActiveWorkout/ExitWorkoutDialog";
 import { useActiveSessionStore } from "@/stores/useActiveSessionStore";
+import { useWorkoutAutosave } from "@/hooks/useWorkoutAutosave";
 import { toast } from "sonner";
 
 function formatTimer(seconds: number): string {
