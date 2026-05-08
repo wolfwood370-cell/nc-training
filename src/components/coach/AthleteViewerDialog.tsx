@@ -159,7 +159,7 @@ export function AthleteViewerDialog({
     queryFn: async () => {
       const { data } = await supabase
         .from("workout_logs")
-        .select("id, workout_id, rpe_global, srpe, notes, coach_feedback, completed_at, workouts(title)")
+        .select("id, workout_id, rpe_global, srpe, notes, coach_feedback, completed_at, exercises_data, workouts(title)")
         .eq("athlete_id", athleteId)
         .eq("status", "completed")
         .gte("completed_at", `${todayDate}T00:00:00`)
