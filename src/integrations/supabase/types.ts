@@ -302,6 +302,54 @@ export type Database = {
         }
         Relationships: []
       }
+      body_measurements: {
+        Row: {
+          athlete_id: string
+          body_fat_percentage: number | null
+          created_at: string
+          date: string
+          id: string
+          muscle_mass_kg: number | null
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          athlete_id: string
+          body_fat_percentage?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          muscle_mass_kg?: number | null
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          athlete_id?: string
+          body_fat_percentage?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          muscle_mass_kg?: number | null
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "body_measurements_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "analytics_athlete_summary"
+            referencedColumns: ["athlete_id"]
+          },
+          {
+            foreignKeyName: "body_measurements_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_participants: {
         Row: {
           id: string
@@ -1503,6 +1551,63 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      nutrition_daily_summary: {
+        Row: {
+          adherence_score: number | null
+          athlete_id: string
+          created_at: string
+          date: string
+          id: string
+          total_calories: number
+          total_carbs: number
+          total_fats: number
+          total_protein: number
+          updated_at: string
+          water_ml: number
+        }
+        Insert: {
+          adherence_score?: number | null
+          athlete_id: string
+          created_at?: string
+          date?: string
+          id?: string
+          total_calories?: number
+          total_carbs?: number
+          total_fats?: number
+          total_protein?: number
+          updated_at?: string
+          water_ml?: number
+        }
+        Update: {
+          adherence_score?: number | null
+          athlete_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          total_calories?: number
+          total_carbs?: number
+          total_fats?: number
+          total_protein?: number
+          updated_at?: string
+          water_ml?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nutrition_daily_summary_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "analytics_athlete_summary"
+            referencedColumns: ["athlete_id"]
+          },
+          {
+            foreignKeyName: "nutrition_daily_summary_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nutrition_logs: {
         Row: {
