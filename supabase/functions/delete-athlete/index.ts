@@ -50,9 +50,20 @@ Deno.serve(async (req) => {
       .eq("id", athlete_id)
       .maybeSingle();
 
-    if (pErr || !profile) {
-      return new Response(JSON.stringify({ error: "Athlete not found" }), {
-        status: 404,
+    if (pErr) {
+      console.error("delete-athlete profile lookup error:", pErr);
+      return new Response(JSON.stringify({ error: pErr.message }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Idempotent: profile already gone → also try removing the orphan auth user, then return success.
+    if (!profile) {
+      const admin0 = createClient(SUPABASE_URL, SERVICE_ROLE);
+      const { error: orphanErr } = await admin0.auth.admin.deleteUser(athlete_id);
+      if (orphanErr) console.warn("delete-athlete orphan auth user cleanup:", orphanErr.message);
+      return new Response(JSON.stringify({ success: true, alreadyDeleted: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

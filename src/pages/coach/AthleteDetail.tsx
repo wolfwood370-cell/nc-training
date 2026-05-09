@@ -2190,6 +2190,12 @@ function SettingsContent({
     },
     onSuccess: () => {
       toast.success("Atleta eliminato definitivamente");
+      // Invalidate caches so the deleted athlete disappears from the roster
+      queryClient.invalidateQueries({ queryKey: ["coach-athletes"] });
+      queryClient.invalidateQueries({ queryKey: ["coach-readiness"] });
+      queryClient.invalidateQueries({ queryKey: ["coach-workout-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["coach-injuries"] });
+      queryClient.removeQueries({ queryKey: ["athlete-profile", athleteId] });
       navigate("/coach/athletes");
     },
     onError: (error: any) => {
