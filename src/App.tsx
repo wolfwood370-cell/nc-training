@@ -113,6 +113,7 @@ const App = () => (
               <Route path="/athlete" element={<AthleteLayout />}>
                 <Route index element={<Navigate to="/athlete/dashboard" replace />} />
                 <Route path="dashboard" element={<AthleteDashboard />} />
+                <Route path="profile" element={<AthleteProfile />} />
                 <Route path="readiness" element={<AthleteReadinessDetails />} />
                 <Route path="checkin" element={<DailyCheckin />} />
                 <Route path="checkin/weekly" element={<WeeklyCheckin />} />
