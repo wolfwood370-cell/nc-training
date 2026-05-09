@@ -2188,14 +2188,42 @@ function SettingsContent({
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Atleta eliminato definitivamente");
-      // Invalidate caches so the deleted athlete disappears from the roster
-      queryClient.invalidateQueries({ queryKey: ["coach-athletes"] });
-      queryClient.invalidateQueries({ queryKey: ["coach-readiness"] });
-      queryClient.invalidateQueries({ queryKey: ["coach-workout-logs"] });
-      queryClient.invalidateQueries({ queryKey: ["coach-injuries"] });
-      queryClient.removeQueries({ queryKey: ["athlete-profile", athleteId] });
+      // Remove every cached query that references this athlete (roster, risk overview,
+      // live sessions, scheduled workouts, readiness, etc.) so nothing stale lingers in the UI.
+      queryClient.removeQueries({
+        predicate: (query) => {
+          const key = query.queryKey;
+          if (!Array.isArray(key)) return false;
+          return key.some((part) => {
+            if (typeof part === "string" && athleteId && part.includes(athleteId)) return true;
+            if (part && typeof part === "object") {
+              try {
+                return JSON.stringify(part).includes(athleteId ?? "");
+              } catch {
+                return false;
+              }
+            }
+            return false;
+          });
+        },
+      });
+      // Invalidate the coach-wide rosters / overviews so the deleted athlete disappears.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["risk-overview-athletes"] }),
+        queryClient.invalidateQueries({ queryKey: ["risk-overview-logs"] }),
+        queryClient.invalidateQueries({ queryKey: ["risk-overview-metrics"] }),
+        queryClient.invalidateQueries({ queryKey: ["risk-overview-readiness"] }),
+        queryClient.invalidateQueries({ queryKey: ["live-sessions"] }),
+        queryClient.invalidateQueries({ queryKey: ["coach-athletes"] }),
+        queryClient.invalidateQueries({ queryKey: ["coach-readiness"] }),
+        queryClient.invalidateQueries({ queryKey: ["coach-workout-logs"] }),
+        queryClient.invalidateQueries({ queryKey: ["coach-injuries"] }),
+        queryClient.invalidateQueries({ queryKey: ["coach-calendar"] }),
+        queryClient.invalidateQueries({ queryKey: ["coach-programs"] }),
+        queryClient.invalidateQueries({ queryKey: ["scheduled-workouts"] }),
+      ]);
       navigate("/coach/athletes");
     },
     onError: (error: any) => {
