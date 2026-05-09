@@ -19,7 +19,7 @@ const ExerciseDetail = () => {
         <h1 className="font-display font-semibold text-sm tracking-tight text-primary">
           Dettaglio Esercizio
         </h1>
-        <div className="w-8 h-8 rounded-full bg-surface-container overflow-hidden border border-outline-variant" />
+        <span className="w-8 h-8" aria-hidden />
       </header>
 
       <main className="pt-24 px-6 max-w-md mx-auto pb-40 w-full">
