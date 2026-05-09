@@ -183,10 +183,7 @@ export default function WorkoutPhaseDetail() {
         <h1 className="font-display font-semibold text-sm tracking-tight text-primary">
           Dettaglio Fase
         </h1>
-        <div
-          className="w-8 h-8 rounded-full bg-surface-container overflow-hidden"
-          aria-label="Profilo atleta"
-        />
+        <span className="w-8 h-8" aria-hidden />
       </header>
 
       <main className="pt-24 pb-32 px-6 max-w-2xl mx-auto space-y-6">
