@@ -2,6 +2,7 @@
 
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import OpenAI from "https://deno.land/x/openai@v4.69.0/mod.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,6 +10,11 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+// Hard cap on inbound payload. Gemini vision can technically handle large
+// images, but a 10MB base64 blob already covers a 7.5MB raw photo (more than
+// enough for meal photography) and forecloses naive DoS via gigabyte uploads.
+const MAX_IMAGE_BASE64_BYTES = 10 * 1024 * 1024;
 
 const SYSTEM_PROMPT = `You are an elite sports nutritionist and registered dietitian with 20+ years of experience analyzing meals for professional athletes. Your specialty is rapid, precise macronutrient estimation from visual inspection.
 
@@ -135,6 +141,57 @@ serve(async (req: Request) => {
   }
 
   try {
+    // -------------------------------------------------------------------------
+    // SECURITY GATE — even with verify_jwt = true at the gateway (see
+    // supabase/config.toml), we re-verify here so the function is safe to
+    // run even if the gateway flag is ever toggled off, and so we have the
+    // user.id available for logging / future per-user rate limiting.
+    // -------------------------------------------------------------------------
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Non autenticato" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
+
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      console.error("[analyze-meal-photo] Missing Supabase env vars");
+      return new Response(
+        JSON.stringify({ error: "Configurazione server mancante" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    const supabaseUser = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: userData, error: authError } = await supabaseUser.auth.getUser();
+    const user = userData?.user;
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Sessione non valida" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Optional: log who called for audit / cost attribution. (Cheap; one
+    // log line per AI invocation is well within Supabase log quota.)
+    console.log("[analyze-meal-photo] invocation", { userId: user.id });
+
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     const baseURL = Deno.env.get("LOVABLE_AI_GATEWAY_URL") ??
       "https://ai.gateway.lovable.dev/v1";
@@ -170,6 +227,16 @@ serve(async (req: Request) => {
         JSON.stringify({ error: "imageBase64 is required" }),
         {
           status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    if (imageBase64.length > MAX_IMAGE_BASE64_BYTES) {
+      return new Response(
+        JSON.stringify({ error: "Image too large (max 10MB base64)" }),
+        {
+          status: 413,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
