@@ -46,6 +46,7 @@ const AthleteTraining = lazy(() => import("./pages/athlete/AthleteTraining"));
 const AthleteProfile = lazy(() => import("./pages/athlete/AthleteProfile"));
 const DailyCheckin = lazy(() => import("./pages/athlete/DailyCheckin"));
 const AthleteReadinessDetails = lazy(() => import("./pages/athlete/AthleteReadinessDetails"));
+const WeeklyCheckin = lazy(() => import("./pages/athlete/WeeklyCheckin"));
 
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} forcedTheme="light">
@@ -118,6 +119,18 @@ const App = () => (
                 element={
                   <ProtectedAthleteRoute>
                     <AthleteReadinessDetails />
+                  </ProtectedAthleteRoute>
+                }
+              />
+
+              {/* Weekly Check-in — focus-mode full-screen flow with its own
+                  sticky bottom action bar. Sibling, not child (same reason
+                  as DailyCheckin: two competing bottom bars otherwise). */}
+              <Route
+                path="/athlete/weekly-checkin"
+                element={
+                  <ProtectedAthleteRoute>
+                    <WeeklyCheckin />
                   </ProtectedAthleteRoute>
                 }
               />
