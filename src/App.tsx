@@ -49,6 +49,7 @@ const AthleteReadinessDetails = lazy(() => import("./pages/athlete/AthleteReadin
 const WeeklyCheckin = lazy(() => import("./pages/athlete/WeeklyCheckin"));
 const WorkoutPhaseDetail = lazy(() => import("./pages/athlete/WorkoutPhaseDetail"));
 const ExercisePreview = lazy(() => import("./pages/athlete/ExercisePreview"));
+const ActiveWorkout = lazy(() => import("./pages/athlete/ActiveWorkout"));
 
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} forcedTheme="light">
@@ -154,6 +155,19 @@ const App = () => (
                 element={
                   <ProtectedAthleteRoute>
                     <ExercisePreview />
+                  </ProtectedAthleteRoute>
+                }
+              />
+
+              {/* Phase 7 — Active Workout Hub (focus mode).
+                  Full-screen overlay (z-50) that intentionally obscures
+                  the global BottomNavBar; back/X opens a friction modal
+                  rather than navigating immediately. */}
+              <Route
+                path="/athlete/workout"
+                element={
+                  <ProtectedAthleteRoute>
+                    <ActiveWorkout />
                   </ProtectedAthleteRoute>
                 }
               />
