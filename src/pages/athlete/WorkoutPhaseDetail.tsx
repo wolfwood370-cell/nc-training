@@ -34,6 +34,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import type {
+  ExerciseType,
+  PreviewExercise,
+} from "@/pages/athlete/ExercisePreview";
 
 // =============================================================================
 // Domain types
@@ -45,6 +49,13 @@ interface PhaseExercise {
   name: string;
   /** Scheme text — reps + optional tempo / "Max Reps" / etc. */
   scheme: string;
+  /** Drives the ExercisePreview variant. Defaults to "standard" so an
+   *  unset block still routes correctly. */
+  type?: ExerciseType;
+  sets?: number;
+  reps?: string;
+  weightKg?: number;
+  rpe?: number;
 }
 
 interface PhaseBlock {
@@ -83,12 +94,22 @@ const PHASE = {
           code: "A1",
           name: "Barbell Back Squat",
           scheme: "8 Reps · Tempo 3-0-1-0",
+          type: "standard",
+          sets: 4,
+          reps: "8",
+          weightKg: 100,
+          rpe: 8,
         },
         {
           id: "a2",
           code: "A2",
           name: "Romanian Deadlift",
           scheme: "10 Reps · Tempo 2-0-1-0",
+          type: "standard",
+          sets: 4,
+          reps: "10",
+          weightKg: 80,
+          rpe: 8,
         },
       ],
       footer: { icon: Clock, text: "Recupero: 90 sec dopo A2" },
@@ -99,9 +120,34 @@ const PHASE = {
       badge: "AMRAP 12 Minuti",
       compact: true,
       exercises: [
-        { id: "b1", code: "B1", name: "Kettlebell Swings", scheme: "15 Reps" },
-        { id: "b2", code: "B2", name: "Push-ups", scheme: "Max Reps" },
-        { id: "b3", code: "B3", name: "Box Jumps", scheme: "10 Reps" },
+        {
+          id: "b1",
+          code: "B1",
+          name: "Kettlebell Swings",
+          scheme: "15 Reps",
+          type: "emom",
+          sets: 1,
+          reps: "15",
+          weightKg: 24,
+        },
+        {
+          id: "b2",
+          code: "B2",
+          name: "Push-ups",
+          scheme: "Max Reps",
+          type: "standard",
+          sets: 1,
+          reps: "AMRAP",
+        },
+        {
+          id: "b3",
+          code: "B3",
+          name: "Box Jumps",
+          scheme: "10 Reps",
+          type: "standard",
+          sets: 1,
+          reps: "10",
+        },
       ],
       footer: { icon: Zap, text: "Transizioni veloci, no pause" },
     },
@@ -207,17 +253,30 @@ function BlockHeader({ block }: { block: PhaseBlock }) {
 // =============================================================================
 // FullExerciseRow — "spaced" variant used by Superset blocks: large icon,
 // stacked name + scheme, optional dashed divider between consecutive rows.
+// The whole row is a button so tapping it routes to the preview.
 // =============================================================================
 function FullExerciseRow({
   exercise,
   showDivider,
+  onSelect,
 }: {
   exercise: PhaseExercise;
   showDivider: boolean;
+  onSelect: (ex: PhaseExercise) => void;
 }) {
   return (
     <>
-      <div className="flex items-start gap-4">
+      <button
+        type="button"
+        onClick={() => onSelect(exercise)}
+        aria-label={`Apri anteprima ${exercise.code}. ${exercise.name}`}
+        className={cn(
+          "w-full flex items-start gap-4 text-left",
+          "rounded-2xl p-1 -m-1",
+          "transition-transform active:scale-[0.99]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-container/40",
+        )}
+      >
         <span
           aria-hidden="true"
           className="h-12 w-12 shrink-0 rounded-full bg-brand-container/10 text-brand-container flex items-center justify-center"
@@ -235,7 +294,7 @@ function FullExerciseRow({
             {exercise.scheme}
           </p>
         </div>
-      </div>
+      </button>
       {showDivider && (
         <div
           aria-hidden="true"
@@ -248,11 +307,28 @@ function FullExerciseRow({
 
 // =============================================================================
 // CompactExerciseRow — used by Circuit / AMRAP blocks: tighter horizontal
-// layout with the code on the left and a pill chip on the right.
+// layout with the code on the left and a pill chip on the right. Also
+// a button so the user can preview each step of the circuit.
 // =============================================================================
-function CompactExerciseRow({ exercise }: { exercise: PhaseExercise }) {
+function CompactExerciseRow({
+  exercise,
+  onSelect,
+}: {
+  exercise: PhaseExercise;
+  onSelect: (ex: PhaseExercise) => void;
+}) {
   return (
-    <div className="flex items-center justify-between gap-3">
+    <button
+      type="button"
+      onClick={() => onSelect(exercise)}
+      aria-label={`Apri anteprima ${exercise.code}. ${exercise.name}`}
+      className={cn(
+        "w-full flex items-center justify-between gap-3 text-left",
+        "rounded-2xl p-1 -m-1",
+        "transition-transform active:scale-[0.99]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-container/40",
+      )}
+    >
       <div className="flex items-center gap-3 min-w-0">
         <span className="font-sans text-xs font-bold tracking-tighter text-on-surface-variant w-6 shrink-0">
           {exercise.code}
@@ -264,14 +340,20 @@ function CompactExerciseRow({ exercise }: { exercise: PhaseExercise }) {
       <span className="shrink-0 font-sans text-xs font-semibold text-on-surface-variant bg-surface-container/60 px-3 py-1 rounded-lg">
         {exercise.scheme}
       </span>
-    </div>
+    </button>
   );
 }
 
 // =============================================================================
 // BlockCard — full glass card for one Block.
 // =============================================================================
-function BlockCard({ block }: { block: PhaseBlock }) {
+function BlockCard({
+  block,
+  onSelectExercise,
+}: {
+  block: PhaseBlock;
+  onSelectExercise: (ex: PhaseExercise) => void;
+}) {
   const FooterIcon = block.footer.icon;
   return (
     <section
@@ -291,7 +373,11 @@ function BlockCard({ block }: { block: PhaseBlock }) {
       {block.compact ? (
         <div className="flex flex-col gap-4">
           {block.exercises.map((ex) => (
-            <CompactExerciseRow key={ex.id} exercise={ex} />
+            <CompactExerciseRow
+              key={ex.id}
+              exercise={ex}
+              onSelect={onSelectExercise}
+            />
           ))}
         </div>
       ) : (
@@ -301,6 +387,7 @@ function BlockCard({ block }: { block: PhaseBlock }) {
               key={ex.id}
               exercise={ex}
               showDivider={i < block.exercises.length - 1}
+              onSelect={onSelectExercise}
             />
           ))}
         </div>
@@ -406,6 +493,26 @@ export default function WorkoutPhaseDetail() {
     });
   };
 
+  /**
+   * Maps a PhaseExercise → PreviewExercise and routes to the preview.
+   * The PhaseExercise.scheme string is dropped on purpose: the preview
+   * binds its display to the structured sets/reps/weightKg/rpe fields
+   * so both screens stay numerically consistent.
+   */
+  const handleSelectExercise = (ex: PhaseExercise) => {
+    const payload: PreviewExercise = {
+      id: ex.id,
+      code: ex.code,
+      name: ex.name,
+      type: ex.type ?? "standard",
+      sets: ex.sets,
+      reps: ex.reps,
+      weightKg: ex.weightKg,
+      rpe: ex.rpe,
+    };
+    navigate("/athlete/exercise-preview", { state: { exercise: payload } });
+  };
+
   return (
     <div className="min-h-[100dvh] bg-surface text-on-surface font-sans antialiased pb-32">
       <TopBar onBack={() => navigate("/athlete/training")} />
@@ -413,7 +520,11 @@ export default function WorkoutPhaseDetail() {
       <main className="pt-20 px-5 max-w-lg mx-auto flex flex-col gap-6">
         <PhaseHeader />
         {PHASE.blocks.map((block) => (
-          <BlockCard key={block.id} block={block} />
+          <BlockCard
+            key={block.id}
+            block={block}
+            onSelectExercise={handleSelectExercise}
+          />
         ))}
         <CoachingNote />
       </main>

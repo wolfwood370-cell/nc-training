@@ -24,7 +24,17 @@ import { useRef, useState } from "react";
 import { Check, Megaphone, Plus, Play, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DrawerShell } from "./DrawerShell";
-import { useAthleteWorkoutStore } from "@/stores/useAthleteWorkoutStore";
+import {
+  useAthleteWorkoutStore,
+  type SetEntry,
+} from "@/stores/useAthleteWorkoutStore";
+
+// Module-scope stable empty array. Returning a fresh `[]` from a Zustand
+// selector breaks the default `Object.is` equality and forces the
+// component to re-render on every store mutation (including the 1Hz
+// timer tick from ActiveWorkout). A single shared reference is the
+// canonical fix.
+const EMPTY_SETS: SetEntry[] = [];
 
 interface StandardSetDrawerProps {
   isOpen: boolean;
@@ -65,7 +75,7 @@ export function StandardSetDrawer({
   // tick from ActiveWorkout, so we never subscribe to the whole store.
   const logSet = useAthleteWorkoutStore((s) => s.logSet);
   const completedSets = useAthleteWorkoutStore(
-    (s) => s.loggedSets[exerciseId] ?? [],
+    (s) => s.loggedSets[exerciseId] ?? EMPTY_SETS,
   );
 
   // Disabled until at least one of the fields is populated. We don't

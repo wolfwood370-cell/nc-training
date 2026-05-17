@@ -40,6 +40,8 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Activity,
   BarChart3,
+  CalendarClock,
+  CheckCircle2,
   ChevronRight,
   ChevronsUpDown,
   Clock,
@@ -49,6 +51,36 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAthleteWorkoutStore } from "@/stores/useAthleteWorkoutStore";
+import type {
+  ExerciseType,
+  PreviewExercise,
+} from "@/pages/athlete/ExercisePreview";
+
+// =============================================================================
+// Date helpers — pure functions, kept here so they're co-located with
+// the only consumer (the WeekStrip calendar).
+// =============================================================================
+function isSameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+function startOfDay(d: Date): Date {
+  const clone = new Date(d);
+  clone.setHours(0, 0, 0, 0);
+  return clone;
+}
+
+/**
+ * Returns < 0 for past, 0 for today, > 0 for future. Robust to timezone
+ * because we drop the time component before comparing.
+ */
+function compareDays(a: Date, b: Date): number {
+  return startOfDay(a).getTime() - startOfDay(b).getTime();
+}
 
 // =============================================================================
 // Domain types & mocks
@@ -60,8 +92,17 @@ interface Exercise {
   /** Optional letter code: "A1", "B1" — only on main-session exercises. */
   code?: string;
   name: string;
-  /** Free-form scheme string: "4 Serie × 6-8 Reps" or "60s" */
+  /** Free-form scheme string: "4 Serie × 6-8 Reps" or "60s". This is the
+   *  display text rendered ON the training hub card. The structured
+   *  fields below are what flows to the ExercisePreview when the user
+   *  taps the card — they're what the preview's variants bind to. */
   scheme: string;
+  /** Drives which ExercisePreview variant renders on tap. */
+  type: ExerciseType;
+  sets?: number;
+  reps?: string;
+  weightKg?: number;
+  rpe?: number;
 }
 
 interface Phase {
@@ -90,9 +131,30 @@ const TODAY_WORKOUT: {
       name: "Movement Prep",
       emphasised: false,
       exercises: [
-        { id: "1", name: "90/90 Stretch", scheme: "2 min" },
-        { id: "2", name: "RKC Front Plank", scheme: "60s" },
-        { id: "3", name: "Bird Dog", scheme: "10 reps" },
+        {
+          id: "1",
+          name: "90/90 Stretch",
+          scheme: "2 min",
+          type: "isometric",
+          sets: 2,
+          reps: "2 min",
+        },
+        {
+          id: "2",
+          name: "RKC Front Plank",
+          scheme: "60s",
+          type: "isometric",
+          sets: 3,
+          reps: "60s",
+        },
+        {
+          id: "3",
+          name: "Bird Dog",
+          scheme: "10 reps",
+          type: "standard",
+          sets: 2,
+          reps: "10",
+        },
       ],
     },
     {
@@ -105,18 +167,33 @@ const TODAY_WORKOUT: {
           code: "A1",
           name: "Barbell Back Squat",
           scheme: "4 Serie × 6-8 Reps",
+          type: "standard",
+          sets: 4,
+          reps: "6-8",
+          weightKg: 100,
+          rpe: 8,
         },
         {
           id: "b1",
           code: "B1",
           name: "Romanian Deadlift",
           scheme: "3 Serie × 10 Reps",
+          type: "standard",
+          sets: 3,
+          reps: "10",
+          weightKg: 80,
+          rpe: 8,
         },
         {
           id: "c1",
           code: "C1",
           name: "Bulgarian Split Squat",
           scheme: "3 Serie × 12 Reps",
+          type: "standard",
+          sets: 3,
+          reps: "12",
+          weightKg: 24,
+          rpe: 7,
         },
       ],
     },
@@ -133,10 +210,21 @@ const READINESS = {
   label: "Ottima",
 };
 
+interface WeekDay {
+  label: string;
+  date: number;
+  /** Full Date for click handlers. */
+  fullDate: Date;
+  isToday: boolean;
+  isSelected: boolean;
+}
+
 // =============================================================================
 // useWeekDays — Mon-Sun strip derived from today (Italian day initials).
+// Memoised on `selectedDate` so the "isSelected" flag updates as the
+// user taps a different day without rebuilding the array on every tick.
 // =============================================================================
-function useWeekDays() {
+function useWeekDays(selectedDate: Date): WeekDay[] {
   return useMemo(() => {
     const today = new Date();
     // Monday-anchored offset: getDay() returns 0=Sun..6=Sat. We want 0=Mon..6=Sun.
@@ -148,10 +236,12 @@ function useWeekDays() {
       return {
         label: initials[i],
         date: d.getDate(),
+        fullDate: d,
         isToday: i === todayMondayIdx,
+        isSelected: isSameDay(d, selectedDate),
       };
     });
-  }, []);
+  }, [selectedDate]);
 }
 
 // =============================================================================
@@ -217,10 +307,19 @@ function ViewSwitcher({
 }
 
 // =============================================================================
-// WeekStrip — 7-day Mon..Sun row with today highlighted.
+// WeekStrip — 7-day Mon..Sun row, fully interactive. Tapping a day
+// hoists the selection into the parent via `onSelectDate`. Today gets
+// the filled brand pill; the actively-selected day (which may or may
+// not be today) gets a brand ring so both signals stay readable.
 // =============================================================================
-function WeekStrip() {
-  const days = useWeekDays();
+function WeekStrip({
+  selectedDate,
+  onSelectDate,
+}: {
+  selectedDate: Date;
+  onSelectDate: (next: Date) => void;
+}) {
+  const days = useWeekDays(selectedDate);
   return (
     <div
       role="group"
@@ -228,7 +327,19 @@ function WeekStrip() {
       className="flex justify-between items-center py-2"
     >
       {days.map((d, i) => (
-        <div key={i} className="flex flex-col items-center gap-1">
+        <button
+          key={i}
+          type="button"
+          onClick={() => onSelectDate(d.fullDate)}
+          aria-pressed={d.isSelected}
+          aria-current={d.isToday ? "date" : undefined}
+          className={cn(
+            "flex flex-col items-center gap-1",
+            "rounded-full p-1",
+            "transition-transform active:scale-95",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-container/40",
+          )}
+        >
           <span
             className={cn(
               "font-sans text-[11px] font-semibold uppercase tracking-wider",
@@ -237,21 +348,89 @@ function WeekStrip() {
           >
             {d.label}
           </span>
-          <div
+          <span
             className={cn(
               "w-10 h-10 rounded-full flex items-center justify-center",
               "font-display font-bold tabular-nums text-sm",
               d.isToday
                 ? "bg-brand-container text-white shadow-[0_4px_14px_rgba(34,111,163,0.35)]"
                 : "text-on-surface-variant",
+              d.isSelected && !d.isToday && "ring-2 ring-brand-container/60",
             )}
-            aria-current={d.isToday ? "date" : undefined}
           >
             {d.date}
-          </div>
-        </div>
+          </span>
+        </button>
       ))}
     </div>
+  );
+}
+
+// =============================================================================
+// RestDayCard / FuturePlanCard — empty states for non-today selections.
+// =============================================================================
+function RestDayCard({ date }: { date: Date }) {
+  return (
+    <section
+      aria-label="Allenamento completato"
+      className={cn(
+        "rounded-3xl p-8",
+        "bg-white/70 backdrop-blur-xl border border-[#c0c7d0]/30",
+        "flex flex-col items-center justify-center text-center gap-3",
+        "min-h-[200px]",
+      )}
+    >
+      <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
+        <CheckCircle2
+          className="h-6 w-6 text-emerald-600"
+          strokeWidth={1.75}
+          aria-hidden="true"
+        />
+      </div>
+      <p className="font-display text-base font-semibold text-on-surface">
+        Allenamento completato
+      </p>
+      <p className="text-sm text-on-surface-variant max-w-[280px]">
+        {date.toLocaleDateString("it-IT", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+        })}
+      </p>
+    </section>
+  );
+}
+
+function FuturePlanCard({ date }: { date: Date }) {
+  return (
+    <section
+      aria-label="Allenamento pianificato"
+      className={cn(
+        "rounded-3xl p-8",
+        "bg-white/70 backdrop-blur-xl border border-[#c0c7d0]/30",
+        "flex flex-col items-center justify-center text-center gap-3",
+        "min-h-[200px]",
+      )}
+    >
+      <div className="h-12 w-12 rounded-full bg-brand-container/10 flex items-center justify-center">
+        <CalendarClock
+          className="h-6 w-6 text-brand-container"
+          strokeWidth={1.75}
+          aria-hidden="true"
+        />
+      </div>
+      <p className="font-display text-base font-semibold text-on-surface">
+        Pianificato
+      </p>
+      <p className="text-sm text-on-surface-variant max-w-[280px]">
+        {date.toLocaleDateString("it-IT", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+        })}{" "}
+        · Apri quando il giorno arriva.
+      </p>
+    </section>
   );
 }
 
@@ -621,6 +800,11 @@ function StickyStartCTA({ onStart }: { onStart: () => void }) {
 // =============================================================================
 export default function AthleteTraining() {
   const [view, setView] = useState<View>("diario");
+  // Calendar selection — defaults to today. We initialise lazily via a
+  // function so the Date() ticking past midnight between hot-reloads
+  // doesn't surface stale state.
+  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
+
   const navigate = useNavigate();
   // Pull only the action — we don't subscribe to state that we don't
   // read here, which keeps the page from re-rendering on every tick.
@@ -642,6 +826,15 @@ export default function AthleteTraining() {
     navigate("/athlete/exercise-preview", { state: { exercise } });
   };
 
+  // Day classification — drives both the conditional content (workout
+  // vs empty state) and whether the sticky "Inizia Sessione" CTA is
+  // rendered at all. Calling the start CTA on a past / future day
+  // would be confusing.
+  const today = new Date();
+  const dayDelta = compareDays(selectedDate, today);
+  const isToday = dayDelta === 0;
+  const isPast = dayDelta < 0;
+
   return (
     <>
       {/* pb-32 reserves bottom space for the sticky CTA + global nav so the
@@ -649,20 +842,28 @@ export default function AthleteTraining() {
       <div className="flex flex-col gap-6 pb-32">
         <PageHeader />
         <ViewSwitcher view={view} onChange={setView} />
-        <WeekStrip />
+        <WeekStrip selectedDate={selectedDate} onSelectDate={setSelectedDate} />
 
         {view === "diario" ? (
-          <>
-            <HeroWorkoutCard />
-            <GlanceCards />
-            <WorkoutBlueprint onSelectExercise={handleSelectExercise} />
-          </>
+          isToday ? (
+            <>
+              <HeroWorkoutCard />
+              <GlanceCards />
+              <WorkoutBlueprint onSelectExercise={handleSelectExercise} />
+            </>
+          ) : isPast ? (
+            <RestDayCard date={selectedDate} />
+          ) : (
+            <FuturePlanCard date={selectedDate} />
+          )
         ) : (
           <MetricheView />
         )}
       </div>
 
-      <StickyStartCTA onStart={handleStart} />
+      {/* Sticky CTA only makes sense for today. Past/future days have
+          their own state cards above; the CTA would be a dead button. */}
+      {view === "diario" && isToday && <StickyStartCTA onStart={handleStart} />}
     </>
   );
 }

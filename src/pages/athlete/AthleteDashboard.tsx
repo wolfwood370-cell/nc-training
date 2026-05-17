@@ -32,6 +32,7 @@ import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { User, Activity, Dumbbell, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAthleteWorkoutStore } from "@/stores/useAthleteWorkoutStore";
 
 // -----------------------------------------------------------------------------
 // MOCK DATA — single source of truth for this page until we wire the hooks.
@@ -224,9 +225,11 @@ function ReadinessCard({ onOpen }: { onOpen: () => void }) {
 }
 
 // =============================================================================
-// NextWorkoutCard — middle glass widget with primary CTA.
+// NextWorkoutCard — middle glass widget with primary CTA. The "Inizia
+// Sessione" button delegates to the page-level `onStart` handler so the
+// store / navigation wiring lives in one place at the composition root.
 // =============================================================================
-function NextWorkoutCard() {
+function NextWorkoutCard({ onStart }: { onStart: () => void }) {
   return (
     <section
       aria-label="Prossimo allenamento"
@@ -266,6 +269,7 @@ function NextWorkoutCard() {
 
       <button
         type="button"
+        onClick={onStart}
         className={cn(
           "z-10 w-full",
           "flex items-center justify-center gap-2",
@@ -333,6 +337,8 @@ function Header() {
 // =============================================================================
 export default function AthleteDashboard() {
   const navigate = useNavigate();
+  // Atomic selector — we only fire the action, never read state here.
+  const startSession = useAthleteWorkoutStore((s) => s.startSession);
 
   // Conditional readiness routing — log first, analyse second. The check
   // here is intentionally a top-level prop chain so when the data layer
@@ -344,6 +350,14 @@ export default function AthleteDashboard() {
     } else {
       navigate("/athlete/daily-checkin");
     }
+  };
+
+  /** Starts a session in the shared store and hands off to the
+   *  full-screen active workout overlay. Identical contract to the
+   *  AthleteTraining sticky CTA so both entry points stay symmetrical. */
+  const handleStartWorkout = () => {
+    startSession();
+    navigate("/athlete/active-workout");
   };
 
   return (
@@ -361,7 +375,7 @@ export default function AthleteDashboard() {
       </section>
 
       <ReadinessCard onOpen={handleReadinessCardClick} />
-      <NextWorkoutCard />
+      <NextWorkoutCard onStart={handleStartWorkout} />
     </div>
   );
 }

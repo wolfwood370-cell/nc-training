@@ -74,19 +74,26 @@ const RPE_LABELS: Record<Rpe, string> = {
 // exactly once per logSet, not twice (length + reduce).
 // =============================================================================
 function SessionStatsCard() {
-  const { totalSetsCompleted, totalVolumeKg } = useAthleteWorkoutStore((s) => {
-    let sets = 0;
-    let volume = 0;
+  // Two ATOMIC selectors instead of one object-returning selector.
+  // Returning a fresh `{ totalSetsCompleted, totalVolumeKg }` from a
+  // single selector breaks Zustand's default `Object.is` equality on
+  // every state change, which on a 1Hz-ticking store causes an
+  // unnecessary render per second AND has been the historical trigger
+  // for "Maximum update depth exceeded" loops when combined with a
+  // side-effecting render. Primitive returns are reference-stable
+  // by definition, so each selector only fires a re-render when its
+  // own number actually changes.
+  const totalSetsCompleted = useAthleteWorkoutStore((s) => {
+    let n = 0;
+    for (const list of Object.values(s.loggedSets)) n += list.length;
+    return n;
+  });
+  const totalVolumeKg = useAthleteWorkoutStore((s) => {
+    let v = 0;
     for (const list of Object.values(s.loggedSets)) {
-      sets += list.length;
-      for (const entry of list) {
-        volume += entry.weight * entry.reps;
-      }
+      for (const entry of list) v += entry.weight * entry.reps;
     }
-    return {
-      totalSetsCompleted: sets,
-      totalVolumeKg: Math.round(volume),
-    };
+    return Math.round(v);
   });
 
   return (

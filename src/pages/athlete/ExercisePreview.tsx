@@ -3,32 +3,32 @@
 // =============================================================================
 // Phase 6 — Single-exercise preview page. One file, four visual variants.
 //
-// Variants (selected via local useState in this commit; will become a route
-// param or a workout-context selector in the wiring commit):
+// Refactor (post-QA bug 5+6): the page used to render every variant via a
+// local `useState` demo toggle. It now accepts an `exercise: PreviewExercise`
+// off the router location state and renders EXACTLY ONE variant based on
+// `exercise.type`. Hardcoded "8 reps · 100 kg" strings have been replaced
+// by `exercise.sets` / `exercise.reps` / `exercise.weightKg` so the page
+// is consistent with whatever the caller (AthleteTraining or
+// WorkoutPhaseDetail) passed in.
 //
-//   1. "standard"   ←  exercise_preview_locked.html
-//        Video poster + coach note + locked logging table with dashed
-//        cells for the kg/reps inputs.
+// Variant catalogue:
+//   - "standard"   ←  exercise_preview_locked.html
+//        Video poster + coach note + locked logging table.
+//   - "intensity"  ←  intensity_protocol_preview.html
+//        Hero card + protocol breakdown + Target / RPE widgets.
+//   - "emom"       ←  time_based_protocol_preview_emom.html
+//        EMOM badge + numbered minute-window rows.
+//   - "isometric"  ←  timed_isometric_exercise_preview.html
+//        Stat row (Target / Durata / Sovraccarico) + coach tip.
 //
-//   2. "intensity"  ←  intensity_protocol_preview.html
-//        Hero image card + protocol breakdown (Activation + Micro-Sets
-//        with a vertical branch connector) + Target Volume / RPE widgets.
-//
-//   3. "emom"       ←  time_based_protocol_preview_emom.html
-//        EMOM badge + numbered minute-window rows ("Minuto 1, 3, 5...").
-//
-//   4. "isometric"  ←  timed_isometric_exercise_preview.html
-//        Single card with image, big "Duration" stat row (Target / Durata
-//        / Sovraccarico), coach tip.
+// Direct deep-links / refresh land on an empty route state — we fall
+// back to a sensible default exercise so the page never crashes.
 //
 // Mount: SIBLING of <AthleteLayout> at /athlete/exercise-preview.
 // Back affordance points to /athlete/training.
-//
-// All sub-components inline, mock data only.
 // =============================================================================
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
   Clock,
@@ -45,59 +45,45 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 // =============================================================================
-// Variant type — exposed as state for in-page QA toggle.
+// Public contract — exported so AthleteTraining + WorkoutPhaseDetail can
+// build a typed payload before calling navigate(..., { state: { exercise }}).
 // =============================================================================
-type ExerciseType = "standard" | "intensity" | "emom" | "isometric";
+export type ExerciseType = "standard" | "intensity" | "emom" | "isometric";
 
-const VARIANT_OPTIONS: { value: ExerciseType; label: string }[] = [
-  { value: "standard", label: "Std" },
-  { value: "intensity", label: "Int" },
-  { value: "emom", label: "EMOM" },
-  { value: "isometric", label: "Iso" },
-];
-
-// =============================================================================
-// VariantToggle — small dev-style segmented control to flip between the
-// four visual states. Disappears when this page is wired to real data.
-// =============================================================================
-function VariantToggle({
-  value,
-  onChange,
-}: {
-  value: ExerciseType;
-  onChange: (next: ExerciseType) => void;
-}) {
-  return (
-    <div
-      role="tablist"
-      aria-label="Anteprima variante (demo)"
-      className="flex items-center gap-1 p-1 rounded-full bg-surface-variant/40 border border-[#c0c7d0]/30"
-    >
-      {VARIANT_OPTIONS.map(({ value: v, label }) => {
-        const isActive = v === value;
-        return (
-          <button
-            key={v}
-            role="tab"
-            aria-selected={isActive}
-            type="button"
-            onClick={() => onChange(v)}
-            className={cn(
-              "flex-1 py-1.5 px-3 rounded-full",
-              "font-sans text-xs font-bold tracking-wide",
-              "transition-all duration-200",
-              isActive
-                ? "bg-brand-container text-white shadow-[0_4px_12px_rgba(34,111,163,0.25)]"
-                : "text-on-surface-variant hover:text-on-surface",
-            )}
-          >
-            {label}
-          </button>
-        );
-      })}
-    </div>
-  );
+export interface PreviewExercise {
+  id: string;
+  /** Programme code: "A1", "B2", "C1"... optional for warm-up moves. */
+  code?: string;
+  /** Display name, e.g. "Barbell Back Squat". */
+  name: string;
+  /** Drives which variant is rendered. */
+  type: ExerciseType;
+  /** Prescribed sets count. */
+  sets?: number;
+  /** Free-form reps prescription ("8", "6-8", "AMRAP", "60s"). */
+  reps?: string;
+  /** Prescribed load in kilograms. Undefined = bodyweight / N/A. */
+  weightKg?: number;
+  /** Target RPE 1..10. */
+  rpe?: number;
+  /** Optional sub-line (phase or protocol descriptor). */
+  meta?: string;
 }
+
+// Default fallback when the page is reached without route state (direct
+// URL, refresh, share). Renders a sensible "standard" preview so the
+// route doesn't 404 / blank-screen.
+const DEFAULT_EXERCISE: PreviewExercise = {
+  id: "a1",
+  code: "A1",
+  name: "Barbell Back Squat",
+  type: "standard",
+  sets: 4,
+  reps: "6-8",
+  weightKg: 100,
+  rpe: 8,
+  meta: "Forza Primaria",
+};
 
 // =============================================================================
 // TopBar — back + title + overflow menu.
@@ -198,20 +184,31 @@ function CoachNoteCard({ text }: { text: string }) {
 // =============================================================================
 // VARIANT 1 — Standard / Locked
 //   Video + title + coach note + lock banner + disabled logging table.
+//   Title, set count, reps target and weight all come from the prop so
+//   the same numbers shown in WorkoutPhaseDetail / AthleteTraining flow
+//   through unchanged.
 // =============================================================================
-function StandardVariant() {
-  const sets = [
-    { id: 1, target: "10 reps", previous: "80kg × 10" },
-    { id: 2, target: "10 reps", previous: "80kg × 10" },
-    { id: 3, target: "10 reps", previous: "80kg × 9" },
-  ];
+function StandardVariant({ exercise }: { exercise: PreviewExercise }) {
+  const fullName = exercise.code
+    ? `${exercise.code}. ${exercise.name}`
+    : exercise.name;
+  const setCount = exercise.sets ?? 3;
+  const repsTarget = exercise.reps ?? "—";
+  // "Previous-session" entries are historical and not part of the
+  // PreviewExercise contract; keep a single mock derived from the
+  // current weight so the row looks coherent.
+  const previousLabel =
+    exercise.weightKg !== undefined
+      ? `${exercise.weightKg}kg × ${repsTarget}`
+      : "—";
+
   return (
     <>
-      <VideoPlaceholder caption="A1. Barbell Back Squat" />
+      <VideoPlaceholder caption={fullName} />
 
       <section className="flex flex-col gap-4">
         <h2 className="font-display text-2xl font-bold tracking-tight text-on-surface">
-          A1. Barbell Back Squat
+          {fullName}
         </h2>
         <CoachNoteCard text="Concentrati sulla profondità e su una concentrica esplosiva." />
       </section>
@@ -249,19 +246,19 @@ function StandardVariant() {
             </span>
           ))}
         </div>
-        {sets.map((s) => (
+        {Array.from({ length: setCount }).map((_, i) => (
           <div
-            key={s.id}
+            key={i}
             className="grid grid-cols-[28px_1fr_1fr_56px_56px] gap-2 items-center px-2 py-3 bg-white/60 rounded-2xl border border-transparent"
           >
             <span className="font-sans text-xs font-semibold tabular-nums text-on-surface-variant text-center">
-              {s.id}
+              {i + 1}
             </span>
             <span className="text-sm text-on-surface-variant text-center">
-              {s.target}
+              {repsTarget} reps
             </span>
             <span className="text-sm text-on-surface-variant text-center">
-              {s.previous}
+              {previousLabel}
             </span>
             <div
               aria-disabled="true"
@@ -285,14 +282,28 @@ function StandardVariant() {
 // =============================================================================
 // VARIANT 2 — Intensity Protocol (Rest-Pause)
 //   Hero card + Activation + Micro-Sets with branch connector + Target /
-//   Intensity widgets.
+//   Intensity widgets. Title + code from the prop; the protocol-specific
+//   stages (Activation Set / Micro-Sets) stay as internal copy because
+//   they're not part of the PreviewExercise contract.
 // =============================================================================
-function IntensityVariant() {
+function IntensityVariant({ exercise }: { exercise: PreviewExercise }) {
+  const fullName = exercise.code
+    ? `${exercise.code}. ${exercise.name}`
+    : exercise.name;
+  const rpe = exercise.rpe ?? 9.5;
+  // "Volume Target" — best derived as sets × an indicative rep count
+  // when both are known; otherwise we fall back to a sensible default.
+  const repsNumeric = Number(exercise.reps);
+  const volumeTarget =
+    exercise.sets !== undefined && Number.isFinite(repsNumeric)
+      ? exercise.sets * repsNumeric
+      : 24;
+
   return (
     <>
       <section className="flex items-center justify-between">
         <h2 className="font-display text-xl font-bold tracking-tight text-on-surface">
-          Leg Day B
+          {exercise.meta ?? "Leg Day B"}
         </h2>
         <span className="font-sans text-[10px] font-semibold tracking-wider uppercase text-on-surface-variant bg-surface-container/60 px-3 py-1 rounded-full inline-flex items-center gap-1">
           <Clock className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />
@@ -309,7 +320,7 @@ function IntensityVariant() {
           "shadow-[0_10px_30px_rgba(80,118,142,0.05)]",
         )}
       >
-        <VideoPlaceholder caption="C1. Seated Leg Curl" />
+        <VideoPlaceholder caption={fullName} />
 
         <div className="p-6 flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -323,7 +334,7 @@ function IntensityVariant() {
 
           <div>
             <h3 className="font-display text-xl font-bold leading-tight text-on-surface">
-              C1. Seated Leg Curl
+              {fullName}
             </h3>
             <p className="mt-1 text-sm text-on-surface-variant">
               Isolamento · 1 serie totale (protocollo esteso)
@@ -400,7 +411,7 @@ function IntensityVariant() {
         </div>
       </section>
 
-      {/* Target / Intensity glance widgets */}
+      {/* Target / Intensity glance widgets — bound to the prop */}
       <div className="grid grid-cols-2 gap-3">
         <section
           aria-label="Volume target"
@@ -411,7 +422,7 @@ function IntensityVariant() {
           </span>
           <div className="flex items-baseline gap-1">
             <span className="font-display text-3xl font-bold text-on-surface tabular-nums">
-              24
+              {volumeTarget}
             </span>
             <span className="font-sans text-[11px] font-semibold text-on-surface-variant">
               REPS
@@ -427,7 +438,7 @@ function IntensityVariant() {
           </span>
           <div className="flex items-baseline gap-1">
             <span className="font-display text-3xl font-bold text-on-surface tabular-nums">
-              9.5
+              {rpe}
             </span>
             <span className="font-sans text-[11px] font-semibold text-on-surface-variant">
               RPE
@@ -441,9 +452,17 @@ function IntensityVariant() {
 
 // =============================================================================
 // VARIANT 3 — EMOM
-//   Block badge + numbered minute-windows.
+//   Block badge + numbered minute-windows. Block name + code from prop;
+//   the minute-window rows are protocol-specific and stay internal.
 // =============================================================================
-function EmomVariant() {
+function EmomVariant({ exercise }: { exercise: PreviewExercise }) {
+  const fullName = exercise.code
+    ? `${exercise.code}. ${exercise.name}`
+    : exercise.name;
+  // For EMOM the `reps` slot conventionally carries minutes — fall back
+  // to "12'" when missing so the badge never reads "—'".
+  const minutesLabel = exercise.reps ? `${exercise.reps}'` : "12'";
+
   const rows = [
     {
       id: "odd",
@@ -472,15 +491,15 @@ function EmomVariant() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <span className="font-sans text-[10px] font-semibold tracking-widest uppercase text-on-surface-variant">
-            Blocco di Condizionamento
+            {exercise.meta ?? "Blocco di Condizionamento"}
           </span>
           <h2 className="mt-1 font-display text-2xl font-bold leading-tight text-on-surface">
-            D. Engine Builder
+            {fullName}
           </h2>
         </div>
         <span className="shrink-0 inline-flex items-center gap-1 bg-brand-container text-white text-xs font-bold tracking-wide px-3 py-1.5 rounded-full">
           <Timer className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-          EMOM 12'
+          EMOM {minutesLabel}
         </span>
       </div>
 
@@ -517,9 +536,23 @@ function EmomVariant() {
 
 // =============================================================================
 // VARIANT 4 — Isometric
-//   Big stat row (Target / Durata / Sovraccarico) + coach tip.
+//   Big stat row (Target / Durata / Sovraccarico) + coach tip. All three
+//   stat values are bound to the prop:
+//     - Target      = exercise.sets serie
+//     - Durata      = exercise.reps  (free-form "60s" / "60 secondi")
+//     - Sovraccarico = weightKg-or-Bodyweight string
 // =============================================================================
-function IsometricVariant() {
+function IsometricVariant({ exercise }: { exercise: PreviewExercise }) {
+  const fullName = exercise.code
+    ? `${exercise.code}. ${exercise.name}`
+    : exercise.name;
+  const targetLabel = `${exercise.sets ?? 3} Serie`;
+  const durationLabel = exercise.reps ? exercise.reps : "60 secondi";
+  const overloadLabel =
+    exercise.weightKg !== undefined && exercise.weightKg > 0
+      ? `+${exercise.weightKg} kg`
+      : "Bodyweight";
+
   return (
     <section
       className={cn(
@@ -532,7 +565,7 @@ function IsometricVariant() {
     >
       <div className="flex items-start justify-between gap-3">
         <span className="font-sans text-[10px] font-semibold tracking-widest uppercase text-on-surface">
-          Fase 1: Core &amp; Stability
+          {exercise.meta ?? "Fase 1: Core & Stability"}
         </span>
         <span className="shrink-0 inline-flex items-center gap-1 bg-brand-container text-white text-xs font-bold tracking-wide px-3 py-1.5 rounded-full">
           <Timer className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
@@ -541,17 +574,17 @@ function IsometricVariant() {
       </div>
 
       <h2 className="font-display text-2xl font-bold text-on-surface">
-        A1. RKC Front Plank
+        {fullName}
       </h2>
 
-      <VideoPlaceholder caption="A1. RKC Front Plank" />
+      <VideoPlaceholder caption={fullName} />
 
-      {/* Stat row */}
+      {/* Stat row — all three values bound to the prop */}
       <div className="grid grid-cols-3 gap-3 rounded-2xl p-4 bg-surface-container/40 border border-[#c0c7d0]/25">
         {[
-          { label: "Target", value: "3 Serie", emphasised: false },
-          { label: "Durata", value: "60 secondi", emphasised: true },
-          { label: "Sovraccarico", value: "Bodyweight", emphasised: false },
+          { label: "Target", value: targetLabel, emphasised: false },
+          { label: "Durata", value: durationLabel, emphasised: true },
+          { label: "Sovraccarico", value: overloadLabel, emphasised: false },
         ].map((s) => (
           <div key={s.label} className="flex flex-col items-center text-center">
             <span className="font-sans text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">
@@ -628,11 +661,46 @@ function StickyStartCTA({ onStart }: { onStart: () => void }) {
 }
 
 // =============================================================================
-// ExercisePreview — page composition.
+// readExerciseFromLocationState — defensively type-narrows the unknown
+// `location.state` blob into a PreviewExercise. Anything missing or
+// shaped wrong falls back to DEFAULT_EXERCISE so the page never crashes
+// on a direct link / refresh.
+// =============================================================================
+function readExerciseFromLocationState(state: unknown): PreviewExercise {
+  if (
+    state &&
+    typeof state === "object" &&
+    "exercise" in state &&
+    state.exercise &&
+    typeof state.exercise === "object"
+  ) {
+    const candidate = state.exercise as Partial<PreviewExercise>;
+    if (
+      typeof candidate.id === "string" &&
+      typeof candidate.name === "string" &&
+      (candidate.type === "standard" ||
+        candidate.type === "intensity" ||
+        candidate.type === "emom" ||
+        candidate.type === "isometric")
+    ) {
+      return {
+        ...DEFAULT_EXERCISE,
+        ...candidate,
+      } as PreviewExercise;
+    }
+  }
+  return DEFAULT_EXERCISE;
+}
+
+// =============================================================================
+// ExercisePreview — page composition. Reads `exercise` off the router
+// location state (set by AthleteTraining / WorkoutPhaseDetail before
+// navigate) and renders EXACTLY ONE variant based on `exercise.type`.
 // =============================================================================
 export default function ExercisePreview() {
   const navigate = useNavigate();
-  const [exerciseType, setExerciseType] = useState<ExerciseType>("standard");
+  const location = useLocation();
+  const exercise = readExerciseFromLocationState(location.state);
 
   const handleStart = () => {
     toast.success("Esercizio avviato", {
@@ -645,14 +713,16 @@ export default function ExercisePreview() {
       <TopBar onBack={() => navigate("/athlete/training")} />
 
       <main className="pt-20 px-5 max-w-lg mx-auto flex flex-col gap-6">
-        {/* Variant toggle — demo only, removed when this page is wired
-            to real workout data. */}
-        <VariantToggle value={exerciseType} onChange={setExerciseType} />
-
-        {exerciseType === "standard" && <StandardVariant />}
-        {exerciseType === "intensity" && <IntensityVariant />}
-        {exerciseType === "emom" && <EmomVariant />}
-        {exerciseType === "isometric" && <IsometricVariant />}
+        {/* Conditional rendering on the exercise type — only ONE variant
+            renders at a time, driven by the data the caller passed in. */}
+        {exercise.type === "standard" && <StandardVariant exercise={exercise} />}
+        {exercise.type === "intensity" && (
+          <IntensityVariant exercise={exercise} />
+        )}
+        {exercise.type === "emom" && <EmomVariant exercise={exercise} />}
+        {exercise.type === "isometric" && (
+          <IsometricVariant exercise={exercise} />
+        )}
       </main>
 
       <StickyStartCTA onStart={handleStart} />

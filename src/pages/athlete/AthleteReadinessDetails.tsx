@@ -235,8 +235,19 @@ function MuscleRow({ muscle }: { muscle: SoreMuscle }) {
 
 // =============================================================================
 // TrendChart — inline SVG spline with gradient fill. Pure markup, no lib.
-//   Y axis maps 0..100 score → 100..0 SVG y (top-left origin).
-//   X axis maps 7 points evenly across 0..100.
+//
+// Layout changes vs the previous version:
+//   - Container height raised from h-32 (128px) to h-48 (192px) so the
+//     curve has room to breathe — previously the chart looked squashed
+//     horizontally even though the SVG is "non-scaling".
+//   - Data points are now overlaid as positioned divs (one per point)
+//     instead of pure <circle> nodes, so each one can be a
+//     `group cursor-pointer` parent with a tooltip that shows on hover.
+//     The SVG `<circle>`s remain underneath for the rendered dot
+//     itself; the divs are invisible hit areas.
+//
+// Y axis maps 0..100 score → 100..0 SVG y (top-left origin).
+// X axis maps N points evenly across 0..100.
 // =============================================================================
 function TrendChart({ points }: { points: readonly { day: string; score: number }[] }) {
   if (points.length === 0) return null;
@@ -262,7 +273,9 @@ function TrendChart({ points }: { points: readonly { day: string; score: number 
 
   return (
     <div className="w-full">
-      <div className="relative h-32 w-full">
+      {/* h-48 (192px) gives the curve real vertical room. The previous
+          h-32 made the spline look horizontally compressed on mobile. */}
+      <div className="relative h-48 w-full">
         {/* Grid lines for visual rhythm */}
         <div
           aria-hidden="true"
@@ -311,6 +324,46 @@ function TrendChart({ points }: { points: readonly { day: string; score: number 
             );
           })}
         </svg>
+
+        {/* Interactive hit areas + hover tooltips. One absolute-
+            positioned div per data point, sized large enough for touch
+            but visually invisible. The tooltip uses Tailwind's `group`
+            modifier to surface on hover. */}
+        {points.map((p, i) => {
+          const xPercent = xs[i];
+          const yPercent = ys[i];
+          return (
+            <div
+              key={i}
+              role="img"
+              aria-label={`${p.day}: ${p.score} su 100`}
+              className="group absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer"
+              style={{
+                left: `${xPercent}%`,
+                top: `${yPercent}%`,
+              }}
+            >
+              {/* Invisible square hit area (24×24) — gives mobile users
+                  a tappable target without changing the visual dot. */}
+              <div className="h-6 w-6" aria-hidden="true" />
+              {/* Tooltip — pops up on hover/focus, anchored above. */}
+              <div
+                role="tooltip"
+                className={cn(
+                  "pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2",
+                  "px-2 py-1 rounded-lg whitespace-nowrap",
+                  "bg-on-surface text-white",
+                  "font-sans text-[10px] font-semibold tabular-nums",
+                  "shadow-[0_4px_12px_rgba(0,30,45,0.25)]",
+                  "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100",
+                  "transition-opacity duration-150",
+                )}
+              >
+                {p.day} · {p.score}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <div className="flex justify-between mt-3 px-1">
@@ -337,12 +390,18 @@ function TrendChart({ points }: { points: readonly { day: string; score: number 
 
 // =============================================================================
 // TopBar — back arrow + centered title.
+//
+// The back button + the header itself are bumped to z-50 (was z-40) so
+// the glassmorphism band can't be over-painted by a sibling overlay.
+// `relative` on the button creates a stacking context so the z-50 has
+// a frame of reference; `cursor-pointer` is explicit because we
+// removed the native button affordance with the rounded-full styling.
 // =============================================================================
 function TopBar({ onBack }: { onBack: () => void }) {
   return (
     <header
       className={cn(
-        "fixed top-0 inset-x-0 z-40",
+        "fixed top-0 inset-x-0 z-50",
         "h-16 flex items-center px-4",
         "backdrop-blur-xl bg-white/85",
         "border-b border-[#c0c7d0]/40",
@@ -353,6 +412,7 @@ function TopBar({ onBack }: { onBack: () => void }) {
         onClick={onBack}
         aria-label="Torna alla dashboard"
         className={cn(
+          "relative z-50 cursor-pointer",
           "h-10 w-10 rounded-full",
           "flex items-center justify-center",
           "text-brand-container",
@@ -362,7 +422,7 @@ function TopBar({ onBack }: { onBack: () => void }) {
       >
         <ChevronLeft className="h-6 w-6" strokeWidth={2} aria-hidden="true" />
       </button>
-      <h1 className="flex-1 text-center -ml-10 font-display text-lg font-bold tracking-tight text-on-surface">
+      <h1 className="flex-1 text-center -ml-10 font-display text-lg font-bold tracking-tight text-on-surface pointer-events-none">
         Readiness
       </h1>
     </header>
