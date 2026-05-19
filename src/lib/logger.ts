@@ -28,26 +28,25 @@ const isDev = import.meta.env.DEV;
 export const log = {
   error: (...args: unknown[]): void => {
     if (isDev) {
-      // eslint-disable-next-line no-console
       console.error(...args);
     }
     // TODO: pipe through Sentry/LogRocket here once we wire it.
   },
   warn: (...args: unknown[]): void => {
     if (isDev) {
-      // eslint-disable-next-line no-console
       console.warn(...args);
     }
   },
   info: (...args: unknown[]): void => {
     if (isDev) {
-      // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console -- the wrapper IS the
+      // sanctioned place to bridge dev-time console.info usage.
       console.info(...args);
     }
   },
   debug: (...args: unknown[]): void => {
     if (isDev) {
-      // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console -- same as info above.
       console.debug(...args);
     }
   },
