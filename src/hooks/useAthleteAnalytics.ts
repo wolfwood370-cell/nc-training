@@ -40,7 +40,7 @@ export function useAthleteMetabolicData(athleteId: string | undefined) {
 
       const thirtyDaysAgo = subDays(new Date(), 30);
       const today = new Date();
-      
+
       // Fetch body weight from daily_readiness
       const { data: readinessData, error: readinessError } = await supabase
         .from("daily_readiness")
@@ -112,7 +112,7 @@ export function useAthleteMetabolicData(athleteId: string | undefined) {
 
 export function useAthleteStrengthProgression(
   athleteId: string | undefined,
-  exerciseName: string = "Back Squat"
+  exerciseName: string = "Back Squat",
 ) {
   return useQuery({
     queryKey: ["athlete-strength", athleteId, exerciseName],
@@ -122,14 +122,16 @@ export function useAthleteStrengthProgression(
       // Fetch workout logs with exercises
       const { data: logs, error: logsError } = await supabase
         .from("workout_logs")
-        .select(`
+        .select(
+          `
           id,
           completed_at,
           workout_exercises (
             exercise_name,
             sets_data
           )
-        `)
+        `,
+        )
         .eq("athlete_id", athleteId)
         .eq("status", "completed")
         .not("completed_at", "is", null)
@@ -141,14 +143,14 @@ export function useAthleteStrengthProgression(
 
       logs?.forEach((log) => {
         if (!log.completed_at || !log.workout_exercises) return;
-        
+
         const exercises = log.workout_exercises as Array<{
           exercise_name: string;
           sets_data: SetData[];
         }>;
-        
-        const matchingExercise = exercises.find(
-          (e) => e.exercise_name.toLowerCase().includes(exerciseName.toLowerCase())
+
+        const matchingExercise = exercises.find((e) =>
+          e.exercise_name.toLowerCase().includes(exerciseName.toLowerCase()),
         );
 
         if (matchingExercise && matchingExercise.sets_data) {
@@ -195,14 +197,16 @@ export function useAthleteVolumeIntensity(athleteId: string | undefined) {
 
       const { data: logs, error: logsError } = await supabase
         .from("workout_logs")
-        .select(`
+        .select(
+          `
           id,
           completed_at,
           rpe_global,
           workout_exercises (
             sets_data
           )
-        `)
+        `,
+        )
         .eq("athlete_id", athleteId)
         .eq("status", "completed")
         .not("completed_at", "is", null)
@@ -238,9 +242,7 @@ export function useAthleteVolumeIntensity(athleteId: string | undefined) {
         });
 
         // Use session RPE if no set RPE available
-        const avgRpe = rpeCount > 0 
-          ? totalRpe / rpeCount 
-          : (log.rpe_global ?? 7);
+        const avgRpe = rpeCount > 0 ? totalRpe / rpeCount : (log.rpe_global ?? 7);
 
         const date = new Date(log.completed_at);
         dataPoints.push({
@@ -265,11 +267,13 @@ export function useAthleteExerciseList(athleteId: string | undefined) {
 
       const { data: logs, error } = await supabase
         .from("workout_logs")
-        .select(`
+        .select(
+          `
           workout_exercises (
             exercise_name
           )
-        `)
+        `,
+        )
         .eq("athlete_id", athleteId)
         .eq("status", "completed");
 

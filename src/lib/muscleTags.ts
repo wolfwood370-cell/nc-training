@@ -2,11 +2,7 @@
 export const MUSCLE_TAGS = {
   chest: {
     label: "Petto",
-    muscles: [
-      "Pettorali (c. clavicolari)",
-      "Pettorali (c. sternali)",
-      "Pettorali (c. costali)",
-    ],
+    muscles: ["Pettorali (c. clavicolari)", "Pettorali (c. sternali)", "Pettorali (c. costali)"],
   },
   back: {
     label: "Schiena",
@@ -20,11 +16,7 @@ export const MUSCLE_TAGS = {
   },
   shoulders: {
     label: "Spalle",
-    muscles: [
-      "Deltoidi (anteriori)",
-      "Deltoidi (mediali)",
-      "Deltoidi (posteriori)",
-    ],
+    muscles: ["Deltoidi (anteriori)", "Deltoidi (mediali)", "Deltoidi (posteriori)"],
   },
   arms: {
     label: "Braccia",
@@ -59,9 +51,7 @@ export const MUSCLE_TAGS = {
 } as const;
 
 // Flat list of all muscles for easy iteration
-export const ALL_MUSCLES = Object.values(MUSCLE_TAGS).flatMap(
-  (category) => category.muscles
-);
+export const ALL_MUSCLES = Object.values(MUSCLE_TAGS).flatMap((category) => category.muscles);
 
 // Movement patterns for exercise classification
 export const MOVEMENT_PATTERNS = [

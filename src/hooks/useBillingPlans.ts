@@ -50,7 +50,12 @@ export function useBillingPlans() {
   });
 
   const createPlanMutation = useMutation({
-    mutationFn: async (payload: { name: string; price_amount: number; billing_interval: string; description?: string }) => {
+    mutationFn: async (payload: {
+      name: string;
+      price_amount: number;
+      billing_interval: string;
+      description?: string;
+    }) => {
       if (!user) throw new Error("Non autenticato");
       const { data, error } = await supabase
         .from("billing_plans")

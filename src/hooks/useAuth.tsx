@@ -34,39 +34,39 @@ export function useAuth() {
     mountedRef.current = true;
 
     // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mountedRef.current) return;
-        setState(prev => ({ ...prev, session, user: session?.user ?? null }));
-        
-        if (session?.user) {
-          // Fetch profile - use setTimeout to avoid race condition
-          setTimeout(async () => {
-            if (!mountedRef.current) return;
-            const { data: profile } = await supabase
-              .from("profiles")
-              .select("*")
-              .eq("id", session.user.id)
-              .maybeSingle();
-            
-            if (!mountedRef.current) return;
-            setState(prev => ({ 
-              ...prev, 
-              profile: profile as Profile | null,
-              loading: false 
-            }));
-          }, 0);
-        } else {
-          setState(prev => ({ ...prev, profile: null, loading: false }));
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mountedRef.current) return;
+      setState((prev) => ({ ...prev, session, user: session?.user ?? null }));
+
+      if (session?.user) {
+        // Fetch profile - use setTimeout to avoid race condition
+        setTimeout(async () => {
+          if (!mountedRef.current) return;
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", session.user.id)
+            .maybeSingle();
+
+          if (!mountedRef.current) return;
+          setState((prev) => ({
+            ...prev,
+            profile: profile as Profile | null,
+            loading: false,
+          }));
+        }, 0);
+      } else {
+        setState((prev) => ({ ...prev, profile: null, loading: false }));
       }
-    );
+    });
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mountedRef.current) return;
       if (!session) {
-        setState(prev => ({ ...prev, loading: false }));
+        setState((prev) => ({ ...prev, loading: false }));
       }
     });
 
@@ -76,7 +76,12 @@ export function useAuth() {
     };
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, role: "coach" | "athlete") => {
+  const signUp = async (
+    email: string,
+    password: string,
+    fullName: string,
+    role: "coach" | "athlete",
+  ) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -109,14 +114,18 @@ export function useAuth() {
 
     // Clear Zustand persisted state
     try {
-      localStorage.removeItem('active-workout-storage');
-    } catch { /* ignore */ }
+      localStorage.removeItem("active-workout-storage");
+    } catch {
+      /* ignore */
+    }
 
     // Clear offline sync queue
     try {
-      localStorage.removeItem('offline_workout_queue');
-      localStorage.removeItem('last_feedback_timestamp');
-    } catch { /* ignore */ }
+      localStorage.removeItem("offline_workout_queue");
+      localStorage.removeItem("last_feedback_timestamp");
+    } catch {
+      /* ignore */
+    }
 
     // Clear IndexedDB offline storage
     try {
@@ -124,10 +133,12 @@ export function useAuth() {
       for (const db of dbs) {
         if (db.name) indexedDB.deleteDatabase(db.name);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     // Hard reload to fully reset JS memory
-    window.location.href = '/auth';
+    window.location.href = "/auth";
   };
 
   return {

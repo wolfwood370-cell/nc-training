@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import SunCalc from 'suncalc';
+import { useState, useEffect, useCallback } from "react";
+import SunCalc from "suncalc";
 
 interface SunTimes {
   sunrise: Date;
@@ -7,9 +7,9 @@ interface SunTimes {
 }
 
 interface UseSunThemeReturn {
-  currentTheme: 'light' | 'dark';
+  currentTheme: "light" | "dark";
   sunTimes: SunTimes | null;
-  locationStatus: 'pending' | 'granted' | 'denied' | 'unavailable';
+  locationStatus: "pending" | "granted" | "denied" | "unavailable";
 }
 
 const FALLBACK_SUNRISE_HOUR = 6;
@@ -18,28 +18,30 @@ const CHECK_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
 
 export function useSunTheme(): UseSunThemeReturn {
   const [sunTimes, setSunTimes] = useState<SunTimes | null>(null);
-  const [locationStatus, setLocationStatus] = useState<'pending' | 'granted' | 'denied' | 'unavailable'>('pending');
-  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
+  const [locationStatus, setLocationStatus] = useState<
+    "pending" | "granted" | "denied" | "unavailable"
+  >("pending");
+  const [currentTheme, setCurrentTheme] = useState<"light" | "dark">("light");
 
   // Calculate fallback times
   const getFallbackTimes = useCallback((): SunTimes => {
     const now = new Date();
     const sunrise = new Date(now);
     sunrise.setHours(FALLBACK_SUNRISE_HOUR, 0, 0, 0);
-    
+
     const sunset = new Date(now);
     sunset.setHours(FALLBACK_SUNSET_HOUR, 0, 0, 0);
-    
+
     return { sunrise, sunset };
   }, []);
 
   // Determine theme based on current time and sun times
-  const calculateTheme = useCallback((times: SunTimes): 'light' | 'dark' => {
+  const calculateTheme = useCallback((times: SunTimes): "light" | "dark" => {
     const now = new Date();
     const isAfterSunset = now >= times.sunset;
     const isBeforeSunrise = now < times.sunrise;
-    
-    return (isAfterSunset || isBeforeSunrise) ? 'dark' : 'light';
+
+    return isAfterSunset || isBeforeSunrise ? "dark" : "light";
   }, []);
 
   // Request geolocation and calculate sun times - always enabled
@@ -53,21 +55,21 @@ export function useSunTheme(): UseSunThemeReturn {
     };
 
     if (!navigator.geolocation) {
-      setLocationStatus('unavailable');
+      setLocationStatus("unavailable");
       setSunTimes(getFallbackTimes());
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLocationStatus('granted');
+        setLocationStatus("granted");
         updateSunTimes(position.coords.latitude, position.coords.longitude);
       },
       () => {
-        setLocationStatus('denied');
+        setLocationStatus("denied");
         setSunTimes(getFallbackTimes());
       },
-      { timeout: 10000, enableHighAccuracy: false }
+      { timeout: 10000, enableHighAccuracy: false },
     );
   }, [getFallbackTimes]);
 

@@ -66,7 +66,7 @@ function calculateDailyLoads(logs: WorkoutLogRaw[], days: number): number[] {
     targetDate.setDate(now.getDate() - i);
     const dateStr = targetDate.toISOString().split("T")[0];
     const dayLoad = logs
-      .filter(log => log.completed_at && log.completed_at.split("T")[0] === dateStr)
+      .filter((log) => log.completed_at && log.completed_at.split("T")[0] === dateStr)
       .reduce((sum, log) => {
         const rpe = log.srpe ?? log.rpe_global ?? 0;
         const durationMinutes = (log.duration_seconds ?? 0) / 60;
@@ -77,7 +77,11 @@ function calculateDailyLoads(logs: WorkoutLogRaw[], days: number): number[] {
   return dailyLoads;
 }
 
-function calculateAcwr(dailyLoads: number[]): { acwr: number | null; acuteLoad: number; chronicLoad: number } {
+function calculateAcwr(dailyLoads: number[]): {
+  acwr: number | null;
+  acuteLoad: number;
+  chronicLoad: number;
+} {
   if (dailyLoads.length < 28) return { acwr: null, acuteLoad: 0, chronicLoad: 0 };
   const acuteDays = dailyLoads.slice(-7);
   const acuteLoad = acuteDays.reduce((a, b) => a + b, 0) / 7;
@@ -90,19 +94,49 @@ function calculateAcwr(dailyLoads: number[]): { acwr: number | null; acuteLoad: 
   };
 }
 
-function assessRisks(acwr: number | null, readiness: number | null): { riskLevel: RiskLevel; riskFlags: RiskFlag[] } {
+function assessRisks(
+  acwr: number | null,
+  readiness: number | null,
+): { riskLevel: RiskLevel; riskFlags: RiskFlag[] } {
   const flags: RiskFlag[] = [];
   if (acwr !== null) {
-    if (acwr > 1.5) flags.push({ type: "high_injury_risk", label: "High Injury Risk", level: "high", value: `ACWR ${acwr.toFixed(2)}`, details: "Acute workload significantly exceeds chronic capacity" });
-    else if (acwr > 1.3) flags.push({ type: "overload_warning", label: "Overload Warning", level: "moderate", value: `ACWR ${acwr.toFixed(2)}`, details: "Approaching injury risk zone" });
-    else if (acwr < 0.8) flags.push({ type: "detraining_risk", label: "Detraining Risk", level: "moderate", value: `ACWR ${acwr.toFixed(2)}`, details: "Training load may be insufficient" });
+    if (acwr > 1.5)
+      flags.push({
+        type: "high_injury_risk",
+        label: "High Injury Risk",
+        level: "high",
+        value: `ACWR ${acwr.toFixed(2)}`,
+        details: "Acute workload significantly exceeds chronic capacity",
+      });
+    else if (acwr > 1.3)
+      flags.push({
+        type: "overload_warning",
+        label: "Overload Warning",
+        level: "moderate",
+        value: `ACWR ${acwr.toFixed(2)}`,
+        details: "Approaching injury risk zone",
+      });
+    else if (acwr < 0.8)
+      flags.push({
+        type: "detraining_risk",
+        label: "Detraining Risk",
+        level: "moderate",
+        value: `ACWR ${acwr.toFixed(2)}`,
+        details: "Training load may be insufficient",
+      });
   }
   if (readiness !== null && readiness < 40) {
-    flags.push({ type: "low_recovery", label: "Low Recovery", level: "high", value: `Readiness ${readiness}/100`, details: "Athlete reports poor recovery status" });
+    flags.push({
+      type: "low_recovery",
+      label: "Low Recovery",
+      level: "high",
+      value: `Readiness ${readiness}/100`,
+      details: "Athlete reports poor recovery status",
+    });
   }
   let riskLevel: RiskLevel = "optimal";
-  if (flags.some(f => f.level === "high")) riskLevel = "high";
-  else if (flags.some(f => f.level === "moderate")) riskLevel = "moderate";
+  if (flags.some((f) => f.level === "high")) riskLevel = "high";
+  else if (flags.some((f) => f.level === "moderate")) riskLevel = "moderate";
   else if (acwr !== null && acwr >= 0.8 && acwr <= 1.3) riskLevel = "optimal";
   else if (acwr === null && readiness === null) riskLevel = "low";
   return { riskLevel, riskFlags: flags };
@@ -129,7 +163,7 @@ export function useAthletesRiskOverview() {
     enabled: !!user && profile?.role === "coach",
   });
 
-  const athleteIds = athletesQuery.data?.map(a => a.id) ?? [];
+  const athleteIds = athletesQuery.data?.map((a) => a.id) ?? [];
 
   const logsQuery = useQuery({
     queryKey: ["risk-overview-logs", user?.id, athleteIds.join(",")],
@@ -180,16 +214,25 @@ export function useAthletesRiskOverview() {
     enabled: !!user && profile?.role === "coach" && athleteIds.length > 0,
   });
 
-  const athleteRiskData: AthleteRiskData[] = (athletesQuery.data ?? []).map(athlete => {
-    const athleteLogs = (logsQuery.data ?? []).filter(log => log.athlete_id === athlete.id);
+  const athleteRiskData: AthleteRiskData[] = (athletesQuery.data ?? []).map((athlete) => {
+    const athleteLogs = (logsQuery.data ?? []).filter((log) => log.athlete_id === athlete.id);
     const dailyLoadHistory = calculateDailyLoads(athleteLogs, 28);
     const { acwr, acuteLoad, chronicLoad } = calculateAcwr(dailyLoadHistory);
-    const latestMetric = (metricsQuery.data ?? []).find(m => m.user_id === athlete.id);
-    const latestReadinessRecord = (readinessQuery.data ?? []).find(r => r.athlete_id === athlete.id);
-    const latestReadiness = latestMetric?.subjective_readiness ?? latestReadinessRecord?.score ?? null;
+    const latestMetric = (metricsQuery.data ?? []).find((m) => m.user_id === athlete.id);
+    const latestReadinessRecord = (readinessQuery.data ?? []).find(
+      (r) => r.athlete_id === athlete.id,
+    );
+    const latestReadiness =
+      latestMetric?.subjective_readiness ?? latestReadinessRecord?.score ?? null;
     const readinessDate = latestMetric?.date ?? latestReadinessRecord?.date ?? null;
     const { riskLevel, riskFlags } = assessRisks(acwr, latestReadiness);
-    const avatarInitials = athlete.full_name?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) ?? "??";
+    const avatarInitials =
+      athlete.full_name
+        ?.split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2) ?? "??";
     return {
       athleteId: athlete.id,
       athleteName: athlete.full_name ?? "Atleta",
@@ -212,14 +255,22 @@ export function useAthletesRiskOverview() {
     return riskOrder[a.riskLevel] - riskOrder[b.riskLevel];
   });
 
-  const needsAttention = sortedAthletes.filter(a => a.riskLevel === "high" || a.riskLevel === "moderate");
-  const healthyAthletes = sortedAthletes.filter(a => a.riskLevel === "optimal" || a.riskLevel === "low");
+  const needsAttention = sortedAthletes.filter(
+    (a) => a.riskLevel === "high" || a.riskLevel === "moderate",
+  );
+  const healthyAthletes = sortedAthletes.filter(
+    (a) => a.riskLevel === "optimal" || a.riskLevel === "low",
+  );
 
   return {
     allAthletes: sortedAthletes,
     needsAttention,
     healthyAthletes,
-    isLoading: athletesQuery.isLoading || logsQuery.isLoading || metricsQuery.isLoading || readinessQuery.isLoading,
+    isLoading:
+      athletesQuery.isLoading ||
+      logsQuery.isLoading ||
+      metricsQuery.isLoading ||
+      readinessQuery.isLoading,
     error: athletesQuery.error || logsQuery.error || metricsQuery.error || readinessQuery.error,
   };
 }

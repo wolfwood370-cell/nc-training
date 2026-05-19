@@ -81,10 +81,10 @@ export interface SorenessMap {
 // =========================================
 
 export interface ProfileSettings {
-  theme?: 'light' | 'dark' | 'system';
+  theme?: "light" | "dark" | "system";
   notifications_enabled?: boolean;
   weekly_goal_sessions?: number;
-  preferred_units?: 'metric' | 'imperial';
+  preferred_units?: "metric" | "imperial";
   locale?: string;
   [key: string]: string | number | boolean | undefined;
 }
@@ -110,13 +110,13 @@ export interface OneRmData {
 // =========================================
 
 export function isSetDataRecord(obj: unknown): obj is SetDataRecord {
-  if (typeof obj !== 'object' || obj === null) return false;
+  if (typeof obj !== "object" || obj === null) return false;
   const record = obj as Record<string, unknown>;
   return (
-    typeof record.set_number === 'number' &&
-    typeof record.reps === 'number' &&
-    typeof record.weight_kg === 'number' &&
-    typeof record.completed === 'boolean'
+    typeof record.set_number === "number" &&
+    typeof record.reps === "number" &&
+    typeof record.weight_kg === "number" &&
+    typeof record.completed === "boolean"
   );
 }
 
@@ -125,11 +125,11 @@ export function isSetsDataArray(arr: unknown): arr is SetsDataArray {
 }
 
 export function isExerciseDataRecord(obj: unknown): obj is ExerciseDataRecord {
-  if (typeof obj !== 'object' || obj === null) return false;
+  if (typeof obj !== "object" || obj === null) return false;
   const record = obj as Record<string, unknown>;
   return (
-    typeof record.exercise_name === 'string' &&
-    typeof record.exercise_order === 'number' &&
+    typeof record.exercise_name === "string" &&
+    typeof record.exercise_order === "number" &&
     isSetsDataArray(record.sets_data)
   );
 }
@@ -139,12 +139,12 @@ export function isExercisesDataArray(arr: unknown): arr is ExercisesDataArray {
 }
 
 export function isWorkoutStructureExercise(obj: unknown): obj is WorkoutStructureExercise {
-  if (typeof obj !== 'object' || obj === null) return false;
+  if (typeof obj !== "object" || obj === null) return false;
   const record = obj as Record<string, unknown>;
   return (
-    typeof record.name === 'string' &&
-    typeof record.sets === 'number' &&
-    typeof record.reps === 'string'
+    typeof record.name === "string" &&
+    typeof record.sets === "number" &&
+    typeof record.reps === "string"
   );
 }
 
@@ -161,11 +161,11 @@ export function parseSetsData(data: unknown): SetsDataArray {
   if (Array.isArray(data)) {
     // Attempt to coerce partial data
     return data.map((item, index) => ({
-      set_number: (item as Record<string, unknown>)?.set_number as number ?? index + 1,
-      reps: (item as Record<string, unknown>)?.reps as number ?? 0,
-      weight_kg: (item as Record<string, unknown>)?.weight_kg as number ?? 0,
+      set_number: ((item as Record<string, unknown>)?.set_number as number) ?? index + 1,
+      reps: ((item as Record<string, unknown>)?.reps as number) ?? 0,
+      weight_kg: ((item as Record<string, unknown>)?.weight_kg as number) ?? 0,
       rpe: (item as Record<string, unknown>)?.rpe as number | undefined,
-      completed: (item as Record<string, unknown>)?.completed as boolean ?? false,
+      completed: ((item as Record<string, unknown>)?.completed as boolean) ?? false,
     }));
   }
   return [];
@@ -175,8 +175,8 @@ export function parseExercisesData(data: unknown): ExercisesDataArray {
   if (isExercisesDataArray(data)) return data;
   if (Array.isArray(data)) {
     return data.map((item, index) => ({
-      exercise_name: (item as Record<string, unknown>)?.exercise_name as string ?? 'Unknown',
-      exercise_order: (item as Record<string, unknown>)?.exercise_order as number ?? index,
+      exercise_name: ((item as Record<string, unknown>)?.exercise_name as string) ?? "Unknown",
+      exercise_order: ((item as Record<string, unknown>)?.exercise_order as number) ?? index,
       sets_data: parseSetsData((item as Record<string, unknown>)?.sets_data),
       notes: (item as Record<string, unknown>)?.notes as string | undefined,
     }));
@@ -189,9 +189,9 @@ export function parseWorkoutStructure(data: unknown): WorkoutStructureArray {
   if (Array.isArray(data)) {
     return data.map((item) => ({
       id: (item as Record<string, unknown>)?.id as string | undefined,
-      name: (item as Record<string, unknown>)?.name as string ?? 'Unknown',
-      sets: (item as Record<string, unknown>)?.sets as number ?? 3,
-      reps: (item as Record<string, unknown>)?.reps as string ?? '8',
+      name: ((item as Record<string, unknown>)?.name as string) ?? "Unknown",
+      sets: ((item as Record<string, unknown>)?.sets as number) ?? 3,
+      reps: ((item as Record<string, unknown>)?.reps as string) ?? "8",
       load: (item as Record<string, unknown>)?.load as string | undefined,
       notes: (item as Record<string, unknown>)?.notes as string | undefined,
       restSeconds: (item as Record<string, unknown>)?.restSeconds as number | undefined,
@@ -202,16 +202,16 @@ export function parseWorkoutStructure(data: unknown): WorkoutStructureArray {
 }
 
 export function parseSorenessMap(data: unknown): SorenessMap {
-  if (typeof data !== 'object' || data === null) return {};
+  if (typeof data !== "object" || data === null) return {};
   return data as SorenessMap;
 }
 
 export function parseProfileSettings(data: unknown): ProfileSettings {
-  if (typeof data !== 'object' || data === null) return {};
+  if (typeof data !== "object" || data === null) return {};
   return data as ProfileSettings;
 }
 
 export function parseOneRmData(data: unknown): OneRmData {
-  if (typeof data !== 'object' || data === null) return {};
+  if (typeof data !== "object" || data === null) return {};
   return data as OneRmData;
 }

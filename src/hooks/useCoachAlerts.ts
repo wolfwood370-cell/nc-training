@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
-import { useEffect } from"react";
-import { supabase } from"@/integrations/supabase/client";
-import { useAuth } from"./useAuth";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
 
 export interface CoachAlert {
   id: string;
@@ -9,7 +9,7 @@ export interface CoachAlert {
   athlete_id: string;
   workout_log_id: string | null;
   type: string;
-  severity:"high"|"medium"|"low";
+  severity: "high" | "medium" | "low";
   message: string;
   link: string | null;
   read: boolean;
@@ -33,9 +33,11 @@ export function useCoachAlerts() {
 
       const { data, error } = await supabase
         .from("coach_alerts")
-        .select(`          *,
+        .select(
+          `          *,
           athlete:profiles!coach_alerts_athlete_id_fkey(id, full_name, avatar_url)
-        `)
+        `,
+        )
         .eq("coach_id", user.id)
         .eq("dismissed", false)
         .order("created_at", { ascending: false })
@@ -56,24 +58,24 @@ export function useCoachAlerts() {
       .on(
         "postgres_changes",
         {
-          event:"INSERT",
-          schema:"public",
-          table:"coach_alerts",
-          filter:`coach_id=eq.${user.id}`,
+          event: "INSERT",
+          schema: "public",
+          table: "coach_alerts",
+          filter: `coach_id=eq.${user.id}`,
         },
         (payload) => {
           queryClient.invalidateQueries({ queryKey: ["coach-alerts"] });
 
           // Browser push notification
-          if ("Notification"in window && Notification.permission ==="granted") {
+          if ("Notification" in window && Notification.permission === "granted") {
             const alert = payload.new as CoachAlert;
             new Notification("Risk Alert", {
               body: alert.message,
-              icon:"/favicon.ico",
+              icon: "/favicon.ico",
               tag: alert.id,
             });
           }
-        }
+        },
       )
       .subscribe();
 
@@ -84,7 +86,7 @@ export function useCoachAlerts() {
 
   // Request notification permission
   useEffect(() => {
-    if ("Notification"in window && Notification.permission ==="default") {
+    if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
     }
   }, []);

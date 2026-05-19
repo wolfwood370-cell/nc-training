@@ -75,7 +75,7 @@ export type FmsScore = 0 | 1 | 2 | 3;
 export type NullableScore = FmsScore | null;
 
 /** The two sides for asymmetrical tests. */
-export type Side = 'left' | 'right';
+export type Side = "left" | "right";
 
 // ---------------------------------------------------------------------------
 // Test catalog
@@ -97,25 +97,25 @@ export type Side = 'left' | 'right';
  *   - rotary_stability
  */
 export type FmsTestId =
-  | 'deep_squat'
-  | 'hurdle_step'
-  | 'inline_lunge'
-  | 'shoulder_mobility'
-  | 'active_straight_leg_raise'
-  | 'trunk_stability_pushup'
-  | 'rotary_stability';
+  | "deep_squat"
+  | "hurdle_step"
+  | "inline_lunge"
+  | "shoulder_mobility"
+  | "active_straight_leg_raise"
+  | "trunk_stability_pushup"
+  | "rotary_stability";
 
 /**
  * Stable identifiers for the 3 binary clearing tests. Each gates exactly
  * one movement pattern (see CLEARING_GATE below).
  */
 export type ClearingTestId =
-  | 'shoulder_impingement'    // gates shoulder_mobility
-  | 'spinal_extension'        // gates trunk_stability_pushup
-  | 'spinal_flexion';         // gates rotary_stability
+  | "shoulder_impingement" // gates shoulder_mobility
+  | "spinal_extension" // gates trunk_stability_pushup
+  | "spinal_flexion"; // gates rotary_stability
 
 /** Discriminator: how is this test scored? */
-export type TestKind = 'bilateral' | 'asymmetrical';
+export type TestKind = "bilateral" | "asymmetrical";
 
 /**
  * Static metadata for a single FMS test. This is a *catalog* entry — the
@@ -162,74 +162,74 @@ export interface ClearingTestDefinition {
  */
 export const FMS_TESTS: readonly FmsTestDefinition[] = [
   {
-    id: 'deep_squat',
-    displayName: 'Deep Squat',
-    canonicalName: 'Deep Squat',
-    kind: 'bilateral',
-    bodyArea: 'Lower Body — Bilateral',
+    id: "deep_squat",
+    displayName: "Deep Squat",
+    canonicalName: "Deep Squat",
+    kind: "bilateral",
+    bodyArea: "Lower Body — Bilateral",
     gatedBy: null,
     description:
-      'Symmetrical, functional mobility of the hips, knees, and ankles. Dowel held overhead, feet shoulder-width, descend to thighs below parallel.',
+      "Symmetrical, functional mobility of the hips, knees, and ankles. Dowel held overhead, feet shoulder-width, descend to thighs below parallel.",
   },
   {
-    id: 'hurdle_step',
-    displayName: 'Hurdle Step',
-    canonicalName: 'Hurdle Step',
-    kind: 'asymmetrical',
-    bodyArea: 'Hip — Stride Stance',
+    id: "hurdle_step",
+    displayName: "Hurdle Step",
+    canonicalName: "Hurdle Step",
+    kind: "asymmetrical",
+    bodyArea: "Hip — Stride Stance",
     gatedBy: null,
     description:
-      'Step-up over a hurdle at tibial-tuberosity height. Tests single-leg stance stability and stepping-leg hip mobility.',
+      "Step-up over a hurdle at tibial-tuberosity height. Tests single-leg stance stability and stepping-leg hip mobility.",
   },
   {
-    id: 'inline_lunge',
-    displayName: 'Inline Lunge',
-    canonicalName: 'Inline Lunge',
-    kind: 'asymmetrical',
-    bodyArea: 'Hip / Knee — Split Stance',
+    id: "inline_lunge",
+    displayName: "Inline Lunge",
+    canonicalName: "Inline Lunge",
+    kind: "asymmetrical",
+    bodyArea: "Hip / Knee — Split Stance",
     gatedBy: null,
     description:
-      'Tandem-stance lunge on a 2x6 board. Tests hip and ankle mobility, quadriceps flexibility, and knee/ankle stability.',
+      "Tandem-stance lunge on a 2x6 board. Tests hip and ankle mobility, quadriceps flexibility, and knee/ankle stability.",
   },
   {
-    id: 'shoulder_mobility',
-    displayName: 'Shoulder Mobility',
-    canonicalName: 'Shoulder Mobility Reaching',
-    kind: 'asymmetrical',
-    bodyArea: 'Shoulder Girdle',
-    gatedBy: 'shoulder_impingement',
+    id: "shoulder_mobility",
+    displayName: "Shoulder Mobility",
+    canonicalName: "Shoulder Mobility Reaching",
+    kind: "asymmetrical",
+    bodyArea: "Shoulder Girdle",
+    gatedBy: "shoulder_impingement",
     description:
-      'Reciprocal shoulder mobility — one fist behind back overhead, other fist behind back below. Measure inter-fist distance vs. hand length.',
+      "Reciprocal shoulder mobility — one fist behind back overhead, other fist behind back below. Measure inter-fist distance vs. hand length.",
   },
   {
-    id: 'active_straight_leg_raise',
-    displayName: 'Active Straight Leg Raise',
-    canonicalName: 'Active Straight Leg Raise',
-    kind: 'asymmetrical',
-    bodyArea: 'Posterior Chain / Hip Disassociation',
+    id: "active_straight_leg_raise",
+    displayName: "Active Straight Leg Raise",
+    canonicalName: "Active Straight Leg Raise",
+    kind: "asymmetrical",
+    bodyArea: "Posterior Chain / Hip Disassociation",
     gatedBy: null,
     description:
-      'Supine leg raise with opposite leg flat. Tests active hamstring & gastroc-soleus flexibility while maintaining stable pelvis.',
+      "Supine leg raise with opposite leg flat. Tests active hamstring & gastroc-soleus flexibility while maintaining stable pelvis.",
   },
   {
-    id: 'trunk_stability_pushup',
-    displayName: 'Trunk Stability Pushup',
-    canonicalName: 'Trunk Stability Pushup',
-    kind: 'bilateral',
-    bodyArea: 'Anterior Core — Sagittal Stability',
-    gatedBy: 'spinal_extension',
+    id: "trunk_stability_pushup",
+    displayName: "Trunk Stability Pushup",
+    canonicalName: "Trunk Stability Pushup",
+    kind: "bilateral",
+    bodyArea: "Anterior Core — Sagittal Stability",
+    gatedBy: "spinal_extension",
     description:
-      'Pushup from a prone position with thumbs aligned to forehead (M) / chin (F). Body rises as a single unit — no lumbar sag.',
+      "Pushup from a prone position with thumbs aligned to forehead (M) / chin (F). Body rises as a single unit — no lumbar sag.",
   },
   {
-    id: 'rotary_stability',
-    displayName: 'Rotary Stability',
-    canonicalName: 'Rotary Stability',
-    kind: 'asymmetrical',
-    bodyArea: 'Multi-plane Core Stability',
-    gatedBy: 'spinal_flexion',
+    id: "rotary_stability",
+    displayName: "Rotary Stability",
+    canonicalName: "Rotary Stability",
+    kind: "asymmetrical",
+    bodyArea: "Multi-plane Core Stability",
+    gatedBy: "spinal_flexion",
     description:
-      'Quadruped same-side arm/leg extension. Tests multi-planar pelvic, core, and shoulder-girdle stability.',
+      "Quadruped same-side arm/leg extension. Tests multi-planar pelvic, core, and shoulder-girdle stability.",
   },
 ] as const;
 
@@ -239,28 +239,28 @@ export const FMS_TESTS: readonly FmsTestDefinition[] = [
  */
 export const FMS_CLEARING_TESTS: readonly ClearingTestDefinition[] = [
   {
-    id: 'shoulder_impingement',
-    displayName: 'Shoulder Impingement Clearing',
-    canonicalName: 'Shoulder Impingement Clearing Test',
-    gates: 'shoulder_mobility',
+    id: "shoulder_impingement",
+    displayName: "Shoulder Impingement Clearing",
+    canonicalName: "Shoulder Impingement Clearing Test",
+    gates: "shoulder_mobility",
     description:
-      'Hand to opposite shoulder, actively raise the elbow. Pain in the anterior shoulder/AC joint = positive.',
+      "Hand to opposite shoulder, actively raise the elbow. Pain in the anterior shoulder/AC joint = positive.",
   },
   {
-    id: 'spinal_extension',
-    displayName: 'Spinal Extension Clearing',
-    canonicalName: 'Press-Up / Prone Extension Clearing',
-    gates: 'trunk_stability_pushup',
+    id: "spinal_extension",
+    displayName: "Spinal Extension Clearing",
+    canonicalName: "Press-Up / Prone Extension Clearing",
+    gates: "trunk_stability_pushup",
     description:
-      'From a pushup position, press into a prone press-up (cobra). Low-back pain on extension = positive.',
+      "From a pushup position, press into a prone press-up (cobra). Low-back pain on extension = positive.",
   },
   {
-    id: 'spinal_flexion',
-    displayName: 'Spinal Flexion Clearing',
-    canonicalName: 'Quadruped Flexion Clearing',
-    gates: 'rotary_stability',
+    id: "spinal_flexion",
+    displayName: "Spinal Flexion Clearing",
+    canonicalName: "Quadruped Flexion Clearing",
+    gates: "rotary_stability",
     description:
-      'From quadruped, rock the hips back to the heels and reach forward (child\'s pose). Pain on flexion = positive.',
+      "From quadruped, rock the hips back to the heels and reach forward (child's pose). Pain on flexion = positive.",
   },
 ] as const;
 
@@ -272,9 +272,9 @@ export const FMS_CLEARING_TESTS: readonly ClearingTestDefinition[] = [
  * Patterns with no gate are simply absent from the map.
  */
 export const CLEARING_GATE: Readonly<Partial<Record<FmsTestId, ClearingTestId>>> = {
-  shoulder_mobility: 'shoulder_impingement',
-  trunk_stability_pushup: 'spinal_extension',
-  rotary_stability: 'spinal_flexion',
+  shoulder_mobility: "shoulder_impingement",
+  trunk_stability_pushup: "spinal_extension",
+  rotary_stability: "spinal_flexion",
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -293,7 +293,7 @@ export const CLEARING_GATE: Readonly<Partial<Record<FmsTestId, ClearingTestId>>>
  */
 export interface BilateralTestResult {
   testId: FmsTestId;
-  kind: 'bilateral';
+  kind: "bilateral";
   score: NullableScore;
   painElicited: boolean;
   /** Free-form clinician note (max ~500 chars enforced upstream). */
@@ -308,7 +308,7 @@ export interface BilateralTestResult {
  */
 export interface AsymmetricalTestResult {
   testId: FmsTestId;
-  kind: 'asymmetrical';
+  kind: "asymmetrical";
   leftScore: NullableScore;
   rightScore: NullableScore;
   painElicited: boolean;
@@ -340,9 +340,9 @@ export type PainSeverity = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
  * than self-reported background ache.
  */
 export type RedFlagSource =
-  | 'clearing_test'   // pain on shoulder/spinal extension/spinal flexion clear
-  | 'movement_test'   // pain during a foundational FMS test
-  | 'self_report';    // athlete-reported pain outside of testing
+  | "clearing_test" // pain on shoulder/spinal extension/spinal flexion clear
+  | "movement_test" // pain during a foundational FMS test
+  | "self_report"; // athlete-reported pain outside of testing
 
 /**
  * Anatomical location coding — kept as an open string union so we can
@@ -350,15 +350,25 @@ export type RedFlagSource =
  * UI-builder may add more, but should prefer existing values.
  */
 export type RedFlagBodyZone =
-  | 'cervical' | 'thoracic' | 'lumbar' | 'sacroiliac'
-  | 'shoulder_left' | 'shoulder_right'
-  | 'elbow_left' | 'elbow_right'
-  | 'wrist_left' | 'wrist_right'
-  | 'hip_left' | 'hip_right'
-  | 'knee_left' | 'knee_right'
-  | 'ankle_left' | 'ankle_right'
-  | 'foot_left' | 'foot_right'
-  | 'other'
+  | "cervical"
+  | "thoracic"
+  | "lumbar"
+  | "sacroiliac"
+  | "shoulder_left"
+  | "shoulder_right"
+  | "elbow_left"
+  | "elbow_right"
+  | "wrist_left"
+  | "wrist_right"
+  | "hip_left"
+  | "hip_right"
+  | "knee_left"
+  | "knee_right"
+  | "ankle_left"
+  | "ankle_right"
+  | "foot_left"
+  | "foot_right"
+  | "other"
   | (string & {}); // open extension — keeps autocomplete on the literals
 
 /**

@@ -180,8 +180,7 @@ export function useCopilotChat(): UseCopilotChatResult {
         // it would be wrong to toast "timeout" when the user just sent a
         // newer message or closed the panel.
         const isAbort =
-          (e instanceof DOMException && e.name === "AbortError") ||
-          controller.signal.aborted;
+          (e instanceof DOMException && e.name === "AbortError") || controller.signal.aborted;
 
         if (isAbort && !timedOut) {
           return;

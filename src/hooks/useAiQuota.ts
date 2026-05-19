@@ -11,7 +11,9 @@ export function useAiQuota(enabled = true) {
   return useQuery({
     queryKey: ["ai-quota"],
     queryFn: async (): Promise<AiQuota> => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase

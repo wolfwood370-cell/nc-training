@@ -45,12 +45,9 @@
  * public surface of this hook.
  */
 
-import { useCallback } from 'react';
-import {
-  useQuery,
-  type UseQueryResult,
-} from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useCallback } from "react";
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import type {
   FmsAssessment,
   ClearingTestId,
@@ -58,18 +55,18 @@ import type {
   FmsTestId,
   FmsTestResult,
   RedFlag,
-} from '@/types/movement';
+} from "@/types/movement";
 import {
   analyzeExerciseRisk,
   type ExerciseInfo,
   type ExerciseRiskAssessment,
-} from '@/lib/math/fmsRiskEngine';
+} from "@/lib/math/fmsRiskEngine";
 
 // ---------------------------------------------------------------------------
 // DB row shape (local — until types.ts regen)
 // ---------------------------------------------------------------------------
 
-const ASSESSMENTS_TABLE = 'fms_assessments' as const;
+const ASSESSMENTS_TABLE = "fms_assessments" as const;
 
 /**
  * The JSONB payload sub-shape — clinical fields only. The scalar
@@ -78,7 +75,7 @@ const ASSESSMENTS_TABLE = 'fms_assessments' as const;
  */
 type FmsAssessmentPayload = Pick<
   FmsAssessment,
-  'tests' | 'clearingTests' | 'redFlags' | 'generalNotes'
+  "tests" | "clearingTests" | "redFlags" | "generalNotes"
 >;
 
 /**
@@ -152,11 +149,10 @@ export interface UseAthleteRiskAnalysisOptions {
  * until data lands, which the engine treats as `low` risk with a
  * `unknown_assessment` reason.
  */
-export interface UseAthleteRiskAnalysisResult
-  extends Pick<
-    UseQueryResult<FmsAssessment | null, Error>,
-    'data' | 'isLoading' | 'isError' | 'error' | 'refetch'
-  > {
+export interface UseAthleteRiskAnalysisResult extends Pick<
+  UseQueryResult<FmsAssessment | null, Error>,
+  "data" | "isLoading" | "isError" | "error" | "refetch"
+> {
   /** The latest completed assessment, or `null` if none on file. */
   assessment: FmsAssessment | null;
   /**
@@ -204,7 +200,7 @@ export function useAthleteRiskAnalysis(
     // newly saved assessment auto-refreshes this query. The
     // `'latest-completed'` suffix lets a future "list all assessments"
     // query share the prefix without conflicting.
-    queryKey: ['fms-assessments', athleteId, 'latest-completed'],
+    queryKey: ["fms-assessments", athleteId, "latest-completed"],
 
     queryFn: async (): Promise<FmsAssessment | null> => {
       if (!athleteId) return null;
@@ -220,19 +216,17 @@ export function useAthleteRiskAnalysis(
       // `src/integrations/supabase/types.ts` is regenerated.
       const { data, error } = await supabase
         .from(ASSESSMENTS_TABLE as never)
-        .select('*')
-        .eq('athlete_id' as never, athleteId as never)
-        .eq('is_complete' as never, true as never)
-        .order('assessment_date' as never, { ascending: false })
-        .order('updated_at' as never, { ascending: false })
+        .select("*")
+        .eq("athlete_id" as never, athleteId as never)
+        .eq("is_complete" as never, true as never)
+        .order("assessment_date" as never, { ascending: false })
+        .order("updated_at" as never, { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (error) {
         // Re-throw so React Query surfaces a typed Error to consumers.
-        throw new Error(
-          `Failed to load latest FMS assessment: ${error.message}`,
-        );
+        throw new Error(`Failed to load latest FMS assessment: ${error.message}`);
       }
 
       const row = data as unknown as FmsAssessmentRow | null;
@@ -265,8 +259,7 @@ export function useAthleteRiskAnalysis(
    * assessment. Safe to call hundreds of times per render.
    */
   const checkExercise = useCallback(
-    (exercise: ExerciseInfo): ExerciseRiskAssessment =>
-      analyzeExerciseRisk(exercise, assessment),
+    (exercise: ExerciseInfo): ExerciseRiskAssessment => analyzeExerciseRisk(exercise, assessment),
     [assessment],
   );
 

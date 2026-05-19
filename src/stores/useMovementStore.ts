@@ -36,8 +36,8 @@
  *   which are exported for unit-testing.
  */
 
-import { create } from 'zustand';
-import { immer } from 'zustand/middleware/immer';
+import { create } from "zustand";
+import { immer } from "zustand/middleware/immer";
 import {
   FMS_TESTS,
   FMS_CLEARING_TESTS,
@@ -56,7 +56,7 @@ import {
   type ISODate,
   type ISOTimestamp,
   type UUID,
-} from '@/types/movement';
+} from "@/types/movement";
 
 // ---------------------------------------------------------------------------
 // Helpers (pure)
@@ -64,12 +64,12 @@ import {
 
 /** UUID generator with a non-crypto fallback (mirrors `useProgramBuilderStore`). */
 const uuid = (): UUID => {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
   }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 };
@@ -88,17 +88,17 @@ function buildEmptyTestsMap(): Record<FmsTestId, FmsTestResult> {
   // narrowing of literals across an array .reduce, hence the assertion.
   const map = {} as Record<FmsTestId, FmsTestResult>;
   for (const def of FMS_TESTS) {
-    if (def.kind === 'bilateral') {
+    if (def.kind === "bilateral") {
       map[def.id] = {
         testId: def.id,
-        kind: 'bilateral',
+        kind: "bilateral",
         score: null,
         painElicited: false,
       };
     } else {
       map[def.id] = {
         testId: def.id,
-        kind: 'asymmetrical',
+        kind: "asymmetrical",
         leftScore: null,
         rightScore: null,
         painElicited: false,
@@ -141,7 +141,7 @@ function buildEmptyClearingMap(): Record<ClearingTestId, ClearingTestResult> {
  */
 export function computeTestComposite(
   test: FmsTestResult,
-  clearingTests: Readonly<Record<ClearingTestId, ClearingTestResult>>
+  clearingTests: Readonly<Record<ClearingTestId, ClearingTestResult>>,
 ): NullableScore {
   // ── Rule 2 evaluated first: a positive clearing test forces 0 even if
   //    the underlying movement was never scored. Clinically this is correct:
@@ -152,7 +152,7 @@ export function computeTestComposite(
   }
 
   // ── Rule 1: composite from the raw score(s).
-  if (test.kind === 'bilateral') {
+  if (test.kind === "bilateral") {
     return test.score;
   }
 
@@ -169,7 +169,7 @@ export function computeTestComposite(
  * test where either side is unscored.
  */
 export function computeAsymmetry(test: FmsTestResult): number | null {
-  if (test.kind !== 'asymmetrical') return null;
+  if (test.kind !== "asymmetrical") return null;
   if (test.leftScore === null || test.rightScore === null) return null;
   return Math.abs(test.leftScore - test.rightScore);
 }
@@ -187,14 +187,13 @@ export function computeAsymmetry(test: FmsTestResult): number | null {
  */
 export function computeCompositeScore(
   tests: Readonly<Record<FmsTestId, FmsTestResult>>,
-  clearingTests: Readonly<Record<ClearingTestId, ClearingTestResult>>
+  clearingTests: Readonly<Record<ClearingTestId, ClearingTestResult>>,
 ): FmsCompositeScore {
   const perTest = FMS_TESTS.map((def) => {
     const result = tests[def.id];
     const score = computeTestComposite(result, clearingTests);
     const gate = CLEARING_GATE[def.id];
-    const overriddenByClearingTest =
-      !!gate && clearingTests[gate]?.hasPain === true;
+    const overriddenByClearingTest = !!gate && clearingTests[gate]?.hasPain === true;
     return {
       testId: def.id,
       score,
@@ -205,16 +204,10 @@ export function computeCompositeScore(
 
   const allScored = perTest.every((row) => row.score !== null);
   // `total` only when every test is scored — partial sums are misleading.
-  const total = allScored
-    ? perTest.reduce((sum, row) => sum + (row.score ?? 0), 0)
-    : null;
+  const total = allScored ? perTest.reduce((sum, row) => sum + (row.score ?? 0), 0) : null;
 
-  const hasRedFlags = perTest.some(
-    (row) => row.score !== null && row.score <= 1
-  );
-  const hasAsymmetry = perTest.some(
-    (row) => row.asymmetry !== null && row.asymmetry >= 1
-  );
+  const hasRedFlags = perTest.some((row) => row.score !== null && row.score <= 1);
+  const hasAsymmetry = perTest.some((row) => row.asymmetry !== null && row.asymmetry >= 1);
 
   return {
     perTest,
@@ -295,7 +288,7 @@ interface MovementActions {
 
   // ── Red flags ──────────────────────────────────────────────────────
   /** Append a red flag. Returns the generated id so the UI can reference it. */
-  addRedFlag: (flag: Omit<RedFlag, 'id' | 'raisedAt'>) => UUID;
+  addRedFlag: (flag: Omit<RedFlag, "id" | "raisedAt">) => UUID;
   removeRedFlag: (id: UUID) => void;
 
   // ── Notes ──────────────────────────────────────────────────────────
@@ -343,7 +336,7 @@ export const useMovementStore = create<MovementStore>()(
           tests: buildEmptyTestsMap(),
           clearingTests: buildEmptyClearingMap(),
           redFlags: [],
-          generalNotes: '',
+          generalNotes: "",
           startedAt: nowISO(),
         };
         state.isDirty = false;
@@ -361,7 +354,7 @@ export const useMovementStore = create<MovementStore>()(
           tests: { ...assessment.tests },
           clearingTests: { ...assessment.clearingTests },
           redFlags: [...assessment.redFlags],
-          generalNotes: assessment.generalNotes ?? '',
+          generalNotes: assessment.generalNotes ?? "",
           startedAt: assessment.createdAt,
         };
         state.isDirty = false;
@@ -384,14 +377,14 @@ export const useMovementStore = create<MovementStore>()(
         const test = draft.tests[testId];
         if (!test) return; // unknown testId — defensive
 
-        if (test.kind === 'bilateral') {
+        if (test.kind === "bilateral") {
           // Side is meaningless here; we deliberately ignore it rather
           // than throw, so a UI bug doesn't break the flow.
           test.score = score;
         } else {
           // Asymmetrical — `side` MUST be provided. If null, no-op.
-          if (side === 'left') test.leftScore = score;
-          else if (side === 'right') test.rightScore = score;
+          if (side === "left") test.leftScore = score;
+          else if (side === "right") test.rightScore = score;
           // else: silently no-op (UI bug — log if you want to track this)
         }
         state.isDirty = true;
@@ -453,9 +446,7 @@ export const useMovementStore = create<MovementStore>()(
     removeRedFlag: (id) => {
       set((state) => {
         if (!state.assessment) return;
-        state.assessment.redFlags = state.assessment.redFlags.filter(
-          (f) => f.id !== id
-        );
+        state.assessment.redFlags = state.assessment.redFlags.filter((f) => f.id !== id);
         state.isDirty = true;
       });
     },
@@ -480,10 +471,7 @@ export const useMovementStore = create<MovementStore>()(
       const draft = get().assessment;
       if (!draft) return null;
 
-      const composite = computeCompositeScore(
-        draft.tests,
-        draft.clearingTests
-      );
+      const composite = computeCompositeScore(draft.tests, draft.clearingTests);
       const now = nowISO();
 
       const assessment: FmsAssessment = {
@@ -502,7 +490,7 @@ export const useMovementStore = create<MovementStore>()(
       };
       return assessment;
     },
-  }))
+  })),
 );
 
 // ---------------------------------------------------------------------------

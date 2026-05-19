@@ -7,11 +7,11 @@ import { format } from "date-fns";
 // ===== TYPE DEFINITIONS =====
 
 export type AlertSeverity = "critical" | "warning" | "info";
-export type AlertType = 
-  | "missed_workout" 
-  | "low_readiness" 
-  | "active_injury" 
-  | "high_acwr" 
+export type AlertType =
+  | "missed_workout"
+  | "low_readiness"
+  | "active_injury"
+  | "high_acwr"
   | "rpe_spike"
   | "no_checkin";
 
@@ -81,16 +81,23 @@ export interface CoachDashboardMetrics {
 // ===== HELPER FUNCTIONS =====
 
 function getInitials(name: string | null): string {
-  return name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) ?? "??";
+  return (
+    name
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) ?? "??"
+  );
 }
 
 function calculateAcwr(
-  logs: Array<{ completed_at: string | null; duration_seconds: number | null; rpe_global: number | null; srpe: number | null }>
+  logs: Array<{
+    completed_at: string | null;
+    duration_seconds: number | null;
+    rpe_global: number | null;
+    srpe: number | null;
+  }>,
 ): number | null {
   if (logs.length < 7) return null;
 
@@ -129,7 +136,11 @@ export function useCoachDashboardMetrics(): CoachDashboardMetrics {
   const isCoach = profile?.role === "coach";
 
   // ===== QUERY 1: Athletes =====
-  const { data: athletes = [], isLoading: athletesLoading, error: athletesError } = useQuery({
+  const {
+    data: athletes = [],
+    isLoading: athletesLoading,
+    error: athletesError,
+  } = useQuery({
     queryKey: ["dashboard-athletes", user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -147,7 +158,11 @@ export function useCoachDashboardMetrics(): CoachDashboardMetrics {
   const athleteIds = useMemo(() => athletes.map((a) => a.id), [athletes]);
 
   // ===== QUERY 2: Daily Readiness (today + recent) =====
-  const { data: readinessData = [], isLoading: readinessLoading, error: readinessError } = useQuery({
+  const {
+    data: readinessData = [],
+    isLoading: readinessLoading,
+    error: readinessError,
+  } = useQuery({
     queryKey: ["dashboard-readiness", athleteIds.join(",")],
     queryFn: async () => {
       if (athleteIds.length === 0) return [];
@@ -163,7 +178,11 @@ export function useCoachDashboardMetrics(): CoachDashboardMetrics {
   });
 
   // ===== QUERY 3: Active Injuries =====
-  const { data: injuries = [], isLoading: injuriesLoading, error: injuriesError } = useQuery({
+  const {
+    data: injuries = [],
+    isLoading: injuriesLoading,
+    error: injuriesError,
+  } = useQuery({
     queryKey: ["dashboard-injuries", athleteIds.join(",")],
     queryFn: async () => {
       if (athleteIds.length === 0) return [];
@@ -185,13 +204,19 @@ export function useCoachDashboardMetrics(): CoachDashboardMetrics {
     return d.toISOString();
   }, []);
 
-  const { data: workoutLogs = [], isLoading: logsLoading, error: logsError } = useQuery({
+  const {
+    data: workoutLogs = [],
+    isLoading: logsLoading,
+    error: logsError,
+  } = useQuery({
     queryKey: ["dashboard-workout-logs", athleteIds.join(",")],
     queryFn: async () => {
       if (athleteIds.length === 0) return [];
       const { data, error } = await supabase
         .from("workout_logs")
-        .select("id, athlete_id, workout_id, completed_at, duration_seconds, rpe_global, srpe, notes, coach_feedback, status, scheduled_date")
+        .select(
+          "id, athlete_id, workout_id, completed_at, duration_seconds, rpe_global, srpe, notes, coach_feedback, status, scheduled_date",
+        )
         .in("athlete_id", athleteIds)
         .gte("created_at", twentyEightDaysAgo);
       if (error) throw error;
@@ -201,7 +226,11 @@ export function useCoachDashboardMetrics(): CoachDashboardMetrics {
   });
 
   // ===== QUERY 5: Workouts (for titles + missed detection) =====
-  const { data: workouts = [], isLoading: workoutsLoading, error: workoutsError } = useQuery({
+  const {
+    data: workouts = [],
+    isLoading: workoutsLoading,
+    error: workoutsError,
+  } = useQuery({
     queryKey: ["dashboard-workouts", user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -230,10 +259,14 @@ export function useCoachDashboardMetrics(): CoachDashboardMetrics {
       // If today > scheduled_date AND status != 'completed'
       const athleteWorkouts = workouts.filter((w) => w.athlete_id === athlete.id);
       athleteWorkouts.forEach((workout) => {
-        if (workout.scheduled_date && workout.scheduled_date < today && workout.status !== "completed") {
+        if (
+          workout.scheduled_date &&
+          workout.scheduled_date < today &&
+          workout.status !== "completed"
+        ) {
           // Check if there's a completed log for this workout
           const hasCompletedLog = workoutLogs.some(
-            (log) => log.workout_id === workout.id && log.status === "completed"
+            (log) => log.workout_id === workout.id && log.status === "completed",
           );
           if (!hasCompletedLog) {
             alerts.push({
@@ -254,7 +287,7 @@ export function useCoachDashboardMetrics(): CoachDashboardMetrics {
 
       // RULE 2: RPE Spike (rpe_global > 9)
       const recentHighRpeLogs = athleteLogs.filter(
-        (log) => log.rpe_global !== null && log.rpe_global > 9 && log.completed_at
+        (log) => log.rpe_global !== null && log.rpe_global > 9 && log.completed_at,
       );
       recentHighRpeLogs.slice(0, 1).forEach((log) => {
         alerts.push({
@@ -289,7 +322,7 @@ export function useCoachDashboardMetrics(): CoachDashboardMetrics {
 
       // RULE 4: No Check-in Today
       const todayCheckin = readinessData.find(
-        (r) => r.athlete_id === athlete.id && r.date === today
+        (r) => r.athlete_id === athlete.id && r.date === today,
       );
       if (!todayCheckin) {
         const lastCheckin = readinessData.find((r) => r.athlete_id === athlete.id);
@@ -404,21 +437,23 @@ export function useCoachDashboardMetrics(): CoachDashboardMetrics {
 
     // Compliance: % who checked in today
     const checkedInToday = athletes.filter((a) =>
-      readinessData.some((r) => r.athlete_id === a.id && r.date === today)
+      readinessData.some((r) => r.athlete_id === a.id && r.date === today),
     ).length;
-    const complianceRate = activeClients > 0 ? Math.round((checkedInToday / activeClients) * 100) : 0;
+    const complianceRate =
+      activeClients > 0 ? Math.round((checkedInToday / activeClients) * 100) : 0;
 
     // Avg readiness of today's check-ins
     const todayScores = readinessData
       .filter((r) => r.date === today && r.score !== null)
       .map((r) => r.score!);
-    const avgReadiness = todayScores.length > 0
-      ? Math.round(todayScores.reduce((a, b) => a + b, 0) / todayScores.length)
-      : null;
+    const avgReadiness =
+      todayScores.length > 0
+        ? Math.round(todayScores.reduce((a, b) => a + b, 0) / todayScores.length)
+        : null;
 
     // Churn risk: athletes with critical alerts
     const criticalAthleteIds = new Set(
-      urgentAlerts.filter((a) => a.severity === "critical").map((a) => a.athleteId)
+      urgentAlerts.filter((a) => a.severity === "critical").map((a) => a.athleteId),
     );
     const churnRisk = criticalAthleteIds.size;
 
@@ -436,7 +471,7 @@ export function useCoachDashboardMetrics(): CoachDashboardMetrics {
     const alertedIds = new Set(
       urgentAlerts
         .filter((a) => a.severity === "critical" || a.severity === "warning")
-        .map((a) => a.athleteId)
+        .map((a) => a.athleteId),
     );
 
     return athletes
@@ -454,7 +489,8 @@ export function useCoachDashboardMetrics(): CoachDashboardMetrics {
   }, [athletes, urgentAlerts, readinessData]);
 
   // ===== COMBINED STATE =====
-  const isLoading = athletesLoading || readinessLoading || injuriesLoading || logsLoading || workoutsLoading;
+  const isLoading =
+    athletesLoading || readinessLoading || injuriesLoading || logsLoading || workoutsLoading;
   const error = athletesError || readinessError || injuriesError || logsError || workoutsError;
 
   return {

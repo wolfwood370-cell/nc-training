@@ -3,14 +3,14 @@
  * Provides haptic feedback and celebration effects
  */
 
-import confetti from 'canvas-confetti';
-import { alertRestTimerEnd } from '@/lib/audioFeedback';
+import confetti from "canvas-confetti";
+import { alertRestTimerEnd } from "@/lib/audioFeedback";
 
 // ============================================
 // HAPTIC FEEDBACK
 // ============================================
 
-type HapticType = 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error';
+type HapticType = "light" | "medium" | "heavy" | "success" | "warning" | "error";
 
 const hapticPatterns: Record<HapticType, number | number[]> = {
   light: 10,
@@ -24,11 +24,11 @@ const hapticPatterns: Record<HapticType, number | number[]> = {
 /**
  * Trigger haptic feedback on supported devices
  */
-export function triggerHaptic(type: HapticType = 'light'): boolean {
-  if (typeof navigator === 'undefined' || !('vibrate' in navigator)) {
+export function triggerHaptic(type: HapticType = "light"): boolean {
+  if (typeof navigator === "undefined" || !("vibrate" in navigator)) {
     return false;
   }
-  
+
   try {
     const pattern = hapticPatterns[type];
     navigator.vibrate(pattern);
@@ -42,8 +42,8 @@ export function triggerHaptic(type: HapticType = 'light'): boolean {
 // CONFETTI CELEBRATIONS
 // ============================================
 
-const celebrationColors = ['#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#3b82f6'];
-const goldColors = ['#ffd700', '#ffb347', '#ff8c00', '#ffa500', '#ffcc00'];
+const celebrationColors = ["#10b981", "#8b5cf6", "#f59e0b", "#ef4444", "#3b82f6"];
+const goldColors = ["#ffd700", "#ffb347", "#ff8c00", "#ffa500", "#ffcc00"];
 
 /**
  * Trigger a celebration confetti cannon from bottom of screen
@@ -90,7 +90,7 @@ export function triggerPRConfetti(): void {
     spread: 70,
     origin: { x: 0.5, y: 0.6 },
     colors: goldColors,
-    shapes: ['circle', 'square'],
+    shapes: ["circle", "square"],
     scalar: 1.3,
     startVelocity: 35,
   });
@@ -134,7 +134,7 @@ export function triggerMiniCelebration(): void {
  */
 export function celebrateWorkoutComplete(): void {
   triggerConfetti();
-  triggerHaptic('success');
+  triggerHaptic("success");
 }
 
 /**
@@ -143,14 +143,14 @@ export function celebrateWorkoutComplete(): void {
  */
 export function celebratePR(): void {
   triggerPRConfetti();
-  triggerHaptic('heavy');
+  triggerHaptic("heavy");
 }
 
 /**
  * Trigger set completion feedback
  */
 export function onSetComplete(): void {
-  triggerHaptic('light');
+  triggerHaptic("light");
 }
 
 /**

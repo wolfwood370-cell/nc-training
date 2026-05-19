@@ -53,7 +53,7 @@ export function useNotifications() {
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ["notifications"] });
-        }
+        },
       )
       .subscribe();
 

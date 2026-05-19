@@ -1,8 +1,12 @@
-import { create } from 'zustand';
-import type { ProgramExercise as BaseProgramExercise, WeekProgram, ProgramData } from '@/components/coach/WeekGrid';
-import type { SetDataRecord } from '@/types/database';
-import type { ExerciseProgression } from '@/types/progression';
-import { calculateProgressedValue, parseLoadValue, formatLoadValue } from '@/types/progression';
+import { create } from "zustand";
+import type {
+  ProgramExercise as BaseProgramExercise,
+  WeekProgram,
+  ProgramData,
+} from "@/components/coach/WeekGrid";
+import type { SetDataRecord } from "@/types/database";
+import type { ExerciseProgression } from "@/types/progression";
+import { calculateProgressedValue, parseLoadValue, formatLoadValue } from "@/types/progression";
 
 // =========================================
 // Types
@@ -29,20 +33,20 @@ export interface ProgramBuilderState {
   program: ProgramData;
   totalWeeks: number;
   currentWeek: number;
-  
+
   // Selection state
   selectedExercise: {
     weekIndex: number;
     dayIndex: number;
     exerciseId: string;
   } | null;
-  
+
   // Superset pending state
   supersetPendingId: string | null;
-  
+
   // Week clipboard for copy/paste
   weekClipboard: WeekProgram | null;
-  
+
   // Metadata
   programId: string | null;
   programName: string;
@@ -54,7 +58,7 @@ export interface ProgramBuilderActions {
   initProgram: (weeks?: number) => void;
   loadProgram: (data: ProgramData, id: string, name: string) => void;
   reset: () => void;
-  
+
   // Week operations
   setCurrentWeek: (weekIndex: number) => void;
   addWeek: () => void;
@@ -66,39 +70,67 @@ export interface ProgramBuilderActions {
   pasteWeekFromClipboard: (weekIndex: number) => void;
   clearWeek: (weekIndex: number) => void;
   swapDays: (weekIndex: number, fromDayIndex: number, toDayIndex: number) => void;
-  
+
   // Block template operations
   extractBlock: (startWeek: number, endWeek: number) => ProgramData;
   insertBlock: (blockData: ProgramData, atWeekIndex: number) => void;
-  
+
   // Day operations
   addDay: (weekId: number) => void;
-  copyDay: (fromWeekIndex: number, fromDayIndex: number, toWeekIndex: number, toDayIndex: number, mode: 'append' | 'overwrite') => void;
-  copyDayToMultiple: (fromWeekIndex: number, fromDayIndex: number, targets: { weekIndex: number; dayIndex: number }[], mode: 'append' | 'overwrite') => void;
+  copyDay: (
+    fromWeekIndex: number,
+    fromDayIndex: number,
+    toWeekIndex: number,
+    toDayIndex: number,
+    mode: "append" | "overwrite",
+  ) => void;
+  copyDayToMultiple: (
+    fromWeekIndex: number,
+    fromDayIndex: number,
+    targets: { weekIndex: number; dayIndex: number }[],
+    mode: "append" | "overwrite",
+  ) => void;
   clearDay: (weekIndex: number, dayIndex: number) => void;
-  
+
   // Exercise operations
   addExercise: (dayIndex: number, exercise: ProgramExercise, weekIndex?: number) => void;
   addEmptySlot: (dayIndex: number, weekIndex?: number) => void;
-  updateExercise: (dayIndex: number, exerciseId: string, updates: Partial<ProgramExercise>, weekIndex?: number) => void;
+  updateExercise: (
+    dayIndex: number,
+    exerciseId: string,
+    updates: Partial<ProgramExercise>,
+    weekIndex?: number,
+  ) => void;
   removeExercise: (dayIndex: number, exerciseId: string, weekIndex?: number) => void;
   reorderExercises: (dayIndex: number, newOrder: string[], weekIndex?: number) => void;
-  fillSlot: (slotId: string, libraryExercise: { id: string; name: string; muscles: string[]; tracking_fields: string[] }, weekIndex: number, dayIndex: number) => void;
-  
+  fillSlot: (
+    slotId: string,
+    libraryExercise: { id: string; name: string; muscles: string[]; tracking_fields: string[] },
+    weekIndex: number,
+    dayIndex: number,
+  ) => void;
+
   // Set operations
-  updateSet: (exerciseId: string, setIndex: number, field: keyof SetField, value: number | boolean, weekIndex?: number, dayIndex?: number) => void;
-  
+  updateSet: (
+    exerciseId: string,
+    setIndex: number,
+    field: keyof SetField,
+    value: number | boolean,
+    weekIndex?: number,
+    dayIndex?: number,
+  ) => void;
+
   // Progression operations
   applyProgression: (fromWeekIndex: number) => void;
-  
+
   // Superset operations
   setSupersetPending: (exerciseId: string | null) => void;
   toggleSuperset: (dayIndex: number, exerciseId: string, weekIndex?: number) => void;
-  
+
   // Selection
   selectExercise: (weekIndex: number, dayIndex: number, exerciseId: string) => void;
   clearSelection: () => void;
-  
+
   // Metadata
   setProgramName: (name: string) => void;
   markClean: () => void;
@@ -124,14 +156,14 @@ function createEmptyProgram(weeks: number): ProgramData {
 function createEmptySlot(weekIndex: number, dayIndex: number): ProgramExercise {
   return {
     id: `slot-${weekIndex}-${dayIndex}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-    exerciseId: '',
-    name: '',
+    exerciseId: "",
+    name: "",
     sets: 0,
-    reps: '',
-    load: '',
+    reps: "",
+    load: "",
     rpe: null,
     restSeconds: 90,
-    notes: '',
+    notes: "",
     isEmpty: true,
   };
 }
@@ -147,7 +179,7 @@ function generateSupersetGroupId(): string {
 function deepCloneExercise(exercise: ProgramExercise): ProgramExercise {
   // Generate completely new unique ID
   const newId = crypto.randomUUID();
-  
+
   // Deep clone setsData if present
   let clonedSetsData: SetDataRecord[] | undefined;
   if (exercise.setsData && Array.isArray(exercise.setsData)) {
@@ -196,7 +228,7 @@ function deepCloneProgram(program: ProgramData): ProgramData {
     const weekIndex = Number(weekKey);
     cloned[weekIndex] = {};
     for (let d = 0; d < 7; d++) {
-      cloned[weekIndex][d] = (program[weekIndex]?.[d] || []).map(ex => deepCloneExercise(ex));
+      cloned[weekIndex][d] = (program[weekIndex]?.[d] || []).map((ex) => deepCloneExercise(ex));
     }
   }
   return cloned;
@@ -217,13 +249,13 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
   supersetPendingId: null,
   weekClipboard: null,
   programId: null,
-  programName: '',
+  programName: "",
   isDirty: false,
 
   // =========================================
   // Initialization
   // =========================================
-  
+
   initProgram: (weeks = DEFAULT_WEEKS) => {
     set({
       program: createEmptyProgram(weeks),
@@ -233,7 +265,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
       supersetPendingId: null,
       weekClipboard: null,
       programId: null,
-      programName: '',
+      programName: "",
       isDirty: false,
     });
   },
@@ -261,7 +293,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
       supersetPendingId: null,
       weekClipboard: null,
       programId: null,
-      programName: '',
+      programName: "",
       isDirty: false,
     });
   },
@@ -300,12 +332,12 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
     const newWeekIndex = state.totalWeeks;
     const newProgram = deepCloneProgram(state.program);
     newProgram[newWeekIndex] = {};
-    
+
     for (let d = 0; d < 7; d++) {
       const sourceDay = sourceWeek[d] || [];
       newProgram[newWeekIndex][d] = sourceDay.map((ex) => cloneExercise(ex));
     }
-    
+
     set({
       program: newProgram,
       totalWeeks: state.totalWeeks + 1,
@@ -352,11 +384,11 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
   extractBlock: (startWeek, endWeek) => {
     const state = get();
     const blockData: ProgramData = {};
-    
+
     for (let w = startWeek; w <= endWeek; w++) {
       const relativeIndex = w - startWeek;
       blockData[relativeIndex] = {};
-      
+
       for (let d = 0; d < 7; d++) {
         const sourceDay = state.program[w]?.[d] || [];
         blockData[relativeIndex][d] = sourceDay.map((ex) => ({
@@ -366,17 +398,17 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
         }));
       }
     }
-    
+
     return blockData;
   },
 
   insertBlock: (blockData, atWeekIndex) => {
     const state = get();
     const blockSize = Object.keys(blockData).length;
-    
+
     // Shift existing weeks to make room
     const newProgram: ProgramData = {};
-    
+
     // Copy weeks before insertion point
     for (let w = 0; w < atWeekIndex; w++) {
       if (state.program[w]) {
@@ -386,7 +418,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
         }
       }
     }
-    
+
     // Insert block data
     for (let i = 0; i < blockSize; i++) {
       newProgram[atWeekIndex + i] = {};
@@ -398,7 +430,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
         }));
       }
     }
-    
+
     // Shift remaining weeks
     for (let w = atWeekIndex; w < state.totalWeeks; w++) {
       if (state.program[w]) {
@@ -408,7 +440,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
         }
       }
     }
-    
+
     set({
       program: newProgram,
       totalWeeks: state.totalWeeks + blockSize,
@@ -434,7 +466,8 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
     }
 
     const newTotalWeeks = state.totalWeeks - 1;
-    const newCurrentWeek = state.currentWeek >= newTotalWeeks ? newTotalWeeks - 1 : state.currentWeek;
+    const newCurrentWeek =
+      state.currentWeek >= newTotalWeeks ? newTotalWeeks - 1 : state.currentWeek;
 
     set({
       program: newProgram,
@@ -538,7 +571,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
   addDay: (weekId) => {
     const state = get();
     const newProgram = deepCloneProgram(state.program);
-    
+
     // Ensure the week exists
     if (!newProgram[weekId]) {
       newProgram[weekId] = {};
@@ -546,16 +579,16 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
         newProgram[weekId][d] = [];
       }
     }
-    
+
     set({ program: newProgram, isDirty: true });
   },
 
   copyDay: (fromWeekIndex, fromDayIndex, toWeekIndex, toDayIndex, mode) => {
     const state = get();
     const newProgram = deepCloneProgram(state.program);
-    
+
     const sourceExercises = state.program[fromWeekIndex]?.[fromDayIndex] || [];
-    
+
     if (!newProgram[toWeekIndex]) {
       newProgram[toWeekIndex] = {};
       for (let d = 0; d < 7; d++) {
@@ -567,7 +600,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
       .filter((ex) => !ex.isEmpty)
       .map((ex) => cloneExercise(ex));
 
-    if (mode === 'overwrite') {
+    if (mode === "overwrite") {
       newProgram[toWeekIndex][toDayIndex] = clonedExercises;
     } else {
       newProgram[toWeekIndex][toDayIndex] = [
@@ -583,7 +616,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
     const state = get();
     const newProgram = deepCloneProgram(state.program);
     const sourceExercises = state.program[fromWeekIndex]?.[fromDayIndex] || [];
-    
+
     for (const target of targets) {
       if (!newProgram[target.weekIndex]) {
         newProgram[target.weekIndex] = {};
@@ -596,7 +629,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
         .filter((ex) => !ex.isEmpty)
         .map((ex) => cloneExercise(ex));
 
-      if (mode === 'overwrite') {
+      if (mode === "overwrite") {
         newProgram[target.weekIndex][target.dayIndex] = clonedExercises;
       } else {
         newProgram[target.weekIndex][target.dayIndex] = [
@@ -612,10 +645,10 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
   clearDay: (weekIndex, dayIndex) => {
     const state = get();
     if (!state.program[weekIndex]?.[dayIndex]) return;
-    
+
     const newProgram = deepCloneProgram(state.program);
     newProgram[weekIndex][dayIndex] = [];
-    
+
     set({ program: newProgram, isDirty: true });
   },
 
@@ -627,16 +660,16 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
     const state = get();
     const week = weekIndex ?? state.currentWeek;
     const newProgram = deepCloneProgram(state.program);
-    
+
     if (!newProgram[week]) {
       newProgram[week] = {};
       for (let d = 0; d < 7; d++) {
         newProgram[week][d] = [];
       }
     }
-    
+
     newProgram[week][dayIndex] = [...(newProgram[week][dayIndex] || []), exercise];
-    
+
     set({ program: newProgram, isDirty: true });
   },
 
@@ -644,19 +677,19 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
     const state = get();
     const week = weekIndex ?? state.currentWeek;
     const newProgram = deepCloneProgram(state.program);
-    
+
     if (!newProgram[week]) {
       newProgram[week] = {};
       for (let d = 0; d < 7; d++) {
         newProgram[week][d] = [];
       }
     }
-    
+
     newProgram[week][dayIndex] = [
       ...(newProgram[week][dayIndex] || []),
       createEmptySlot(week, dayIndex),
     ];
-    
+
     set({ program: newProgram, isDirty: true });
   },
 
@@ -668,10 +701,10 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
 
     const idx = exercises.findIndex((ex) => ex.id === exerciseId);
     if (idx === -1) return;
-    
+
     const newProgram = deepCloneProgram(state.program);
     newProgram[week][dayIndex][idx] = { ...newProgram[week][dayIndex][idx], ...updates };
-    
+
     set({ program: newProgram, isDirty: true });
   },
 
@@ -683,12 +716,13 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
 
     const idx = exercises.findIndex((ex) => ex.id === exerciseId);
     if (idx === -1) return;
-    
+
     const newProgram = deepCloneProgram(state.program);
     newProgram[week][dayIndex] = newProgram[week][dayIndex].filter((ex) => ex.id !== exerciseId);
-    
-    const newSelectedExercise = state.selectedExercise?.exerciseId === exerciseId ? null : state.selectedExercise;
-    
+
+    const newSelectedExercise =
+      state.selectedExercise?.exerciseId === exerciseId ? null : state.selectedExercise;
+
     set({ program: newProgram, selectedExercise: newSelectedExercise, isDirty: true });
   },
 
@@ -700,7 +734,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
 
     // Create a map for quick lookup
     const exerciseMap = new Map<string, BaseProgramExercise>(exercises.map((ex) => [ex.id, ex]));
-    
+
     // Reorder based on newOrder array
     const reordered: BaseProgramExercise[] = [];
     for (const id of newOrder) {
@@ -710,13 +744,13 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
         exerciseMap.delete(id);
       }
     }
-    
+
     // Append any exercises not in newOrder (shouldn't happen, but safety)
     exerciseMap.forEach((ex) => reordered.push({ ...ex }));
-    
+
     const newProgram = deepCloneProgram(state.program);
     newProgram[week][dayIndex] = reordered;
-    
+
     set({ program: newProgram, isDirty: true });
   },
 
@@ -727,23 +761,23 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
 
     const idx = exercises.findIndex((ex) => ex.id === slotId);
     if (idx === -1 || !exercises[idx].isEmpty) return;
-    
+
     const newProgram = deepCloneProgram(state.program);
     newProgram[weekIndex][dayIndex][idx] = {
       id: `ex-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       exerciseId: libraryExercise.id,
       name: libraryExercise.name,
       sets: 3,
-      reps: '8-12',
-      load: '',
+      reps: "8-12",
+      load: "",
       rpe: null,
       restSeconds: 90,
-      notes: '',
+      notes: "",
       isEmpty: false,
       snapshotTrackingFields: [...libraryExercise.tracking_fields],
       snapshotMuscles: [...libraryExercise.muscles],
     };
-    
+
     set({ program: newProgram, isDirty: true });
   },
 
@@ -754,7 +788,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
   updateSet: (exerciseId, setIndex, field, value, weekIndex, dayIndex) => {
     const state = get();
     const newProgram = deepCloneProgram(state.program);
-    
+
     // Find the exercise
     let foundWeek: number | undefined;
     let foundDay: number | undefined;
@@ -805,16 +839,16 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
     if (setIndex >= 0 && setIndex < exercise.setsData.length) {
       const setData = { ...exercise.setsData[setIndex] };
       switch (field) {
-        case 'reps':
+        case "reps":
           setData.reps = value as number;
           break;
-        case 'weight_kg':
+        case "weight_kg":
           setData.weight_kg = value as number;
           break;
-        case 'rpe':
+        case "rpe":
           setData.rpe = value as number;
           break;
-        case 'completed':
+        case "completed":
           setData.completed = value as boolean;
           break;
       }
@@ -851,17 +885,17 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
     if (newExercise.supersetGroup) {
       const groupId = newExercise.supersetGroup;
       newExercise.supersetGroup = undefined;
-      
+
       // Check if any other exercise still uses this group
       const otherInGroup = newExercises.filter(
-        (ex) => ex.supersetGroup === groupId && ex.id !== exerciseId
+        (ex) => ex.supersetGroup === groupId && ex.id !== exerciseId,
       );
-      
+
       // If only one left, remove their superset too
       if (otherInGroup.length === 1) {
         otherInGroup[0].supersetGroup = undefined;
       }
-      
+
       set({ program: newProgram, supersetPendingId: null, isDirty: true });
       return;
     }
@@ -910,12 +944,16 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
     const newProgram = deepCloneProgram(state.program);
 
     // For each subsequent week, apply progression rules
-    for (let targetWeekIndex = fromWeekIndex + 1; targetWeekIndex < state.totalWeeks; targetWeekIndex++) {
+    for (
+      let targetWeekIndex = fromWeekIndex + 1;
+      targetWeekIndex < state.totalWeeks;
+      targetWeekIndex++
+    ) {
       const weekOffset = targetWeekIndex - fromWeekIndex;
 
       for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
         const sourceExercises = sourceWeek[dayIndex] || [];
-        
+
         if (!newProgram[targetWeekIndex]) {
           newProgram[targetWeekIndex] = {};
           for (let d = 0; d < 7; d++) {
@@ -929,7 +967,7 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
 
           // Find or create matching exercise in target week
           let targetExIdx = newProgram[targetWeekIndex][dayIndex].findIndex(
-            (ex) => ex.exerciseId === sourceEx.exerciseId && !ex.isEmpty
+            (ex) => ex.exerciseId === sourceEx.exerciseId && !ex.isEmpty,
           );
 
           // If no matching exercise exists, clone from source
@@ -948,19 +986,22 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
           // Apply each progression rule
           for (const rule of sourceEx.progression.rules) {
             switch (rule.type) {
-              case 'rir_decrease':
+              case "rir_decrease":
                 // RIR is inverse of RPE (RPE 10 = RIR 0, RPE 8 = RIR 2)
                 if (sourceEx.rpe !== null) {
-                  targetEx.rpe = Math.min(10, sourceEx.rpe + (rule.value * weekOffset));
+                  targetEx.rpe = Math.min(10, sourceEx.rpe + rule.value * weekOffset);
                 }
                 break;
-              case 'rpe_increase':
+              case "rpe_increase":
                 if (sourceEx.rpe !== null) {
-                  targetEx.rpe = Math.min(10, calculateProgressedValue(sourceEx.rpe, rule, weekOffset));
+                  targetEx.rpe = Math.min(
+                    10,
+                    calculateProgressedValue(sourceEx.rpe, rule, weekOffset),
+                  );
                 }
                 break;
-              case 'load_percent':
-              case 'load_absolute': {
+              case "load_percent":
+              case "load_absolute": {
                 const parsed = parseLoadValue(sourceEx.load);
                 if (parsed) {
                   const newValue = calculateProgressedValue(parsed.value, rule, weekOffset);
@@ -968,16 +1009,20 @@ export const useProgramBuilderStore = create<ProgramBuilderStore>()((set, get) =
                 }
                 break;
               }
-              case 'reps_increase': {
+              case "reps_increase": {
                 const baseReps = parseInt(sourceEx.reps) || 0;
                 if (baseReps > 0) {
-                  targetEx.reps = String(Math.round(calculateProgressedValue(baseReps, rule, weekOffset)));
+                  targetEx.reps = String(
+                    Math.round(calculateProgressedValue(baseReps, rule, weekOffset)),
+                  );
                 }
                 break;
               }
-              case 'sets_increase':
+              case "sets_increase":
                 if (sourceEx.sets > 0) {
-                  targetEx.sets = Math.round(calculateProgressedValue(sourceEx.sets, rule, weekOffset));
+                  targetEx.sets = Math.round(
+                    calculateProgressedValue(sourceEx.sets, rule, weekOffset),
+                  );
                 }
                 break;
             }
@@ -1010,11 +1055,19 @@ export const selectCurrentWeekProgram = (state: ProgramBuilderStore): WeekProgra
   return state.program[state.currentWeek];
 };
 
-export const selectDayExercises = (state: ProgramBuilderStore, dayIndex: number): ProgramExercise[] => {
+export const selectDayExercises = (
+  state: ProgramBuilderStore,
+  dayIndex: number,
+): ProgramExercise[] => {
   return state.program[state.currentWeek]?.[dayIndex] || [];
 };
 
-export const selectExercise = (state: ProgramBuilderStore, weekIndex: number, dayIndex: number, exerciseId: string): ProgramExercise | undefined => {
+export const selectExercise = (
+  state: ProgramBuilderStore,
+  weekIndex: number,
+  dayIndex: number,
+  exerciseId: string,
+): ProgramExercise | undefined => {
   return state.program[weekIndex]?.[dayIndex]?.find((ex) => ex.id === exerciseId);
 };
 

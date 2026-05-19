@@ -24,7 +24,7 @@ function resizeAndCompress(
   img: HTMLImageElement,
   maxDim: number,
   quality: number,
-  format: string
+  format: string,
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     let { width, height } = img;
@@ -56,7 +56,7 @@ function resizeAndCompress(
         resolve(blob);
       },
       format,
-      quality
+      quality,
     );
   });
 }
@@ -70,11 +70,7 @@ function resizeAndCompress(
  *
  * @returns A `File` object (preserving a usable filename).
  */
-export async function compressImage(
-  file: File,
-  maxDim = 1920,
-  quality = 0.8
-): Promise<File> {
+export async function compressImage(file: File, maxDim = 1920, quality = 0.8): Promise<File> {
   // Skip compression for small files
   if (file.size <= MAX_FILE_SIZE) {
     return file;

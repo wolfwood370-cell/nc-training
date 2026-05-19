@@ -45,8 +45,8 @@
  *   while the user is typing.
  */
 
-import { useQuery, keepPreviousData, type UseQueryResult } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useQuery, keepPreviousData, type UseQueryResult } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -90,8 +90,7 @@ export interface UseExerciseLibraryQueryOptions {
 /** Columns we actually need. Keep this tight — every byte counts on PWA.
  *  NOTE: live `exercises` schema has no `is_compound` column; we derive it
  *  from `exercise_type` ('Multi-articolare' === compound). */
-const SELECT_COLS =
-  'id, name, muscles, movement_pattern, default_rpe, exercise_type';
+const SELECT_COLS = "id, name, muscles, movement_pattern, default_rpe, exercise_type";
 
 /** Row shape returned by Supabase given SELECT_COLS. */
 interface ExerciseRow {
@@ -109,11 +108,11 @@ function mapRow(row: ExerciseRow): LibraryExercise {
   return {
     id: row.id,
     name: row.name,
-    muscle_group: muscles[0] ?? '—',
-    equipment: row.movement_pattern ?? '',
+    muscle_group: muscles[0] ?? "—",
+    equipment: row.movement_pattern ?? "",
     muscles,
     default_rpe: row.default_rpe,
-    is_compound: row.exercise_type === 'Multi-articolare',
+    is_compound: row.exercise_type === "Multi-articolare",
   };
 }
 
@@ -139,22 +138,22 @@ function escapeIlike(input: string): string {
  *   useExerciseLibraryQuery({ searchQuery: debounced });
  */
 export function useExerciseLibraryQuery({
-  searchQuery = '',
+  searchQuery = "",
   enabled = true,
   limit = 100,
 }: UseExerciseLibraryQueryOptions = {}): UseQueryResult<LibraryExercise[], Error> {
   const trimmed = searchQuery.trim();
 
   return useQuery<LibraryExercise[], Error>({
-    queryKey: ['exercise-library', trimmed, limit],
+    queryKey: ["exercise-library", trimmed, limit],
     queryFn: async () => {
       // Build the base query. RLS scopes to the authenticated coach;
       // we still filter `archived = false` for soft-delete hygiene.
       let query = supabase
-        .from('exercises')
+        .from("exercises")
         .select(SELECT_COLS)
-        .eq('archived', false)
-        .order('name', { ascending: true })
+        .eq("archived", false)
+        .order("name", { ascending: true })
         .limit(limit);
 
       if (trimmed.length > 0) {
@@ -162,9 +161,7 @@ export function useExerciseLibraryQuery({
         // PostgREST `.or()` accepts a comma-separated filter expression.
         // `cs.{value}` = "contains" for array columns (case-sensitive on
         // the array element, but most muscle tags are stored lowercase).
-        query = query.or(
-          `name.ilike.%${safe}%,muscles.cs.{${trimmed.toLowerCase()}}`,
-        );
+        query = query.or(`name.ilike.%${safe}%,muscles.cs.{${trimmed.toLowerCase()}}`);
       }
 
       const { data, error } = await query;
@@ -172,9 +169,7 @@ export function useExerciseLibraryQuery({
       if (error) {
         // Re-throw as a real Error so React Query's error boundary path
         // works and consumers get a stable `error.message`.
-        throw new Error(
-          `Failed to load exercise library: ${error.message}`,
-        );
+        throw new Error(`Failed to load exercise library: ${error.message}`);
       }
 
       return ((data ?? []) as ExerciseRow[]).map(mapRow);
@@ -201,4 +196,4 @@ export function useExerciseLibraryQuery({
  * `queryClient.invalidateQueries({ queryKey: exerciseLibraryQueryKey() })`
  * after creating/editing/archiving an exercise.
  */
-export const exerciseLibraryQueryKey = () => ['exercise-library'] as const;
+export const exerciseLibraryQueryKey = () => ["exercise-library"] as const;

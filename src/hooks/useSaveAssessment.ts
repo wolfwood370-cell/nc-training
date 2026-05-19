@@ -94,13 +94,9 @@
  * ===========================================================================
  */
 
-import {
-  useMutation,
-  useQueryClient,
-  type UseMutationResult,
-} from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import type { FmsAssessment } from '@/types/movement';
+import { useMutation, useQueryClient, type UseMutationResult } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import type { FmsAssessment } from "@/types/movement";
 
 // ---------------------------------------------------------------------------
 // Public error model
@@ -112,18 +108,18 @@ import type { FmsAssessment } from '@/types/movement';
  * — so React Query's `mutation.error` is well-typed.
  */
 export type SaveAssessmentErrorCode =
-  | 'UNAUTHENTICATED'
-  | 'INVALID_PAYLOAD'
-  | 'PERMISSION_DENIED'
-  | 'NETWORK'
-  | 'UNKNOWN';
+  | "UNAUTHENTICATED"
+  | "INVALID_PAYLOAD"
+  | "PERMISSION_DENIED"
+  | "NETWORK"
+  | "UNKNOWN";
 
 export class SaveAssessmentError extends Error {
   readonly code: SaveAssessmentErrorCode;
   readonly cause?: unknown;
   constructor(code: SaveAssessmentErrorCode, message: string, cause?: unknown) {
     super(message);
-    this.name = 'SaveAssessmentError';
+    this.name = "SaveAssessmentError";
     this.code = code;
     this.cause = cause;
   }
@@ -145,7 +141,7 @@ export interface SaveAssessmentResult {
  * the strict `Database` table-name check — same trick used by
  * `useSaveProgramBlock` for its pre-codegen window.
  */
-const ASSESSMENTS_TABLE = 'fms_assessments' as const;
+const ASSESSMENTS_TABLE = "fms_assessments" as const;
 
 interface FmsAssessmentRow {
   id: string;
@@ -165,7 +161,7 @@ interface FmsAssessmentRow {
  */
 type FmsAssessmentPayload = Pick<
   FmsAssessment,
-  'tests' | 'clearingTests' | 'redFlags' | 'generalNotes'
+  "tests" | "clearingTests" | "redFlags" | "generalNotes"
 >;
 
 // ---------------------------------------------------------------------------
@@ -180,31 +176,19 @@ type FmsAssessmentPayload = Pick<
  */
 function validateAssessment(a: FmsAssessment): void {
   if (!a.id) {
-    throw new SaveAssessmentError('INVALID_PAYLOAD', 'Assessment is missing an id.');
+    throw new SaveAssessmentError("INVALID_PAYLOAD", "Assessment is missing an id.");
   }
   if (!a.athleteId) {
-    throw new SaveAssessmentError(
-      'INVALID_PAYLOAD',
-      'Assessment is missing athleteId.'
-    );
+    throw new SaveAssessmentError("INVALID_PAYLOAD", "Assessment is missing athleteId.");
   }
   if (!a.coachId) {
-    throw new SaveAssessmentError(
-      'INVALID_PAYLOAD',
-      'Assessment is missing coachId.'
-    );
+    throw new SaveAssessmentError("INVALID_PAYLOAD", "Assessment is missing coachId.");
   }
   if (!a.assessmentDate) {
-    throw new SaveAssessmentError(
-      'INVALID_PAYLOAD',
-      'Assessment is missing assessmentDate.'
-    );
+    throw new SaveAssessmentError("INVALID_PAYLOAD", "Assessment is missing assessmentDate.");
   }
   if (!a.tests || Object.keys(a.tests).length === 0) {
-    throw new SaveAssessmentError(
-      'INVALID_PAYLOAD',
-      'Assessment has no test results.'
-    );
+    throw new SaveAssessmentError("INVALID_PAYLOAD", "Assessment has no test results.");
   }
 }
 
@@ -214,30 +198,30 @@ function validateAssessment(a: FmsAssessment): void {
  * 401-ish `PGRST301` or similar.
  */
 function mapSupabaseError(err: { message: string; code?: string }): SaveAssessmentError {
-  const msg = err.message ?? '';
-  const code = err.code ?? '';
+  const msg = err.message ?? "";
+  const code = err.code ?? "";
 
-  if (code === '42501' || /permission|policy/i.test(msg)) {
+  if (code === "42501" || /permission|policy/i.test(msg)) {
     return new SaveAssessmentError(
-      'PERMISSION_DENIED',
+      "PERMISSION_DENIED",
       "You don't have permission to save this assessment.",
-      err
+      err,
     );
   }
   if (/jwt|auth|session/i.test(msg)) {
     return new SaveAssessmentError(
-      'UNAUTHENTICATED',
-      'Your session has expired. Please sign in again.',
-      err
+      "UNAUTHENTICATED",
+      "Your session has expired. Please sign in again.",
+      err,
     );
   }
   if (/network|fetch|timeout/i.test(msg)) {
-    return new SaveAssessmentError('NETWORK', 'Network error while saving.', err);
+    return new SaveAssessmentError("NETWORK", "Network error while saving.", err);
   }
   return new SaveAssessmentError(
-    'UNKNOWN',
-    msg || 'Unknown error while saving the assessment.',
-    err
+    "UNKNOWN",
+    msg || "Unknown error while saving the assessment.",
+    err,
   );
 }
 
@@ -287,7 +271,7 @@ export function useSaveAssessment(): UseMutationResult<
   const queryClient = useQueryClient();
 
   return useMutation<SaveAssessmentResult, SaveAssessmentError, FmsAssessment>({
-    mutationKey: ['save-fms-assessment'],
+    mutationKey: ["save-fms-assessment"],
 
     mutationFn: async (assessment) => {
       validateAssessment(assessment);
@@ -300,7 +284,7 @@ export function useSaveAssessment(): UseMutationResult<
         generalNotes: assessment.generalNotes,
       };
 
-      const row: Omit<FmsAssessmentRow, 'created_at' | 'updated_at'> = {
+      const row: Omit<FmsAssessmentRow, "created_at" | "updated_at"> = {
         id: assessment.id,
         athlete_id: assessment.athleteId,
         coach_id: assessment.coachId,
@@ -314,18 +298,15 @@ export function useSaveAssessment(): UseMutationResult<
       // Same workaround pattern as `useSaveProgramBlock`.
       const { data, error } = await supabase
         .from(ASSESSMENTS_TABLE as never)
-        .upsert(row as never, { onConflict: 'id' })
-        .select('id, updated_at')
+        .upsert(row as never, { onConflict: "id" })
+        .select("id, updated_at")
         .single();
 
       if (error) throw mapSupabaseError(error);
 
       const result = data as unknown as { id: string; updated_at: string } | null;
       if (!result) {
-        throw new SaveAssessmentError(
-          'UNKNOWN',
-          'Save returned no row — unexpected.'
-        );
+        throw new SaveAssessmentError("UNKNOWN", "Save returned no row — unexpected.");
       }
       return result;
     },
@@ -333,13 +314,13 @@ export function useSaveAssessment(): UseMutationResult<
     onSuccess: (_result, assessment) => {
       // Surface the new/updated assessment to all dependent queries.
       queryClient.invalidateQueries({
-        queryKey: ['fms-alerts', assessment.athleteId],
+        queryKey: ["fms-alerts", assessment.athleteId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['athlete-health-profile', assessment.athleteId],
+        queryKey: ["athlete-health-profile", assessment.athleteId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['fms-assessments', assessment.athleteId],
+        queryKey: ["fms-assessments", assessment.athleteId],
       });
     },
   });

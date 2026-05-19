@@ -79,13 +79,7 @@ interface BeepOptions {
  * Designed to cut through Spotify / background audio.
  */
 export function playBeep(opts: BeepOptions = {}): void {
-  const {
-    frequency = 880,
-    duration = 0.12,
-    volume = 0.6,
-    count = 3,
-    gap = 0.1,
-  } = opts;
+  const { frequency = 880, duration = 0.12, volume = 0.6, count = 3, gap = 0.1 } = opts;
 
   const c = getAudioContext();
   if (!c) return;

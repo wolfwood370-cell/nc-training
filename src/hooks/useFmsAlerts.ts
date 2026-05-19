@@ -22,8 +22,16 @@ const FMS_TEST_CONFIG = {
     name: "Shoulder Mobility",
     bodyArea: "Shoulder",
     contraindications: [
-      "overhead press", "military press", "push press", "shoulder press",
-      "snatch", "jerk", "overhead squat", "pull up", "chin up", "lat pulldown"
+      "overhead press",
+      "military press",
+      "push press",
+      "shoulder press",
+      "snatch",
+      "jerk",
+      "overhead squat",
+      "pull up",
+      "chin up",
+      "lat pulldown",
     ],
   },
   active_straight_leg: {
@@ -82,9 +90,12 @@ function getScoreStatus(score: number): FmsFlag["status"] | null {
 
 function getStatusLabel(status: FmsFlag["status"]): string {
   switch (status) {
-    case "pain": return "Dolore";
-    case "dysfunctional": return "Disfunzionale";
-    case "limited": return "Limitato";
+    case "pain":
+      return "Dolore";
+    case "dysfunctional":
+      return "Disfunzionale";
+    case "limited":
+      return "Limitato";
   }
 }
 
@@ -156,18 +167,22 @@ export function useFmsAlerts(athleteId: string | null) {
 
       // Process unilateral tests
       const unilateralTests: FmsTestKey[] = [
-        "hurdle_step", "inline_lunge", "shoulder_mobility",
-        "active_straight_leg", "rotary_stability"
+        "hurdle_step",
+        "inline_lunge",
+        "shoulder_mobility",
+        "active_straight_leg",
+        "rotary_stability",
       ];
 
       for (const testKey of unilateralTests) {
         const leftScore = (fmsData as any)[`${testKey}_l`] as number | null;
         const rightScore = (fmsData as any)[`${testKey}_r`] as number | null;
-        
+
         // Use minimum score for FMS scoring
-        const minScore = leftScore !== null && rightScore !== null
-          ? Math.min(leftScore, rightScore)
-          : leftScore ?? rightScore;
+        const minScore =
+          leftScore !== null && rightScore !== null
+            ? Math.min(leftScore, rightScore)
+            : (leftScore ?? rightScore);
 
         if (minScore !== null) {
           totalScore += minScore;
@@ -210,7 +225,7 @@ export function useFmsAlerts(athleteId: string | null) {
       }
 
       // Red flags are scores <= 1 (pain or dysfunctional)
-      const hasRedFlags = flags.some(f => f.status === "pain" || f.status === "dysfunctional");
+      const hasRedFlags = flags.some((f) => f.status === "pain" || f.status === "dysfunctional");
 
       return {
         athleteId,
@@ -232,20 +247,20 @@ export function useFmsAlerts(athleteId: string | null) {
  */
 export function checkExerciseContraindication(
   exerciseName: string,
-  flags: FmsFlag[]
+  flags: FmsFlag[],
 ): FmsFlag | null {
   const lowerName = exerciseName.toLowerCase();
-  
+
   for (const flag of flags) {
     // Only warn for red flags (score <= 1)
     if (flag.status !== "pain" && flag.status !== "dysfunctional") continue;
-    
+
     for (const contraindication of flag.contraindications) {
       if (lowerName.includes(contraindication.toLowerCase())) {
         return flag;
       }
     }
   }
-  
+
   return null;
 }

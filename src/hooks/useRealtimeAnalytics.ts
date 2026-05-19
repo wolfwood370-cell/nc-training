@@ -30,7 +30,7 @@ export function useRealtimeAnalytics(athleteId: string | undefined) {
           queryClient.invalidateQueries({ queryKey: ["athlete-metabolic", athleteId] });
           queryClient.invalidateQueries({ queryKey: ["athlete-exercise-list", athleteId] });
           queryClient.invalidateQueries({ queryKey: ["athlete-acwr", athleteId] });
-        }
+        },
       )
       .subscribe();
 

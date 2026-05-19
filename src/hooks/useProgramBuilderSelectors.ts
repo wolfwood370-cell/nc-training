@@ -1,12 +1,12 @@
-import { useCallback, useMemo } from 'react';
-import { useShallow } from 'zustand/shallow';
+import { useCallback, useMemo } from "react";
+import { useShallow } from "zustand/shallow";
 import {
   useProgramBuilderStore,
   ProgramBuilderStore,
   ProgramExercise,
   WeekProgram,
   ProgramData,
-} from '@/stores/useProgramBuilderStore';
+} from "@/stores/useProgramBuilderStore";
 
 /**
  * Performance-optimized selectors for ProgramBuilder components
@@ -29,7 +29,7 @@ export function useProgramState() {
       isDirty: state.isDirty,
       programId: state.programId,
       programName: state.programName,
-    }))
+    })),
   );
 }
 
@@ -47,7 +47,7 @@ export function useCurrentWeekProgram(): WeekProgram | undefined {
  */
 export function useDayExercises(dayIndex: number): ProgramExercise[] {
   return useProgramBuilderStore(
-    useShallow((state) => state.program[state.currentWeek]?.[dayIndex] || [])
+    useShallow((state) => state.program[state.currentWeek]?.[dayIndex] || []),
   );
 }
 
@@ -55,9 +55,7 @@ export function useDayExercises(dayIndex: number): ProgramExercise[] {
  * Returns exercises for a specific day and week
  */
 export function useWeekDayExercises(weekIndex: number, dayIndex: number): ProgramExercise[] {
-  return useProgramBuilderStore(
-    useShallow((state) => state.program[weekIndex]?.[dayIndex] || [])
-  );
+  return useProgramBuilderStore(useShallow((state) => state.program[weekIndex]?.[dayIndex] || []));
 }
 
 // =========================================
@@ -72,7 +70,7 @@ export function useExerciseSelection() {
     useShallow((state) => ({
       selectedExercise: state.selectedExercise,
       supersetPendingId: state.supersetPendingId,
-    }))
+    })),
   );
 }
 
@@ -159,7 +157,7 @@ export function useWeekActions() {
       pasteWeekFromClipboard: state.pasteWeekFromClipboard,
       clearWeek: state.clearWeek,
       swapDays: state.swapDays,
-    }))
+    })),
   );
 }
 
@@ -173,7 +171,7 @@ export function useDayActions() {
       copyDay: state.copyDay,
       copyDayToMultiple: state.copyDayToMultiple,
       clearDay: state.clearDay,
-    }))
+    })),
   );
 }
 
@@ -193,7 +191,7 @@ export function useExerciseActions() {
       copyDay: state.copyDay,
       copyDayToMultiple: state.copyDayToMultiple,
       clearDay: state.clearDay,
-    }))
+    })),
   );
 }
 
@@ -205,7 +203,7 @@ export function useSupersetActions() {
     useShallow((state) => ({
       setSupersetPending: state.setSupersetPending,
       toggleSuperset: state.toggleSuperset,
-    }))
+    })),
   );
 }
 
@@ -217,7 +215,7 @@ export function useSelectionActions() {
     useShallow((state) => ({
       selectExercise: state.selectExercise,
       clearSelection: state.clearSelection,
-    }))
+    })),
   );
 }
 
@@ -232,7 +230,7 @@ export function useProgramActions() {
       reset: state.reset,
       setProgramName: state.setProgramName,
       markClean: state.markClean,
-    }))
+    })),
   );
 }
 
@@ -252,7 +250,7 @@ export function useWeekTabsData() {
       cloneWeekToRange: state.cloneWeekToRange,
       removeWeek: state.removeWeek,
       applyProgression: state.applyProgression,
-    }))
+    })),
   );
 }
 
@@ -264,7 +262,7 @@ export function useWeekGridData() {
   const totalWeeks = useProgramBuilderStore((state) => state.totalWeeks);
   const weekData = useProgramBuilderStore((state) => state.program[state.currentWeek]);
   const selectedExerciseId = useProgramBuilderStore((state) => state.selectedExercise?.exerciseId);
-  
+
   const actions = useProgramBuilderStore(
     useShallow((state) => ({
       setCurrentWeek: state.setCurrentWeek,
@@ -276,7 +274,7 @@ export function useWeekGridData() {
       copyDayToMultiple: state.copyDayToMultiple,
       clearDay: state.clearDay,
       reorderExercises: state.reorderExercises,
-    }))
+    })),
   );
 
   return {
@@ -293,13 +291,13 @@ export function useWeekGridData() {
  */
 export function useDndHandlers() {
   const currentWeek = useProgramBuilderStore((state) => state.currentWeek);
-  
+
   const actions = useProgramBuilderStore(
     useShallow((state) => ({
       fillSlot: state.fillSlot,
       addExercise: state.addExercise,
       reorderExercises: state.reorderExercises,
-    }))
+    })),
   );
 
   return { currentWeek, ...actions };
@@ -311,12 +309,12 @@ export function useDndHandlers() {
 export function useContextEditorData() {
   const selectedExercise = useProgramBuilderStore((state) => state.selectedExercise);
   const exerciseData = useSelectedExerciseData();
-  
+
   const actions = useProgramBuilderStore(
     useShallow((state) => ({
       updateExercise: state.updateExercise,
       clearSelection: state.clearSelection,
-    }))
+    })),
   );
 
   return {

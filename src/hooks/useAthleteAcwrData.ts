@@ -16,10 +16,10 @@ interface AcwrResult {
   label: string;
 }
 
-export function useAthleteAcwrData(athleteId: string | undefined): { 
-  data: AcwrResult | null; 
-  isLoading: boolean; 
-  error: Error | null 
+export function useAthleteAcwrData(athleteId: string | undefined): {
+  data: AcwrResult | null;
+  isLoading: boolean;
+  error: Error | null;
 } {
   const { data, isLoading, error } = useQuery({
     queryKey: ["athlete-acwr-data", athleteId],
@@ -60,8 +60,15 @@ export function useAthleteAcwrData(athleteId: string | undefined): {
 
       // Calculate load for each workout: RPE * Minutes
       const loadsWithDates = logs
-        .filter((log): log is WorkoutLog & { rpe_global: number; duration_seconds: number; completed_at: string } => 
-          log.rpe_global !== null && log.duration_seconds !== null && log.completed_at !== null
+        .filter(
+          (
+            log,
+          ): log is WorkoutLog & {
+            rpe_global: number;
+            duration_seconds: number;
+            completed_at: string;
+          } =>
+            log.rpe_global !== null && log.duration_seconds !== null && log.completed_at !== null,
         )
         .map((log) => ({
           date: new Date(log.completed_at),
@@ -84,9 +91,8 @@ export function useAthleteAcwrData(athleteId: string | undefined): {
 
       // Acute load: AVERAGE load over last 7 days
       const acuteLoads = loadsWithDates.filter((l) => l.date >= sevenDaysAgo);
-      const acuteLoad = acuteLoads.length > 0 
-        ? acuteLoads.reduce((sum, l) => sum + l.load, 0) / 7
-        : 0;
+      const acuteLoad =
+        acuteLoads.length > 0 ? acuteLoads.reduce((sum, l) => sum + l.load, 0) / 7 : 0;
 
       // Chronic load: AVERAGE load over last 28 days
       const chronicLoad = loadsWithDates.reduce((sum, l) => sum + l.load, 0) / 28;

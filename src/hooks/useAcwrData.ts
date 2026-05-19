@@ -66,11 +66,7 @@ export function useAcwrData(): AcwrHookResult {
         .filter((l) => l.completed_at !== null)
         .map((log) => ({
           date: log.completed_at!.split("T")[0],
-          load: calculateDailyStrain(
-            log.total_load_au,
-            log.rpe_global,
-            log.duration_seconds,
-          ),
+          load: calculateDailyStrain(log.total_load_au, log.rpe_global, log.duration_seconds),
         }));
 
       // Build continuous 42-day array (filling rest days with 0)

@@ -3,7 +3,7 @@
  * Uses the Web Vibration API where supported
  */
 
-type HapticType = 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error';
+type HapticType = "light" | "medium" | "heavy" | "success" | "warning" | "error";
 
 const hapticPatterns: Record<HapticType, number | number[]> = {
   light: 10,
@@ -15,11 +15,11 @@ const hapticPatterns: Record<HapticType, number | number[]> = {
 };
 
 export function useHapticFeedback() {
-  const isSupported = typeof navigator !== 'undefined' && 'vibrate' in navigator;
+  const isSupported = typeof navigator !== "undefined" && "vibrate" in navigator;
 
-  const trigger = (type: HapticType = 'light') => {
+  const trigger = (type: HapticType = "light") => {
     if (!isSupported) return false;
-    
+
     try {
       const pattern = hapticPatterns[type];
       navigator.vibrate(pattern);
@@ -30,12 +30,12 @@ export function useHapticFeedback() {
   };
 
   // Convenience methods
-  const light = () => trigger('light');
-  const medium = () => trigger('medium');
-  const heavy = () => trigger('heavy');
-  const success = () => trigger('success');
-  const warning = () => trigger('warning');
-  const error = () => trigger('error');
+  const light = () => trigger("light");
+  const medium = () => trigger("medium");
+  const heavy = () => trigger("heavy");
+  const success = () => trigger("success");
+  const warning = () => trigger("warning");
+  const error = () => trigger("error");
 
   return {
     isSupported,
@@ -50,11 +50,11 @@ export function useHapticFeedback() {
 }
 
 // Standalone function for use outside of React components
-export function triggerHaptic(type: HapticType = 'light'): boolean {
-  if (typeof navigator === 'undefined' || !('vibrate' in navigator)) {
+export function triggerHaptic(type: HapticType = "light"): boolean {
+  if (typeof navigator === "undefined" || !("vibrate" in navigator)) {
     return false;
   }
-  
+
   try {
     const pattern = hapticPatterns[type];
     navigator.vibrate(pattern);

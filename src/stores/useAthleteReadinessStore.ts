@@ -88,10 +88,7 @@ const DEFAULT_DASHBOARD_METRICS: MetricKey[] = ["Sonno", "Stress", "Fatica"];
  * If fewer than `count` metrics have values, returns whatever's
  * available; ties are broken by the order in `METRIC_KEYS`.
  */
-export function computeWorstMetrics(
-  metrics: MetricsMap,
-  count = 3,
-): MetricKey[] {
+export function computeWorstMetrics(metrics: MetricsMap, count = 3): MetricKey[] {
   return (METRIC_KEYS as readonly MetricKey[])
     .filter((k) => metrics[k].today !== null)
     .sort((a, b) => {
@@ -131,9 +128,7 @@ export interface AthleteReadinessStoreState {
    * Values not supplied keep their previous today. Callers can pass
    * `null` for an explicit "not measured".
    */
-  submitDailyCheckin: (
-    payload: Partial<Record<MetricKey, number | null>>,
-  ) => void;
+  submitDailyCheckin: (payload: Partial<Record<MetricKey, number | null>>) => void;
   /** Replace the three metrics to surface on the dashboard card. */
   setSelectedMetrics: (next: MetricKey[]) => void;
   /** Toggle the "pin user choice" mode on the dashboard Prontezza card. */
@@ -170,10 +165,7 @@ export const useAthleteReadinessStore = create<AthleteReadinessStoreState>()(
           const seen = new Set<MetricKey>();
           const cleaned: MetricKey[] = [];
           for (const k of next) {
-            if (
-              (METRIC_KEYS as readonly string[]).includes(k) &&
-              !seen.has(k)
-            ) {
+            if ((METRIC_KEYS as readonly string[]).includes(k) && !seen.has(k)) {
               cleaned.push(k);
               seen.add(k);
               if (cleaned.length === 3) break;

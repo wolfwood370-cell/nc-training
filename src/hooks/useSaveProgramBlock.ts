@@ -66,15 +66,15 @@
  * compiles against the current `Database` type.
  */
 
-import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import type { ProgramBlock } from '@/types/training';
+import { useMutation, useQueryClient, type UseMutationResult } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import type { ProgramBlock } from "@/types/training";
 
 // ---------------------------------------------------------------------------
 // Public types
 // ---------------------------------------------------------------------------
 
-export type SaveProgramBlockStatus = 'draft' | 'published' | 'archived';
+export type SaveProgramBlockStatus = "draft" | "published" | "archived";
 
 export interface SaveProgramBlockInput {
   block: ProgramBlock;
@@ -93,18 +93,18 @@ export interface SaveProgramBlockResult {
  * `mutation.error` is well-typed.
  */
 export type SaveProgramBlockErrorCode =
-  | 'UNAUTHENTICATED'
-  | 'INVALID_BLOCK'
-  | 'NETWORK'
-  | 'PERMISSION_DENIED'
-  | 'UNKNOWN';
+  | "UNAUTHENTICATED"
+  | "INVALID_BLOCK"
+  | "NETWORK"
+  | "PERMISSION_DENIED"
+  | "UNKNOWN";
 
 export class SaveProgramBlockError extends Error {
   readonly code: SaveProgramBlockErrorCode;
   readonly cause?: unknown;
   constructor(code: SaveProgramBlockErrorCode, message: string, cause?: unknown) {
     super(message);
-    this.name = 'SaveProgramBlockError';
+    this.name = "SaveProgramBlockError";
     this.code = code;
     this.cause = cause;
   }
@@ -124,42 +124,42 @@ export class SaveProgramBlockError extends Error {
  */
 const programBlocksTable = () =>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (supabase as any).from('program_blocks');
+  (supabase as any).from("program_blocks");
 
 /** Lightweight runtime validation — catches obvious shape bugs early. */
 function validateBlock(block: ProgramBlock): void {
-  if (!block || typeof block !== 'object') {
-    throw new SaveProgramBlockError('INVALID_BLOCK', 'Block is missing.');
+  if (!block || typeof block !== "object") {
+    throw new SaveProgramBlockError("INVALID_BLOCK", "Block is missing.");
   }
   if (!block.id) {
-    throw new SaveProgramBlockError('INVALID_BLOCK', 'Block id is required.');
+    throw new SaveProgramBlockError("INVALID_BLOCK", "Block id is required.");
   }
   if (!block.name?.trim()) {
-    throw new SaveProgramBlockError('INVALID_BLOCK', 'Block name is required.');
+    throw new SaveProgramBlockError("INVALID_BLOCK", "Block name is required.");
   }
   if (!Array.isArray(block.weeks)) {
-    throw new SaveProgramBlockError('INVALID_BLOCK', 'Block.weeks must be an array.');
+    throw new SaveProgramBlockError("INVALID_BLOCK", "Block.weeks must be an array.");
   }
   if (!block.start_date) {
-    throw new SaveProgramBlockError('INVALID_BLOCK', 'Block.start_date is required.');
+    throw new SaveProgramBlockError("INVALID_BLOCK", "Block.start_date is required.");
   }
 }
 
 /** Map a Supabase PostgrestError to one of our typed error codes. */
 function classifySupabaseError(err: { code?: string; message: string }): SaveProgramBlockError {
   // Postgres permission / RLS denial.
-  if (err.code === '42501' || /permission denied|row-level security/i.test(err.message)) {
+  if (err.code === "42501" || /permission denied|row-level security/i.test(err.message)) {
     return new SaveProgramBlockError(
-      'PERMISSION_DENIED',
-      'You do not have permission to save this block.',
+      "PERMISSION_DENIED",
+      "You do not have permission to save this block.",
       err,
     );
   }
   // PostgREST/network-ish failures bubble up with no code.
   if (!err.code) {
-    return new SaveProgramBlockError('NETWORK', err.message, err);
+    return new SaveProgramBlockError("NETWORK", err.message, err);
   }
-  return new SaveProgramBlockError('UNKNOWN', err.message, err);
+  return new SaveProgramBlockError("UNKNOWN", err.message, err);
 }
 
 // ---------------------------------------------------------------------------
@@ -203,8 +203,8 @@ export function useSaveProgramBlock(): UseMutationResult<
   >({
     mutationFn: async (raw) => {
       // Normalise input — callers can pass a bare ProgramBlock for ergonomics.
-      const { block, status = 'draft' }: SaveProgramBlockInput =
-        'block' in raw ? raw : { block: raw };
+      const { block, status = "draft" }: SaveProgramBlockInput =
+        "block" in raw ? raw : { block: raw };
 
       validateBlock(block);
 
@@ -217,15 +217,15 @@ export function useSaveProgramBlock(): UseMutationResult<
 
       if (authError) {
         throw new SaveProgramBlockError(
-          'UNAUTHENTICATED',
-          'Could not verify your session.',
+          "UNAUTHENTICATED",
+          "Could not verify your session.",
           authError,
         );
       }
       if (!user) {
         throw new SaveProgramBlockError(
-          'UNAUTHENTICATED',
-          'You must be signed in to save a program.',
+          "UNAUTHENTICATED",
+          "You must be signed in to save a program.",
         );
       }
 
@@ -248,19 +248,16 @@ export function useSaveProgramBlock(): UseMutationResult<
             data: blockToSave, // entire document goes here
             updated_at: nowISO,
           },
-          { onConflict: 'id' },
+          { onConflict: "id" },
         )
-        .select('id, updated_at')
+        .select("id, updated_at")
         .single();
 
       if (error) {
         throw classifySupabaseError(error);
       }
       if (!data) {
-        throw new SaveProgramBlockError(
-          'UNKNOWN',
-          'Save returned no row.',
-        );
+        throw new SaveProgramBlockError("UNKNOWN", "Save returned no row.");
       }
 
       return {
@@ -270,15 +267,15 @@ export function useSaveProgramBlock(): UseMutationResult<
     },
     onSuccess: (result, variables) => {
       // Invalidate any list views that show this block.
-      queryClient.invalidateQueries({ queryKey: ['program-blocks'] });
+      queryClient.invalidateQueries({ queryKey: ["program-blocks"] });
       queryClient.invalidateQueries({
-        queryKey: ['program-block', result.id],
+        queryKey: ["program-block", result.id],
       });
       // If saving for a specific athlete, refresh their assigned-program views.
-      const block = 'block' in variables ? variables.block : variables;
+      const block = "block" in variables ? variables.block : variables;
       if (block.athlete_id) {
         queryClient.invalidateQueries({
-          queryKey: ['athlete-programs', block.athlete_id],
+          queryKey: ["athlete-programs", block.athlete_id],
         });
       }
     },
@@ -286,8 +283,7 @@ export function useSaveProgramBlock(): UseMutationResult<
 
   // Stable convenience wrapper. Returns the awaited result instead of the
   // mutation object so callers can `await saveBlock(block)` ergonomically.
-  const saveBlock = (input: ProgramBlock | SaveProgramBlockInput) =>
-    mutation.mutateAsync(input);
+  const saveBlock = (input: ProgramBlock | SaveProgramBlockInput) => mutation.mutateAsync(input);
 
   return Object.assign(mutation, { saveBlock });
 }
@@ -296,7 +292,6 @@ export function useSaveProgramBlock(): UseMutationResult<
 // Cache-key helpers (exported for invalidation from sibling hooks)
 // ---------------------------------------------------------------------------
 
-export const programBlockQueryKey = (id: string) =>
-  ['program-block', id] as const;
+export const programBlockQueryKey = (id: string) => ["program-block", id] as const;
 
-export const programBlocksListQueryKey = () => ['program-blocks'] as const;
+export const programBlocksListQueryKey = () => ["program-blocks"] as const;

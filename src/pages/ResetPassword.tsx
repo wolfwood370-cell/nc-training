@@ -19,7 +19,9 @@ export default function ResetPassword() {
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setIsRecovery(true);
         setChecked(true);
@@ -63,7 +65,8 @@ export default function ResetPassword() {
       toast.success("Password aggiornata con successo!");
       navigate("/auth");
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Errore durante il reset della password";
+      const message =
+        error instanceof Error ? error.message : "Errore durante il reset della password";
       toast.error(message);
     } finally {
       setLoading(false);
@@ -107,9 +110,7 @@ export default function ResetPassword() {
               <Dumbbell className="h-6 w-6 text-primary" />
             </div>
             <CardTitle className="text-xl">Nuova Password</CardTitle>
-            <CardDescription>
-              Inserisci la tua nuova password
-            </CardDescription>
+            <CardDescription>Inserisci la tua nuova password</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleReset} className="space-y-4">
