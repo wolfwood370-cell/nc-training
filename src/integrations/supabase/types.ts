@@ -304,33 +304,45 @@ export type Database = {
       }
       body_measurements: {
         Row: {
+          arm_cm: number | null
           athlete_id: string
           body_fat_percentage: number | null
+          chest_cm: number | null
           created_at: string
           date: string
           id: string
           muscle_mass_kg: number | null
+          thigh_cm: number | null
           updated_at: string
+          waist_cm: number | null
           weight_kg: number | null
         }
         Insert: {
+          arm_cm?: number | null
           athlete_id: string
           body_fat_percentage?: number | null
+          chest_cm?: number | null
           created_at?: string
           date?: string
           id?: string
           muscle_mass_kg?: number | null
+          thigh_cm?: number | null
           updated_at?: string
+          waist_cm?: number | null
           weight_kg?: number | null
         }
         Update: {
+          arm_cm?: number | null
           athlete_id?: string
           body_fat_percentage?: number | null
+          chest_cm?: number | null
           created_at?: string
           date?: string
           id?: string
           muscle_mass_kg?: number | null
+          thigh_cm?: number | null
           updated_at?: string
+          waist_cm?: number | null
           weight_kg?: number | null
         }
         Relationships: [
