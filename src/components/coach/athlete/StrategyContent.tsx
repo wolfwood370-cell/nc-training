@@ -1276,9 +1276,18 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                           return (
                             <div
                               key={habit.id}
+                              role="button"
+                              tabIndex={0}
+                              aria-pressed={selectedHabitId === habit.id}
                               onClick={() => setSelectedHabitId(habit.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  setSelectedHabitId(habit.id);
+                                }
+                              }}
                               className={cn(
-                                "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all",
+                                "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                                 selectedHabitId === habit.id
                                   ? "border-primary bg-primary/5"
                                   : "border-border hover:border-primary/50",

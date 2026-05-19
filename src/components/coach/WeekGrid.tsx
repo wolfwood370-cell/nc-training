@@ -112,13 +112,23 @@ function CopyDayDialog({
                 idx !== sourceDayIndex ? (
                   <div
                     key={idx}
+                    role="checkbox"
+                    tabIndex={0}
+                    aria-checked={selectedDays.includes(idx)}
+                    aria-label={`Seleziona ${day}`}
                     className={cn(
-                      "flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors border",
+                      "flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                       selectedDays.includes(idx)
                         ? "bg-primary/10 border-primary"
                         : "hover:bg-secondary border-transparent",
                     )}
                     onClick={() => toggleDay(idx)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleDay(idx);
+                      }
+                    }}
                   >
                     <Checkbox checked={selectedDays.includes(idx)} />
                     <span className="text-sm">{day}</span>
@@ -224,13 +234,23 @@ function CopyWeekDialog({
                 idx !== sourceWeek ? (
                   <div
                     key={idx}
+                    role="checkbox"
+                    tabIndex={0}
+                    aria-checked={selectedWeeks.includes(idx)}
+                    aria-label={`Seleziona settimana ${idx + 1}`}
                     className={cn(
-                      "flex items-center justify-center gap-2 p-2 rounded-lg cursor-pointer transition-colors border",
+                      "flex items-center justify-center gap-2 p-2 rounded-lg cursor-pointer transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                       selectedWeeks.includes(idx)
                         ? "bg-primary/10 border-primary"
                         : "hover:bg-secondary border-transparent",
                     )}
                     onClick={() => toggleWeek(idx)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleWeek(idx);
+                      }
+                    }}
                   >
                     <Checkbox checked={selectedWeeks.includes(idx)} />
                     <span className="text-sm">Sett. {idx + 1}</span>

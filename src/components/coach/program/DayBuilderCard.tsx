@@ -96,16 +96,27 @@ function SortableExercise({
   const rpeText = exercise.rpe ? `RPE ${exercise.rpe}` : null;
   const hasProgression = exercise.progression?.enabled && exercise.progression.rules.length > 0;
 
+  const handleSelect = () => onSelect?.();
   return (
     <div
       ref={setNodeRef}
+      role="button"
+      tabIndex={0}
+      aria-pressed={isSelected}
       style={style}
       onClick={(e) => {
         if ((e.target as HTMLElement).closest("button, [data-drag-handle]")) return;
-        onSelect?.();
+        handleSelect();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          if ((e.target as HTMLElement).closest("button, [data-drag-handle]")) return;
+          e.preventDefault();
+          handleSelect();
+        }
       }}
       className={cn(
-        "bg-card rounded-lg border shadow-sm transition-all",
+        "bg-card rounded-lg border shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         isDragging && "opacity-50 shadow-lg ring-2 ring-primary z-50",
         isSelected && "ring-2 ring-primary border-primary bg-primary/5",
         isInSuperset && "border-l-4",

@@ -112,16 +112,27 @@ function SortableExercise({
 
   const calculatedHint = getCalculatedKg(exercise.load);
 
+  const handleSelect = () => onSelect?.();
   return (
     <div
       ref={setNodeRef}
+      role="button"
+      tabIndex={0}
+      aria-pressed={isSelected}
       style={style}
       onClick={(e) => {
         if ((e.target as HTMLElement).closest("button, input, select")) return;
-        onSelect?.();
+        handleSelect();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          if ((e.target as HTMLElement).closest("button, input, select")) return;
+          e.preventDefault();
+          handleSelect();
+        }
       }}
       className={cn(
-        "bg-background rounded-lg border p-2 space-y-1.5 group transition-all cursor-pointer",
+        "bg-background rounded-lg border p-2 space-y-1.5 group transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         isDragging && "opacity-50 shadow-lg ring-2 ring-primary",
         isSelected && "ring-2 ring-primary border-primary bg-primary/5",
         isInSuperset && "border-l-4",

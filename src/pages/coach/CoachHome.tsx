@@ -386,40 +386,51 @@ export default function CoachHome() {
                   ) : (
                     <ScrollArea className="max-h-[340px] flex-1">
                       <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                        {feedbackItems.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer group"
-                            onClick={() => navigate(`/coach/athlete/${item.athleteId}`)}
-                          >
-                            <Avatar className="h-9 w-9">
-                              <AvatarImage src={item.avatarUrl || undefined} />
-                              <AvatarFallback className="bg-warning/10 text-warning text-xs font-medium">
-                                {item.avatarInitials}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">{item.athleteName}</p>
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-2xs text-slate-400 truncate">
-                                  {item.workoutTitle}
-                                </span>
-                                {item.rpeGlobal && (
-                                  <Badge
-                                    variant="outline"
-                                    className={cn(
-                                      "text-3xs px-1 py-0 h-4",
-                                      item.rpeGlobal > 8 ? "border-warning/50 text-warning" : "",
-                                    )}
-                                  >
-                                    RPE {item.rpeGlobal}
-                                  </Badge>
-                                )}
+                        {feedbackItems.map((item) => {
+                          const goToAthlete = () => navigate(`/coach/athlete/${item.athleteId}`);
+                          return (
+                            <div
+                              key={item.id}
+                              role="button"
+                              tabIndex={0}
+                              className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              onClick={goToAthlete}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  goToAthlete();
+                                }
+                              }}
+                            >
+                              <Avatar className="h-9 w-9">
+                                <AvatarImage src={item.avatarUrl || undefined} />
+                                <AvatarFallback className="bg-warning/10 text-warning text-xs font-medium">
+                                  {item.avatarInitials}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{item.athleteName}</p>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="text-2xs text-slate-400 truncate">
+                                    {item.workoutTitle}
+                                  </span>
+                                  {item.rpeGlobal && (
+                                    <Badge
+                                      variant="outline"
+                                      className={cn(
+                                        "text-3xs px-1 py-0 h-4",
+                                        item.rpeGlobal > 8 ? "border-warning/50 text-warning" : "",
+                                      )}
+                                    >
+                                      RPE {item.rpeGlobal}
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
+                              <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition-colors flex-shrink-0" />
                             </div>
-                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition-colors flex-shrink-0" />
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </ScrollArea>
                   )}
@@ -464,24 +475,35 @@ export default function CoachHome() {
                   ) : (
                     <ScrollArea className="max-h-[220px] flex-1">
                       <div className="px-3 pb-3 space-y-1">
-                        {todaySchedule.map((w) => (
-                          <div
-                            key={w.id}
-                            className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50/80 dark:hover:bg-slate-800/30 cursor-pointer transition-colors"
-                            onClick={() => navigate(`/coach/athlete/${w.athleteId}`)}
-                          >
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="bg-sky-500/10 text-sky-600 text-xs">
-                                {w.avatarInitials}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">{w.athleteName}</p>
-                              <p className="text-xs text-slate-400 truncate">{w.title}</p>
+                        {todaySchedule.map((w) => {
+                          const goToAthlete = () => navigate(`/coach/athlete/${w.athleteId}`);
+                          return (
+                            <div
+                              key={w.id}
+                              role="button"
+                              tabIndex={0}
+                              className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50/80 dark:hover:bg-slate-800/30 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              onClick={goToAthlete}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  goToAthlete();
+                                }
+                              }}
+                            >
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback className="bg-sky-500/10 text-sky-600 text-xs">
+                                  {w.avatarInitials}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{w.athleteName}</p>
+                                <p className="text-xs text-slate-400 truncate">{w.title}</p>
+                              </div>
+                              <Activity className="h-4 w-4 text-slate-300" />
                             </div>
-                            <Activity className="h-4 w-4 text-slate-300" />
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </ScrollArea>
                   )}
@@ -523,8 +545,17 @@ export default function CoachHome() {
                         ))}
                         {healthyAthletes.length > 14 && (
                           <div
-                            className="h-9 w-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-medium text-slate-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Vedi tutti i ${healthyAthletes.length} atleti`}
+                            className="h-9 w-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-medium text-slate-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                             onClick={() => navigate("/coach/athletes")}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                navigate("/coach/athletes");
+                              }
+                            }}
                           >
                             +{healthyAthletes.length - 14}
                           </div>
@@ -552,23 +583,34 @@ export default function CoachHome() {
                   ) : (
                     <ScrollArea className="max-h-[140px]">
                       <div className="px-4 pb-4 flex flex-wrap gap-2">
-                        {infoAlerts.slice(0, 10).map((a) => (
-                          <div
-                            key={a.id}
-                            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700/50 cursor-pointer transition-colors"
-                            onClick={() => navigate(`/coach/athlete/${a.athleteId}`)}
-                          >
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={a.avatarUrl || undefined} />
-                              <AvatarFallback className="text-4xs bg-slate-200 dark:bg-slate-700 text-slate-500">
-                                {a.avatarInitials}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-xs font-medium truncate max-w-[80px]">
-                              {a.athleteName.split(" ")[0]}
-                            </span>
-                          </div>
-                        ))}
+                        {infoAlerts.slice(0, 10).map((a) => {
+                          const goToAthlete = () => navigate(`/coach/athlete/${a.athleteId}`);
+                          return (
+                            <div
+                              key={a.id}
+                              role="button"
+                              tabIndex={0}
+                              className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700/50 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              onClick={goToAthlete}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  goToAthlete();
+                                }
+                              }}
+                            >
+                              <Avatar className="h-6 w-6">
+                                <AvatarImage src={a.avatarUrl || undefined} />
+                                <AvatarFallback className="text-4xs bg-slate-200 dark:bg-slate-700 text-slate-500">
+                                  {a.avatarInitials}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs font-medium truncate max-w-[80px]">
+                                {a.athleteName.split(" ")[0]}
+                              </span>
+                            </div>
+                          );
+                        })}
                         {infoAlerts.length > 10 && (
                           <div className="px-2 py-1.5 text-xs text-slate-400">
                             +{infoAlerts.length - 10} altri
@@ -645,8 +687,16 @@ function AlertRow({ alert, onClick }: { alert: UrgentAlert; onClick: () => void 
 
   return (
     <div
-      className="flex items-center gap-4 px-5 py-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer group"
+      role="button"
+      tabIndex={0}
+      className="flex items-center gap-4 px-5 py-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
       <div className="relative flex-shrink-0">
         <Avatar className={cn("h-10 w-10 ring-2", severity.ring)}>

@@ -177,13 +177,22 @@ export function LoadBlockDialog({
                 {filteredTemplates.map((template) => (
                   <div
                     key={template.id}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={selectedTemplateId === template.id}
                     className={cn(
-                      "flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors border group",
+                      "flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors border group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                       selectedTemplateId === template.id
                         ? "bg-primary/10 border-primary"
                         : "hover:bg-secondary border-transparent",
                     )}
                     onClick={() => setSelectedTemplateId(template.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelectedTemplateId(template.id);
+                      }
+                    }}
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{template.name}</p>

@@ -181,8 +181,11 @@ function PhaseBlock({
       <Tooltip>
         <TooltipTrigger asChild>
           <div
+            role="button"
+            tabIndex={0}
+            aria-label={`Fase ${phase.name}`}
             className={cn(
-              "absolute top-1 h-8 rounded-md border-2 cursor-pointer transition-all group",
+              "absolute top-1 h-8 rounded-md border-2 cursor-pointer transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
               "hover:scale-[1.02] hover:shadow-lg hover:z-10 active:scale-[0.98]",
               config.bgColor,
               config.borderColor,
@@ -190,6 +193,12 @@ function PhaseBlock({
             )}
             style={{ left, width: Math.max(width, 50) }}
             onClick={() => onClick(phase)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick(phase);
+              }
+            }}
           >
             <div className="h-full flex items-center gap-1.5 px-2 overflow-hidden">
               <Icon className={cn("h-3 w-3 flex-shrink-0", config.color)} />
@@ -568,9 +577,18 @@ export function PeriodizationHeader({
 
                     {/* Phases Row */}
                     <div
-                      className="relative border-b border-border/30 cursor-crosshair"
+                      role="button"
+                      tabIndex={0}
+                      aria-label="Clicca per aggiungere una fase nella timeline"
+                      className="relative border-b border-border/30 cursor-crosshair focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       style={{ height: 40 }}
                       onClick={handleTimelineClick}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleTimelineClick(e as unknown as React.MouseEvent<HTMLDivElement>);
+                        }
+                      }}
                     >
                       {/* Row label */}
                       <div className="absolute left-0 top-0 w-[60px] h-full flex items-center justify-center border-r border-border/30 bg-muted/10 z-10">

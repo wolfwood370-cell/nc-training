@@ -301,11 +301,20 @@ export default function CoachAthletes() {
               const active = isActive(athlete.readinessDate);
               const isLive = liveAthleteIds.includes(athlete.athleteId);
 
+              const goToAthlete = () => navigate(`/coach/athlete/${athlete.athleteId}`);
               return (
                 <div
                   key={athlete.athleteId}
-                  onClick={() => navigate(`/coach/athlete/${athlete.athleteId}`)}
-                  className="flex items-center gap-4 p-4 hover:bg-muted/30 cursor-pointer transition-colors group"
+                  role="button"
+                  tabIndex={0}
+                  onClick={goToAthlete}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      goToAthlete();
+                    }
+                  }}
+                  className="flex items-center gap-4 p-4 hover:bg-muted/30 cursor-pointer transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   {/* Avatar with Status Dot */}
                   <div className="relative flex-shrink-0">

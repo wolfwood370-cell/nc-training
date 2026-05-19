@@ -98,8 +98,18 @@ function ImageBubble({ url, alt }: { url: string; alt?: string }) {
       {/* Simple lightbox */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Anteprima immagine — premi Esc o clicca per chiudere"
+          tabIndex={-1}
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 focus:outline-none"
           onClick={() => setIsOpen(false)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setIsOpen(false);
+            }
+          }}
         >
           <img src={url} alt={alt || "Immagine"} className="max-w-full max-h-full object-contain" />
         </div>

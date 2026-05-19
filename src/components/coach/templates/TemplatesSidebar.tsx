@@ -266,13 +266,22 @@ function TemplateCard({
 }) {
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-pressed={isSelected}
       className={cn(
-        "p-3 rounded-lg border cursor-pointer transition-all group",
+        "p-3 rounded-lg border cursor-pointer transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         isSelected
           ? "border-primary bg-primary/5 ring-1 ring-primary"
           : "hover:border-primary/50 hover:bg-muted/50",
       )}
       onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">

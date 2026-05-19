@@ -247,9 +247,19 @@ function WeekViewRow({
   return (
     <div
       ref={setNodeRef}
+      role="button"
+      tabIndex={0}
+      aria-label={`Apri ${format(date, "EEEE d MMMM", { locale: it })}`}
+      aria-pressed={isSelected}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       className={cn(
-        "flex items-stretch border-b border-border/30 min-h-[120px] cursor-pointer hover:bg-muted/20 transition-colors",
+        "flex items-stretch border-b border-border/30 min-h-[120px] cursor-pointer hover:bg-muted/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         isSelected && "bg-primary/5",
         isOver && "bg-primary/10",
       )}

@@ -88,7 +88,7 @@ Sessione di cleanup eseguita sul branch `claude/flamboyant-hertz-937c2d`. Lo sta
 
 ### Tooling baseline migliorata
 
-- ESLint baseline: 73 (prima delle nuove rules) → 139 (con jsx-a11y + no-console attivi) → **117** (post-cleanup)
+- ESLint baseline: 73 (prima delle nuove rules) → 139 (con jsx-a11y + no-console attivi) → **117** → **~96** (post-final-a11y-pass, 21 click-events fix nel coach tree)
 - `tsc --noEmit -p tsconfig.app.json`: exit 0 dall'inizio alla fine
 - `prettier --check src/**`: 0 issue (era 56)
 - `any` count nel coach tree: 23 → < 5 (residui tutti documentati inline)
@@ -102,6 +102,7 @@ Sessione di cleanup eseguita sul branch `claude/flamboyant-hertz-937c2d`. Lo sta
 3. **`as unknown as` spesso obbligatorio**: TS rifiuta cast diretti verso `Json` (index-signature type) da named-key types — il bridge tramite `unknown` è inevitabile finché le interface non aggiungono index signature. Documentato inline.
 4. **B7 era dead code**: `buildMockExercise` in ProgramBuilder non veniva mai invocato, rimosso senza wire-up reale.
 5. **Lint-staged ESLint troppo aggressivo**: bloccava commit per issue pre-esistenti su file toccati. Ribilanciato in `9a3923e` — lint-staged ora solo Prettier; ESLint resta gate manuale via `npm run lint`.
+6. **`<div onClick>` orfani**: scan ESLint finale ha trovato 21 `div onClick` senza supporto tastiera (jsx-a11y/click-events-have-key-events). Out-of-audit-scope ma chiusi nello stesso passaggio per non lasciare debt a11y nel coach tree — pattern uniforme `role + tabIndex + onKeyDown + focus-visible ring`.
 
 ### Cosa rimane di sostanziale
 

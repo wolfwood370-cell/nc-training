@@ -43,15 +43,13 @@ export function CloneWeekDialog({
 
   const toggleWeek = (weekIndex: number) => {
     setSelectedWeeks((prev) =>
-      prev.includes(weekIndex)
-        ? prev.filter((w) => w !== weekIndex)
-        : [...prev, weekIndex]
+      prev.includes(weekIndex) ? prev.filter((w) => w !== weekIndex) : [...prev, weekIndex],
     );
   };
 
   const handleSelectAll = () => {
     const availableWeeks = Array.from({ length: totalWeeks }, (_, i) => i).filter(
-      (i) => i !== sourceWeekIndex
+      (i) => i !== sourceWeekIndex,
     );
     setSelectedWeeks(availableWeeks);
   };
@@ -64,7 +62,7 @@ export function CloneWeekDialog({
 
   // Generate available weeks (exclude source)
   const availableWeeks = Array.from({ length: totalWeeks }, (_, i) => i).filter(
-    (i) => i !== sourceWeekIndex
+    (i) => i !== sourceWeekIndex,
   );
 
   return (
@@ -75,20 +73,13 @@ export function CloneWeekDialog({
             <Copy className="h-5 w-5 text-primary" />
             Clona Settimana {sourceWeekIndex + 1}
           </DialogTitle>
-          <DialogDescription>
-            Seleziona le settimane in cui copiare la struttura
-          </DialogDescription>
+          <DialogDescription>Seleziona le settimane in cui copiare la struttura</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Settimane destinazione</Label>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs"
-              onClick={handleSelectAll}
-            >
+            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleSelectAll}>
               Seleziona tutte
             </Button>
           </div>
@@ -98,18 +89,24 @@ export function CloneWeekDialog({
               {availableWeeks.map((weekIndex) => (
                 <div
                   key={weekIndex}
+                  role="checkbox"
+                  aria-checked={selectedWeeks.includes(weekIndex)}
+                  tabIndex={0}
                   className={cn(
-                    "flex items-center justify-center p-2 rounded-md cursor-pointer transition-colors border",
+                    "flex items-center justify-center p-2 rounded-md cursor-pointer transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                     selectedWeeks.includes(weekIndex)
                       ? "bg-primary/10 border-primary text-primary"
-                      : "hover:bg-secondary border-transparent"
+                      : "hover:bg-secondary border-transparent",
                   )}
                   onClick={() => toggleWeek(weekIndex)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      toggleWeek(weekIndex);
+                    }
+                  }}
                 >
-                  <Checkbox
-                    checked={selectedWeeks.includes(weekIndex)}
-                    className="sr-only"
-                  />
+                  <Checkbox checked={selectedWeeks.includes(weekIndex)} className="sr-only" />
                   <span className="text-sm font-medium">S{weekIndex + 1}</span>
                 </div>
               ))}
@@ -131,10 +128,7 @@ export function CloneWeekDialog({
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Annulla
           </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={selectedWeeks.length === 0 || isLoading}
-          >
+          <Button onClick={handleConfirm} disabled={selectedWeeks.length === 0 || isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

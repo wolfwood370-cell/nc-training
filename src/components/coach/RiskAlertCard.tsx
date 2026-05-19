@@ -144,8 +144,17 @@ export function RiskAlertCard({
 
                   {/* Content */}
                   <div
-                    className="flex-1 min-w-0 cursor-pointer"
+                    role="button"
+                    tabIndex={alert.link ? 0 : -1}
+                    aria-label={`Apri dettagli per ${alert.athlete?.full_name ?? "atleta"}`}
+                    className="flex-1 min-w-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     onClick={() => alert.link && onNavigate(alert.link)}
+                    onKeyDown={(e) => {
+                      if ((e.key === "Enter" || e.key === " ") && alert.link) {
+                        e.preventDefault();
+                        onNavigate(alert.link);
+                      }
+                    }}
                   >
                     <p className="text-sm font-medium truncate">{alert.message}</p>
                     <div className="flex items-center gap-2 mt-0.5">
