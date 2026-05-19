@@ -79,6 +79,8 @@ interface CalendarGridProps {
   showGoogleEvents: boolean;
   onToggleGoogleEvents: (show: boolean) => void;
   onDeleteWorkout?: (logId: string) => void;
+  /** True while a delete-workout mutation is in flight; trash buttons disable to prevent double-click (audit M13). */
+  isDeletingWorkout?: boolean;
 }
 
 // Droppable Day Cell for Month View
@@ -93,6 +95,7 @@ function DroppableDayCell({
   showGoogleEvents,
   onClick,
   onDeleteWorkout,
+  isDeletingWorkout,
 }: {
   date: Date;
   isSelected: boolean;
@@ -104,6 +107,7 @@ function DroppableDayCell({
   showGoogleEvents: boolean;
   onClick: () => void;
   onDeleteWorkout?: (logId: string) => void;
+  isDeletingWorkout?: boolean;
 }) {
   const dateKey = format(date, "yyyy-MM-dd");
   const { isOver, setNodeRef } = useDroppable({
@@ -168,7 +172,8 @@ function DroppableDayCell({
                   e.stopPropagation();
                   onDeleteWorkout(workout.id);
                 }}
-                className="h-4 w-4 rounded-full bg-destructive/20 hover:bg-destructive/40 flex items-center justify-center opacity-0 group-hover/event:opacity-100 transition-opacity shrink-0"
+                disabled={isDeletingWorkout}
+                className="h-4 w-4 rounded-full bg-destructive/20 hover:bg-destructive/40 flex items-center justify-center opacity-0 group-hover/event:opacity-100 transition-opacity shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
                 title="Rimuovi"
               >
                 <X className="h-2.5 w-2.5 text-destructive" />
@@ -219,6 +224,7 @@ function WeekViewRow({
   isSelected,
   onClick,
   onDeleteWorkout,
+  isDeletingWorkout,
 }: {
   date: Date;
   workouts: ScheduledWorkoutLog[];
@@ -228,6 +234,7 @@ function WeekViewRow({
   isSelected: boolean;
   onClick: () => void;
   onDeleteWorkout?: (logId: string) => void;
+  isDeletingWorkout?: boolean;
 }) {
   const dateKey = format(date, "yyyy-MM-dd");
   const { isOver, setNodeRef } = useDroppable({
@@ -326,7 +333,8 @@ function WeekViewRow({
                       e.stopPropagation();
                       onDeleteWorkout(workout.id);
                     }}
-                    className="h-6 w-6 rounded-full bg-destructive/10 hover:bg-destructive/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    disabled={isDeletingWorkout}
+                    className="h-6 w-6 rounded-full bg-destructive/10 hover:bg-destructive/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
                     title="Rimuovi dal calendario"
                   >
                     <X className="h-3.5 w-3.5 text-destructive" />
@@ -398,6 +406,7 @@ export function CalendarGrid({
   showGoogleEvents,
   onToggleGoogleEvents,
   onDeleteWorkout,
+  isDeletingWorkout,
 }: CalendarGridProps) {
   // Group workouts by date
   const workoutsByDate = useMemo(() => {
@@ -567,6 +576,7 @@ export function CalendarGrid({
                     showGoogleEvents={showGoogleEvents}
                     onClick={() => onDateSelect(day)}
                     onDeleteWorkout={onDeleteWorkout}
+                    isDeletingWorkout={isDeletingWorkout}
                   />
                 );
               })}
@@ -594,6 +604,7 @@ export function CalendarGrid({
                     isSelected={isSameDay(day, selectedDate)}
                     onClick={() => onDateSelect(day)}
                     onDeleteWorkout={onDeleteWorkout}
+                    isDeletingWorkout={isDeletingWorkout}
                   />
                 );
               })}

@@ -16,6 +16,10 @@ interface RiskAlertCardProps {
   onDismiss: (alertId: string) => void;
   onMessageAthlete: (alert: CoachAlert) => void;
   onNavigate: (link: string) => void;
+  /** True while the parent's `dismissAlert` mutation is in flight (audit M13). */
+  isDismissing?: boolean;
+  /** True while the parent's "open direct chat" mutation is in flight (audit M13). */
+  isOpeningMessage?: boolean;
 }
 
 function getInitials(name: string | null): string {
@@ -35,6 +39,8 @@ export function RiskAlertCard({
   onDismiss,
   onMessageAthlete,
   onNavigate,
+  isDismissing,
+  isOpeningMessage,
 }: RiskAlertCardProps) {
   const highAlerts = alerts.filter((a) => a.severity === "high");
   const mediumAlerts = alerts.filter((a) => a.severity === "medium");
@@ -173,6 +179,7 @@ export function RiskAlertCard({
                         e.stopPropagation();
                         onMessageAthlete(alert);
                       }}
+                      disabled={isOpeningMessage}
                     >
                       <MessageSquare className="h-3.5 w-3.5" />
                       Messaggio
@@ -185,6 +192,8 @@ export function RiskAlertCard({
                         e.stopPropagation();
                         onDismiss(alert.id);
                       }}
+                      disabled={isDismissing}
+                      aria-label="Ignora alert"
                     >
                       <X className="h-3.5 w-3.5" />
                     </Button>

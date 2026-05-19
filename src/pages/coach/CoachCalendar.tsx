@@ -608,6 +608,7 @@ export default function CoachCalendar() {
                     showGoogleEvents={showGoogleEvents}
                     onToggleGoogleEvents={setShowGoogleEvents}
                     onDeleteWorkout={handleDeleteWorkoutLog}
+                    isDeletingWorkout={deleteWorkoutLogMutation.isPending}
                   />
                 )}
               </CardContent>

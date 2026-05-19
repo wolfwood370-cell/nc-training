@@ -55,13 +55,13 @@ Sessione di cleanup eseguita sul branch `claude/flamboyant-hertz-937c2d`. Lo sta
 
 ### Tabella riassuntiva post-sessione
 
-| Severità        | Chiusi ✅                                                            | Parziali 🟡                                        | Pendenti ❌ |
-| --------------- | -------------------------------------------------------------------- | -------------------------------------------------- | ----------- |
-| 🔴 Critical (4) | **C1, C2, C4**                                                       | —                                                  | C3          |
-| 🟡 Medium (13)  | **M1, M2, M4, M5, M6, M7, M8, M9, M10, M12** (de-facto chiuso da C2) | M3 (1/6 zone), M11 (3 spot), M13 (95% già coperto) | —           |
-| 🔵 Low (9)      | **B2, B3, B4, B5, B6, B7, B8**                                       | —                                                  | B1, B9      |
+| Severità        | Chiusi ✅                                                                 | Parziali 🟡                 | Pendenti ❌ |
+| --------------- | ------------------------------------------------------------------------- | --------------------------- | ----------- |
+| 🔴 Critical (4) | **C1, C2, C4**                                                            | —                           | C3          |
+| 🟡 Medium (13)  | **M1, M2, M4, M5, M6, M7, M8, M9, M10, M12, M13** (de-facto chiuso da C2) | M3 (1/6 zone), M11 (3 spot) | —           |
+| 🔵 Low (9)      | **B2, B3, B4, B5, B6, B7, B8**                                            | —                           | B1, B9      |
 
-**Totale**: **20/26 finding completamente chiusi (77%)**, 3 parziali, 3 pendenti.
+**Totale**: **21/26 finding completamente chiusi (81%)**, 2 parziali, 3 pendenti.
 
 ### Mappa commit → finding
 
@@ -264,7 +264,7 @@ Sessione di cleanup eseguita sul branch `claude/flamboyant-hertz-937c2d`. Lo sta
 
 - **Vedi C2 / M5**. Indica che `profiles.settings` JSONB non ha un'interface dedicata in types.ts. Refactor del settings shape è invisibile al TS.
 
-### M13. 🟡 Mutation buttons senza `disabled={isPending}` in ProgramBuilder e altri _(parziale: `d53f433` — LoadBlockDialog patched; scan ha rivelato copertura già al 95% nel coach tree)_
+### M13. ✅ Mutation buttons senza `disabled={isPending}` in ProgramBuilder e altri _(chiuso — audit completo del coach tree, 8 residui sistemati: CalendarGrid trash (Month+Week), CoachCheckinInbox "Salva bozza"/"Scarta", RiskAlertCard dismiss/messaggio, ExerciseLibrarySidebar archive, StrategyContent toggleHabit+removeHabit)_
 
 - **Sospetto in**: ProgramBuilder, FmsScreening, KnowledgeBase. Pattern già verificato problematico nell'app athlete (audit precedente). Stesso rischio sul coach: doppio click → doppio insert su rete lenta.
 - **Fix**: standardizzare `disabled={mutation.isPending}` su tutti i primary CTA che lanciano mutation.

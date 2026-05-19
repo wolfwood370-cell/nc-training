@@ -1408,6 +1408,7 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                             <div className="flex items-center gap-3">
                               <Switch
                                 checked={ah.active}
+                                disabled={toggleHabitMutation.isPending}
                                 onCheckedChange={(checked) =>
                                   toggleHabitMutation.mutate({
                                     habitId: ah.id,
@@ -1458,6 +1459,7 @@ export function StrategyContent({ athleteId }: StrategyContentProps) {
                                     <AlertDialogCancel>Annulla</AlertDialogCancel>
                                     <AlertDialogAction
                                       onClick={() => removeHabitMutation.mutate(ah.id)}
+                                      disabled={removeHabitMutation.isPending}
                                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                     >
                                       Rimuovi

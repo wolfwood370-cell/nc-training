@@ -47,12 +47,15 @@ function CheckinCard({
   onSkip,
   onUpdate,
   isSending,
+  isUpdating,
 }: {
   checkin: WeeklyCheckin;
   onApprove: (c: WeeklyCheckin) => void;
   onSkip: (c: WeeklyCheckin) => void;
   onUpdate: (id: string, text: string) => void;
   isSending: boolean;
+  /** True while the parent `updateCheckin` mutation is in flight (audit M13). */
+  isUpdating: boolean;
 }) {
   const [editedText, setEditedText] = useState(checkin.coach_notes || checkin.ai_summary || "");
   const [isEditing, setIsEditing] = useState(false);
@@ -162,6 +165,7 @@ function CheckinCard({
                     onUpdate(checkin.id, editedText);
                     setIsEditing(false);
                   }}
+                  disabled={isUpdating}
                 >
                   Salva bozza
                 </Button>
@@ -197,7 +201,7 @@ function CheckinCard({
               variant="outline"
               size="sm"
               onClick={() => onSkip(checkin)}
-              disabled={isSending}
+              disabled={isSending || isUpdating}
             >
               <X className="h-4 w-4 mr-1" />
               Scarta
@@ -305,6 +309,7 @@ export default function CoachCheckinInbox() {
                       onSkip={handleSkip}
                       onUpdate={handleUpdateText}
                       isSending={approveAndSend.isPending}
+                      isUpdating={updateCheckin.isPending}
                     />
                   ))}
                 </div>
@@ -328,6 +333,7 @@ export default function CoachCheckinInbox() {
                       onSkip={handleSkip}
                       onUpdate={handleUpdateText}
                       isSending={false}
+                      isUpdating={updateCheckin.isPending}
                     />
                   ))}
                 </div>
@@ -351,6 +357,7 @@ export default function CoachCheckinInbox() {
                       onSkip={handleSkip}
                       onUpdate={handleUpdateText}
                       isSending={false}
+                      isUpdating={updateCheckin.isPending}
                     />
                   ))}
                 </div>

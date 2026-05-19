@@ -92,9 +92,11 @@ interface DraggableExerciseProps {
   exercise: LibraryExercise;
   onEdit: (exercise: LibraryExercise) => void;
   onArchive: (exercise: LibraryExercise) => void;
+  /** True while the parent's archive mutation is in flight (audit M13). */
+  isArchiving?: boolean;
 }
 
-function DraggableExercise({ exercise, onEdit, onArchive }: DraggableExerciseProps) {
+function DraggableExercise({ exercise, onEdit, onArchive, isArchiving }: DraggableExerciseProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `library-${exercise.id}`,
     data: { type: "library-exercise", exercise },
@@ -166,6 +168,7 @@ function DraggableExercise({ exercise, onEdit, onArchive }: DraggableExercisePro
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => onArchive(exercise)}
+            disabled={isArchiving}
             className="text-destructive focus:text-destructive"
           >
             <Archive className="h-3.5 w-3.5 mr-2" />
@@ -665,6 +668,7 @@ export function ExerciseLibrarySidebar({ className }: ExerciseLibrarySidebarProp
                   exercise={exercise}
                   onEdit={handleEdit}
                   onArchive={handleArchive}
+                  isArchiving={archiveMutation.isPending}
                 />
               ))}
             </>

@@ -248,6 +248,8 @@ export default function CoachHome() {
                 onDismiss={(id) => dismissAlert.mutate(id)}
                 onMessageAthlete={handleMessageFromAlert}
                 onNavigate={(link) => navigate(link)}
+                isDismissing={dismissAlert.isPending}
+                isOpeningMessage={getOrCreateDirectRoom.isPending}
               />
 
               {/* ── KPI Strip ── */}
