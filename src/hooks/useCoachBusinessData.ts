@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import { useAuth } from "./useAuth";
 import { useToast } from "./use-toast";
 
@@ -111,7 +112,9 @@ export function useCoachBusinessData() {
       if (!user) return [];
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, avatar_url, subscription_status, subscription_tier, current_period_end")
+        .select(
+          "id, full_name, avatar_url, subscription_status, subscription_tier, current_period_end",
+        )
         .eq("coach_id", user.id)
         .eq("role", "athlete");
       if (error) throw error;
@@ -147,12 +150,12 @@ export function useCoachBusinessData() {
       .filter((a) => a.subscription_status === "active" && a.subscription_tier)
       .reduce((sum, athlete) => {
         const product = products.find(
-          (p) => p.name === athlete.subscription_tier && p.billing_period === "monthly"
+          (p) => p.name === athlete.subscription_tier && p.billing_period === "monthly",
         );
         return sum + (product?.price ?? 50); // Default €50 if no matching product
       }, 0),
     activeClients: athleteSubscriptions.filter(
-      (a) => a.subscription_status === "active" || a.subscription_status === "trial"
+      (a) => a.subscription_status === "active" || a.subscription_status === "trial",
     ).length,
     pendingPayments: invoices.filter((i) => i.status === "pending").length,
     pendingAmount: invoices
@@ -216,7 +219,10 @@ export function useCoachBusinessData() {
   // ===== MUTATION: Update Athlete Subscription =====
   const updateSubscriptionMutation = useMutation({
     mutationFn: async (payload: UpdateSubscriptionPayload) => {
-      const updateData: Record<string, unknown> = {
+      // Typed partial update against the generated profiles.Update
+      // shape so adding/renaming a column lights up the call site
+      // instead of silently passing the wrong key.
+      const updateData: TablesUpdate<"profiles"> = {
         subscription_status: payload.status,
       };
       if (payload.tier !== undefined) {
@@ -228,13 +234,16 @@ export function useCoachBusinessData() {
 
       const { error } = await supabase
         .from("profiles")
-        .update(updateData as never)
+        .update(updateData)
         .eq("id", payload.athleteId);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["athlete-subscriptions"] });
-      toast({ title: "Subscription updated", description: "Athlete subscription has been updated." });
+      toast({
+        title: "Subscription updated",
+        description: "Athlete subscription has been updated.",
+      });
     },
     onError: (error) => {
       toast({
