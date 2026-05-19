@@ -211,38 +211,38 @@ export function CoachNutritionAnalytics({ athleteId }: CoachNutritionAnalyticsPr
           ) : (
             <ResponsiveContainer width="100%" height={320}>
               <ComposedChart data={data.data} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
                 <XAxis
                   dataKey="dateFormatted"
-                  tick={{ fontSize: 11, fill: "#64748b" }}
+                  tick={{ fontSize: 11, fill: "var(--chart-axis)" }}
                   tickLine={false}
                   interval="preserveStartEnd"
                 />
                 <YAxis
                   yAxisId="cal"
                   orientation="left"
-                  tick={{ fontSize: 11, fill: "#64748b" }}
+                  tick={{ fontSize: 11, fill: "var(--chart-axis)" }}
                   tickLine={false}
                   label={{
                     value: "kcal",
                     angle: -90,
                     position: "insideLeft",
                     fontSize: 11,
-                    fill: "#64748b",
+                    fill: "var(--chart-axis)",
                   }}
                 />
                 <YAxis
                   yAxisId="weight"
                   orientation="right"
                   domain={[minWeight, maxWeight]}
-                  tick={{ fontSize: 11, fill: "#64748b" }}
+                  tick={{ fontSize: 11, fill: "var(--chart-axis)" }}
                   tickLine={false}
                   label={{
                     value: "kg",
                     angle: 90,
                     position: "insideRight",
                     fontSize: 11,
-                    fill: "#64748b",
+                    fill: "var(--chart-axis)",
                   }}
                 />
                 <Tooltip content={<CustomTooltip />} />
@@ -251,13 +251,13 @@ export function CoachNutritionAnalytics({ athleteId }: CoachNutritionAnalyticsPr
                   <ReferenceLine
                     yAxisId="cal"
                     y={target}
-                    stroke="#94a3b8"
+                    stroke="var(--chart-muted)"
                     strokeDasharray="5 5"
                     label={{
                       value: `Target ${target}`,
                       position: "right",
                       fontSize: 10,
-                      fill: "#64748b",
+                      fill: "var(--chart-axis)",
                     }}
                   />
                 )}
@@ -265,7 +265,7 @@ export function CoachNutritionAnalytics({ athleteId }: CoachNutritionAnalyticsPr
                   yAxisId="cal"
                   dataKey="loggedCalories"
                   name="Calorie Registrate"
-                  fill="#0ea5e9"
+                  fill="var(--chart-calories)"
                   radius={[3, 3, 0, 0]}
                 />
                 <Line
@@ -273,9 +273,9 @@ export function CoachNutritionAnalytics({ athleteId }: CoachNutritionAnalyticsPr
                   type="monotone"
                   dataKey="weight"
                   name="Peso (kg)"
-                  stroke="#f59e0b"
+                  stroke="var(--chart-weight)"
                   strokeWidth={2.5}
-                  dot={{ fill: "#f59e0b", r: 3 }}
+                  dot={{ fill: "var(--chart-weight)", r: 3 }}
                   connectNulls
                 />
               </ComposedChart>

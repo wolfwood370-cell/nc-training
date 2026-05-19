@@ -1,6 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap");
 
 /* ─────────────────────────────────────────────────────────────
    NC Performance Hub — Design System v1.0 (Athlete Mobile)
@@ -8,16 +8,16 @@
    to avoid breaking the Coach scientific theme.
 ───────────────────────────────────────────────────────────── */
 .theme-athlete {
-  --nc-surface: #FFFFFF;
+  --nc-surface: #ffffff;
   --nc-ink: #043555;
-  --nc-muted: #50768E;
-  --nc-primary: #226FA3;
+  --nc-muted: #50768e;
+  --nc-primary: #226fa3;
   --nc-deep: #093858;
-  --nc-track: #F1F5F9;
-  font-family: 'Inter', system-ui, sans-serif;
+  --nc-track: #f1f5f9;
+  font-family: "Inter", system-ui, sans-serif;
 }
 .theme-athlete .font-display {
-  font-family: 'Manrope', 'Inter', system-ui, sans-serif;
+  font-family: "Manrope", "Inter", system-ui, sans-serif;
   letter-spacing: -0.01em;
 }
 
@@ -68,6 +68,13 @@
     --chart-volume: hsl(160 84% 39%);
     --chart-intensity: hsl(262.1 83.3% 57.8%);
     --chart-fatigue: hsl(347 77% 50%);
+    /* Recharts axes, grid, reference lines, series. Mapped semantically
+       so dark-mode swaps below don't require touching consumer files. */
+    --chart-grid: hsl(214 32% 91%); /* slate-200 */
+    --chart-axis: hsl(215 16% 47%); /* slate-500 */
+    --chart-muted: hsl(215 20% 65%); /* slate-400 */
+    --chart-calories: hsl(199 89% 48%); /* sky-500 */
+    --chart-weight: hsl(38 92% 50%); /* amber-500 */
 
     /* Sidebar — always dark for contrast */
     --sidebar-background: hsl(222.2 84% 4.9%);
@@ -121,6 +128,13 @@
     --chart-volume: hsl(160 72% 45%);
     --chart-intensity: hsl(263.4 70% 50.4%);
     --chart-fatigue: hsl(347 77% 55%);
+    /* Recharts axes/grid for dark mode — colours match the dark slate
+       ramp so the chart surface keeps enough contrast on dark cards. */
+    --chart-grid: hsl(217 33% 25%); /* slate-700 */
+    --chart-axis: hsl(215 20% 65%); /* slate-400 */
+    --chart-muted: hsl(215 16% 47%); /* slate-500 */
+    --chart-calories: hsl(199 89% 60%); /* sky-400 */
+    --chart-weight: hsl(38 92% 60%); /* amber-400 */
   }
 }
 
@@ -131,7 +145,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: "Inter", system-ui, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
   }
 
@@ -144,7 +158,12 @@
   }
 
   /* Improve text rendering */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     text-wrap: balance;
   }
 
@@ -156,22 +175,14 @@
 @layer components {
   /* ── Primary button inner glow ── */
   .btn-primary-glow {
-    background: linear-gradient(
-      180deg,
-      hsl(263 70% 58%) 0%,
-      hsl(263 70% 50%) 100%
-    );
+    background: linear-gradient(180deg, hsl(263 70% 58%) 0%, hsl(263 70% 50%) 100%);
     box-shadow:
       inset 0 1px 0 0 hsl(263 70% 72% / 0.4),
       0 1px 3px 0 hsl(263 70% 30% / 0.25);
   }
 
   .dark .btn-primary-glow {
-    background: linear-gradient(
-      180deg,
-      hsl(263 70% 68%) 0%,
-      hsl(263 70% 58%) 100%
-    );
+    background: linear-gradient(180deg, hsl(263 70% 68%) 0%, hsl(263 70% 58%) 100%);
     box-shadow:
       inset 0 1px 0 0 hsl(263 70% 80% / 0.3),
       0 1px 3px 0 hsl(263 70% 20% / 0.4);
@@ -223,7 +234,9 @@
 
   /* Smooth theme transitions */
   body {
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
   }
 
   /* Glass effect - adapts to theme */
@@ -247,7 +260,7 @@
   .hover-lift {
     @apply transition-all duration-200 ease-out;
   }
-  
+
   .hover-lift:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.15);
@@ -292,7 +305,9 @@
 
   /* Sidebar transition */
   .sidebar-transition {
-    transition: width 200ms ease-out, padding 200ms ease-out;
+    transition:
+      width 200ms ease-out,
+      padding 200ms ease-out;
   }
 }
 
