@@ -152,6 +152,18 @@ import { TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui
 import { Info, ShieldAlert, ShieldCheck, Gauge } from "lucide-react";
 import { toast } from "sonner";
 import { StrategyContent } from "@/components/coach/athlete/StrategyContent";
+import type { Tables } from "@/integrations/supabase/types";
+import type { ProfileSettings } from "@/types/profile";
+import type { PostgrestError } from "@supabase/supabase-js";
+
+/** Narrow the JSONB `settings` column to its known shape. The DB stores
+ *  the blob as free-form Json — this helper centralises the cast so each
+ *  reader doesn't repeat it. */
+function readSettings(
+  settings: Tables<"profiles">["settings"] | null | undefined,
+): ProfileSettings {
+  return (settings ?? {}) as ProfileSettings;
+}
 import {
   useAthleteExerciseList,
   useAthleteStrengthProgression,
@@ -1978,22 +1990,24 @@ function SettingsContent({
   onProfileUpdate,
 }: {
   athleteId: string | undefined;
-  profile: any;
+  profile: Tables<"profiles"> | null | undefined;
   onProfileUpdate: () => void;
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Form state
+  // Form state — initialised from the typed `settings` blob with the
+  // `readSettings` helper so we never have to do `as any` casts here.
+  const settings = readSettings(profile?.settings);
   const [neurotype, setNeurotype] = useState(profile?.neurotype || "");
-  const [trainingStatus, setTrainingStatus] = useState(
-    (profile?.settings as any)?.training_status || "active",
+  const [trainingStatus, setTrainingStatus] = useState<string>(
+    settings.training_status ?? "active",
   );
-  const [experienceLevel, setExperienceLevel] = useState(
-    (profile?.settings as any)?.experience_level || "intermediate",
+  const [experienceLevel, setExperienceLevel] = useState<string>(
+    settings.experience_level ?? "intermediate",
   );
   const [fullName, setFullName] = useState(profile?.full_name || "");
-  const [coachNotes, setCoachNotes] = useState((profile?.settings as any)?.coach_notes || "");
+  const [coachNotes, setCoachNotes] = useState(settings.coach_notes ?? "");
 
   // Get status badge config
   const getStatusConfig = (status: string) => {
@@ -2005,10 +2019,12 @@ function SettingsContent({
     mutationFn: async () => {
       if (!athleteId) throw new Error("No athlete ID");
 
-      const updatedSettings = {
-        ...(profile?.settings || {}),
-        training_status: trainingStatus,
-        experience_level: experienceLevel,
+      // Merge the form values onto the existing JSONB blob via the
+      // typed reader so we don't clobber other keys (e.g. archived flags).
+      const updatedSettings: ProfileSettings = {
+        ...readSettings(profile?.settings),
+        training_status: trainingStatus as ProfileSettings["training_status"],
+        experience_level: experienceLevel as ProfileSettings["experience_level"],
         coach_notes: coachNotes,
       };
 
@@ -2017,7 +2033,10 @@ function SettingsContent({
         .update({
           full_name: fullName,
           neurotype: neurotype || null,
-          settings: updatedSettings,
+          // ProfileSettings is a named-key shape and Json wants an index
+          // signature — the bridge cast is unavoidable until we add
+          // `[key: string]: Json` to the interface.
+          settings: updatedSettings as unknown as Tables<"profiles">["settings"],
           updated_at: new Date().toISOString(),
         })
         .eq("id", athleteId);
@@ -2031,7 +2050,7 @@ function SettingsContent({
       });
       onProfileUpdate();
     },
-    onError: (error: any) => {
+    onError: (error: Error | PostgrestError) => {
       toast.error(`Errore nel salvataggio: ${error.message}`);
     },
   });
@@ -2084,7 +2103,7 @@ function SettingsContent({
       ]);
       navigate("/coach/athletes");
     },
-    onError: (error: any) => {
+    onError: (error: Error | PostgrestError) => {
       toast.error(`Errore nell'eliminazione: ${error.message}`);
     },
   });
@@ -2108,7 +2127,7 @@ function SettingsContent({
       toast.success("Atleta archiviato con successo");
       navigate("/coach/athletes");
     },
-    onError: (error: any) => {
+    onError: (error: Error | PostgrestError) => {
       toast.error(`Errore nell'archiviazione: ${error.message}`);
     },
   });
