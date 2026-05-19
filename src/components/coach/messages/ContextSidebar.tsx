@@ -61,13 +61,7 @@ function MiniSparkline({
   return (
     <ResponsiveContainer width="100%" height={40}>
       <LineChart data={data}>
-        <Line
-          type="monotone"
-          dataKey={dataKey}
-          stroke={color}
-          strokeWidth={2}
-          dot={false}
-        />
+        <Line type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2} dot={false} />
         <Tooltip
           contentStyle={{
             background: "hsl(var(--popover))",
@@ -81,11 +75,7 @@ function MiniSparkline({
   );
 }
 
-export function ContextSidebar({
-  conversation,
-  isOpen,
-  onClose,
-}: ContextSidebarProps) {
+export function ContextSidebar({ conversation, isOpen, onClose }: ContextSidebarProps) {
   if (!conversation) {
     return (
       <Card
@@ -117,15 +107,8 @@ export function ContextSidebar({
       {/* Header */}
       <CardHeader className="flex-shrink-0 border-b pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold">
-            Contesto Atleta
-          </CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 lg:hidden"
-            onClick={onClose}
-          >
+          <CardTitle className="text-sm font-semibold">Contesto Atleta</CardTitle>
+          <Button variant="ghost" size="icon" className="h-7 w-7 lg:hidden" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -157,7 +140,7 @@ export function ContextSidebar({
                     </div>
                     <div>
                       <p className="text-sm font-medium">{workout.name}</p>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-3xs text-muted-foreground">
                         {format(workout.date, "EEEE d", { locale: it })}
                         {workout.time && `• ${workout.time}`}
                       </p>
@@ -180,20 +163,15 @@ export function ContextSidebar({
             <div className="p-3 rounded-lg border bg-card">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <p className="text-sm font-semibold">
-                    {mockLastWorkout.name}
-                  </p>
+                  <p className="text-sm font-semibold">{mockLastWorkout.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {format(mockLastWorkout.date, "d MMMM", { locale: it })} •
-                    {""}
+                    {format(mockLastWorkout.date, "d MMMM", { locale: it })} •{""}
                     {mockLastWorkout.duration} min
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Badge
-                    variant={
-                      mockLastWorkout.rpe > 8 ? "destructive" : "secondary"
-                    }
+                    variant={mockLastWorkout.rpe > 8 ? "destructive" : "secondary"}
                     className="text-xs"
                   >
                     RPE {mockLastWorkout.rpe}
@@ -223,35 +201,20 @@ export function ContextSidebar({
               {/* Body Weight */}
               <div className="p-3 rounded-lg border bg-card">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-muted-foreground">
-                    Peso Corporeo (30gg)
-                  </span>
+                  <span className="text-xs text-muted-foreground">Peso Corporeo (30gg)</span>
                   <span className="text-sm font-semibold">
-                    {mockWeightData[mockWeightData.length - 1].weight.toFixed(
-                      1,
-                    )}{" "}
-                    kg
+                    {mockWeightData[mockWeightData.length - 1].weight.toFixed(1)} kg
                   </span>
                 </div>
-                <MiniSparkline
-                  data={mockWeightData}
-                  dataKey="weight"
-                  color="hsl(var(--primary))"
-                />
+                <MiniSparkline data={mockWeightData} dataKey="weight" color="hsl(var(--primary))" />
               </div>
 
               {/* Compliance */}
               <div className="p-3 rounded-lg border bg-card">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-muted-foreground">
-                    Compliance % (12 sett.)
-                  </span>
+                  <span className="text-xs text-muted-foreground">Compliance % (12 sett.)</span>
                   <span className="text-sm font-semibold text-green-500">
-                    {Math.round(
-                      mockComplianceData[mockComplianceData.length - 1]
-                        .compliance,
-                    )}
-                    %
+                    {Math.round(mockComplianceData[mockComplianceData.length - 1].compliance)}%
                   </span>
                 </div>
                 <MiniSparkline

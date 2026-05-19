@@ -111,7 +111,8 @@ function DroppableDayCell({
     data: { type: "calendar-day", date, dateKey },
   });
 
-  const totalEvents = workouts.length + appointments.length + (showGoogleEvents ? busySlots.length : 0);
+  const totalEvents =
+    workouts.length + appointments.length + (showGoogleEvents ? busySlots.length : 0);
 
   return (
     <button
@@ -123,7 +124,7 @@ function DroppableDayCell({
         !isCurrentMonth && "opacity-40",
         isSelected && "ring-2 ring-primary bg-primary/5 border-primary/20",
         isTodayDate && !isSelected && "bg-accent/50 border-accent",
-        isOver && "ring-2 ring-primary bg-primary/10 scale-[1.02] border-primary"
+        isOver && "ring-2 ring-primary bg-primary/10 scale-[1.02] border-primary",
       )}
     >
       {/* Day Number */}
@@ -131,13 +132,14 @@ function DroppableDayCell({
         <span
           className={cn(
             "text-sm font-semibold",
-            isTodayDate && "bg-primary text-primary-foreground h-6 w-6 rounded-full flex items-center justify-center"
+            isTodayDate &&
+              "bg-primary text-primary-foreground h-6 w-6 rounded-full flex items-center justify-center",
           )}
         >
           {format(date, "d")}
         </span>
         {totalEvents > 0 && (
-          <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
+          <Badge variant="secondary" className="text-3xs h-4 px-1.5">
             {totalEvents}
           </Badge>
         )}
@@ -150,10 +152,10 @@ function DroppableDayCell({
           <div
             key={workout.id}
             className={cn(
-              "text-[10px] px-1.5 py-0.5 rounded truncate font-medium flex items-center gap-1 group/event relative",
+              "text-3xs px-1.5 py-0.5 rounded truncate font-medium flex items-center gap-1 group/event relative",
               workout.status === "scheduled" && "bg-primary/15 text-primary",
               workout.status === "completed" && "bg-success/15 text-success",
-              workout.status === "missed" && "bg-destructive/15 text-destructive"
+              workout.status === "missed" && "bg-destructive/15 text-destructive",
             )}
           >
             {workout.status === "scheduled" && <Clock className="h-2.5 w-2.5 shrink-0" />}
@@ -179,7 +181,7 @@ function DroppableDayCell({
         {appointments.slice(0, 1).map((apt) => (
           <div
             key={apt.id}
-            className="text-[10px] px-1.5 py-0.5 rounded truncate font-medium flex items-center gap-1 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+            className="text-3xs px-1.5 py-0.5 rounded truncate font-medium flex items-center gap-1 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
           >
             {apt.type === "check-in" && <Phone className="h-2.5 w-2.5 shrink-0" />}
             {apt.type === "pt-session" && <Video className="h-2.5 w-2.5 shrink-0" />}
@@ -188,20 +190,19 @@ function DroppableDayCell({
         ))}
 
         {/* Google Busy Slots - Gray */}
-        {showGoogleEvents && busySlots.slice(0, 1).map((slot) => (
-          <div
-            key={slot.id}
-            className="text-[10px] px-1.5 py-0.5 rounded truncate font-medium bg-muted text-muted-foreground"
-          >
-            {slot.title || "Busy"}
-          </div>
-        ))}
+        {showGoogleEvents &&
+          busySlots.slice(0, 1).map((slot) => (
+            <div
+              key={slot.id}
+              className="text-3xs px-1.5 py-0.5 rounded truncate font-medium bg-muted text-muted-foreground"
+            >
+              {slot.title || "Busy"}
+            </div>
+          ))}
 
         {/* Overflow indicator */}
         {totalEvents > 3 && (
-          <span className="text-[10px] text-muted-foreground px-1">
-            +{totalEvents - 3} altri
-          </span>
+          <span className="text-3xs text-muted-foreground px-1">+{totalEvents - 3} altri</span>
         )}
       </div>
     </button>
@@ -243,35 +244,34 @@ function WeekViewRow({
       className={cn(
         "flex items-stretch border-b border-border/30 min-h-[120px] cursor-pointer hover:bg-muted/20 transition-colors",
         isSelected && "bg-primary/5",
-        isOver && "bg-primary/10"
+        isOver && "bg-primary/10",
       )}
     >
       {/* Day label */}
       <div
         className={cn(
           "w-24 shrink-0 p-3 border-r border-border/30 flex flex-col items-center justify-center",
-          isTodayDate && "bg-accent/30"
+          isTodayDate && "bg-accent/30",
         )}
       >
         <span className="text-xs uppercase text-muted-foreground font-medium">
           {format(date, "EEE", { locale: it })}
         </span>
         <span
-          className={cn(
-            "text-2xl font-bold tabular-nums mt-0.5",
-            isTodayDate && "text-primary"
-          )}
+          className={cn("text-2xl font-bold tabular-nums mt-0.5", isTodayDate && "text-primary")}
         >
           {format(date, "d")}
         </span>
-        <span className="text-[10px] text-muted-foreground">
+        <span className="text-3xs text-muted-foreground">
           {format(date, "MMM", { locale: it })}
         </span>
       </div>
 
       {/* Events */}
       <div className="flex-1 p-3 space-y-2">
-        {workouts.length === 0 && appointments.length === 0 && (!showGoogleEvents || busySlots.length === 0) ? (
+        {workouts.length === 0 &&
+        appointments.length === 0 &&
+        (!showGoogleEvents || busySlots.length === 0) ? (
           <p className="text-sm text-muted-foreground/60 italic">
             Trascina qui un workout per programmarlo
           </p>
@@ -285,7 +285,7 @@ function WeekViewRow({
                   "flex items-center gap-3 p-2.5 rounded-lg group relative",
                   workout.status === "scheduled" && "bg-primary/10 border border-primary/20",
                   workout.status === "completed" && "bg-success/10 border border-success/20",
-                  workout.status === "missed" && "bg-destructive/10 border border-destructive/20"
+                  workout.status === "missed" && "bg-destructive/10 border border-destructive/20",
                 )}
               >
                 <div
@@ -293,22 +293,24 @@ function WeekViewRow({
                     "h-8 w-8 rounded-lg flex items-center justify-center shrink-0",
                     workout.status === "scheduled" && "bg-primary/20",
                     workout.status === "completed" && "bg-success/20",
-                    workout.status === "missed" && "bg-destructive/20"
+                    workout.status === "missed" && "bg-destructive/20",
                   )}
                 >
                   {workout.status === "scheduled" && <Clock className="h-4 w-4 text-primary" />}
-                  {workout.status === "completed" && <CheckCircle2 className="h-4 w-4 text-success" />}
+                  {workout.status === "completed" && (
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                  )}
                   {workout.status === "missed" && <XCircle className="h-4 w-4 text-destructive" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{workout.workout_name}</p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-2xs text-muted-foreground">
                     {workout.scheduled_start_time?.slice(0, 5) || "Orario libero"}
                   </p>
                 </div>
                 <Avatar className="h-6 w-6">
                   <AvatarImage src={workout.avatar_url || undefined} />
-                  <AvatarFallback className="text-[8px]">
+                  <AvatarFallback className="text-5xs">
                     {workout.athlete_name
                       .split(" ")
                       .map((n) => n[0])
@@ -348,33 +350,34 @@ function WeekViewRow({
                   <p className="text-sm font-medium truncate text-emerald-700 dark:text-emerald-400">
                     {apt.title}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">{apt.time}</p>
+                  <p className="text-2xs text-muted-foreground">{apt.time}</p>
                 </div>
               </div>
             ))}
 
             {/* Google Busy Slots */}
-            {showGoogleEvents && busySlots.map((slot) => (
-              <div
-                key={slot.id}
-                className="flex items-center gap-3 p-2.5 rounded-lg bg-muted border border-border/50"
-              >
-                <div className="h-8 w-8 rounded-lg bg-muted-foreground/10 flex items-center justify-center shrink-0">
-                  <CalendarDays className="h-4 w-4 text-muted-foreground" />
+            {showGoogleEvents &&
+              busySlots.map((slot) => (
+                <div
+                  key={slot.id}
+                  className="flex items-center gap-3 p-2.5 rounded-lg bg-muted border border-border/50"
+                >
+                  <div className="h-8 w-8 rounded-lg bg-muted-foreground/10 flex items-center justify-center shrink-0">
+                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate text-muted-foreground">
+                      {slot.title || "Occupato"}
+                    </p>
+                    <p className="text-2xs text-muted-foreground">
+                      {slot.startTime} - {slot.endTime}
+                    </p>
+                  </div>
+                  <Badge variant="secondary" className="text-3xs">
+                    Google
+                  </Badge>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate text-muted-foreground">
-                    {slot.title || "Occupato"}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {slot.startTime} - {slot.endTime}
-                  </p>
-                </div>
-                <Badge variant="secondary" className="text-[10px]">
-                  Google
-                </Badge>
-              </div>
-            ))}
+              ))}
           </>
         )}
       </div>
@@ -484,23 +487,11 @@ export function CalendarGrid({
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-border/50">
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9"
-            onClick={handlePrev}
-          >
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handlePrev}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-lg font-bold capitalize min-w-[220px] text-center">
-            {title}
-          </h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9"
-            onClick={handleNext}
-          >
+          <h2 className="text-lg font-bold capitalize min-w-[220px] text-center">{title}</h2>
+          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handleNext}>
             <ChevronRight className="h-4 w-4" />
           </Button>
           <Button variant="outline" size="sm" onClick={handleToday} className="ml-2">
@@ -612,7 +603,7 @@ export function CalendarGrid({
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-5 pt-3 border-t border-border/50 text-[11px] text-muted-foreground">
+      <div className="flex items-center justify-center gap-5 pt-3 border-t border-border/50 text-2xs text-muted-foreground">
         <div className="flex items-center gap-1.5">
           <div className="h-2 w-2 rounded-full bg-primary" />
           <span>Scheduled</span>

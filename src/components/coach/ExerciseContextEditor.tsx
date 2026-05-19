@@ -16,11 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Dumbbell,
   X,
@@ -40,10 +36,10 @@ import {
 import { cn } from "@/lib/utils";
 import type { ProgramExercise } from "@/stores/useProgramBuilderStore";
 import type { ProgressionRule, ProgressionType, ExerciseProgression } from "@/types/progression";
-import { 
-  getProgressionTypeLabel, 
-  getDefaultProgressionValue, 
-  getProgressionDescription 
+import {
+  getProgressionTypeLabel,
+  getDefaultProgressionValue,
+  getProgressionDescription,
 } from "@/types/progression";
 import { useProgramBuilderStore } from "@/stores/useProgramBuilderStore";
 import { useShallow } from "zustand/shallow";
@@ -94,7 +90,7 @@ export function ExerciseContextEditor({
     <K extends keyof ProgramExercise>(key: K, value: ProgramExercise[K]) => {
       updateExercise(dayIndex, exercise.id, { [key]: value }, weekIndex);
     },
-    [updateExercise, dayIndex, weekIndex, exercise.id]
+    [updateExercise, dayIndex, weekIndex, exercise.id],
   );
 
   // Toggle tracking field
@@ -106,7 +102,7 @@ export function ExerciseContextEditor({
         : [...currentFields, field];
       handleChange("snapshotTrackingFields", newFields);
     },
-    [exercise.snapshotTrackingFields, handleChange]
+    [exercise.snapshotTrackingFields, handleChange],
   );
 
   // Calculate kg from percentage
@@ -144,16 +140,11 @@ export function ExerciseContextEditor({
               </div>
               <div className="min-w-0">
                 <h3 className="text-sm font-semibold truncate">{exercise.name}</h3>
-                <p className="text-[10px] text-muted-foreground">{DAYS[dayIndex]}</p>
+                <p className="text-3xs text-muted-foreground">{DAYS[dayIndex]}</p>
               </div>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 flex-shrink-0"
-            onClick={onClose}
-          >
+          <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -162,12 +153,12 @@ export function ExerciseContextEditor({
         {exercise.snapshotMuscles && exercise.snapshotMuscles.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {exercise.snapshotMuscles.slice(0, 3).map((muscle) => (
-              <Badge key={muscle} variant="secondary" className="text-[9px] h-4 px-1.5">
+              <Badge key={muscle} variant="secondary" className="text-4xs h-4 px-1.5">
                 {muscle}
               </Badge>
             ))}
             {exercise.snapshotMuscles.length > 3 && (
-              <Badge variant="outline" className="text-[9px] h-4 px-1.5">
+              <Badge variant="outline" className="text-4xs h-4 px-1.5">
                 +{exercise.snapshotMuscles.length - 3}
               </Badge>
             )}
@@ -232,7 +223,9 @@ export function ExerciseContextEditor({
 
             {/* Load */}
             <div className="space-y-1.5">
-              <Label htmlFor="load" className="text-xs">Carico</Label>
+              <Label htmlFor="load" className="text-xs">
+                Carico
+              </Label>
               <div className="relative">
                 <Input
                   id="load"
@@ -243,34 +236,45 @@ export function ExerciseContextEditor({
                   className="h-9 pr-20"
                 />
                 {calculatedKg && (
-                  <Badge 
-                    variant="secondary" 
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] h-5"
+                  <Badge
+                    variant="secondary"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-3xs h-5"
                   >
                     ≈ {calculatedKg}
                   </Badge>
                 )}
               </div>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-3xs text-muted-foreground">
                 Puoi usare % (basato su 1RM: {oneRM}kg) o kg diretti
               </p>
             </div>
 
             {/* RPE */}
             <div className="space-y-1.5">
-              <Label htmlFor="rpe" className="text-xs">RPE (Rate of Perceived Exertion)</Label>
+              <Label htmlFor="rpe" className="text-xs">
+                RPE (Rate of Perceived Exertion)
+              </Label>
               <Select
                 value={exercise.rpe?.toString() || "none"}
-                onValueChange={(val) => handleChange("rpe", val === "none" ? null : parseFloat(val))}
+                onValueChange={(val) =>
+                  handleChange("rpe", val === "none" ? null : parseFloat(val))
+                }
               >
-              <SelectTrigger id="rpe" className="h-9">
+                <SelectTrigger id="rpe" className="h-9">
                   <SelectValue placeholder="Seleziona RPE" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Nessuno</SelectItem>
                   {[6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map((rpe) => (
                     <SelectItem key={rpe} value={rpe.toString()}>
-                      RPE {rpe} {rpe >= 9.5 ? "- Massimale" : rpe >= 8.5 ? "- Molto duro" : rpe >= 7 ? "- Moderato" : "- Leggero"}
+                      RPE {rpe}{" "}
+                      {rpe >= 9.5
+                        ? "- Massimale"
+                        : rpe >= 8.5
+                          ? "- Molto duro"
+                          : rpe >= 7
+                            ? "- Moderato"
+                            : "- Leggero"}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -348,18 +352,25 @@ export function ExerciseContextEditor({
 
             {exercise.progression?.enabled && (
               <div className="space-y-3 p-3 rounded-lg bg-chart-3/5 border border-chart-3/20">
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-3xs text-muted-foreground">
                   Definisci le regole di progressione automatica per le settimane successive
                 </p>
-                
+
                 {/* Existing Rules */}
                 {(exercise.progression?.rules || []).map((rule, ruleIndex) => (
-                  <div key={ruleIndex} className="flex items-center gap-2 p-2 rounded-md bg-background border">
+                  <div
+                    key={ruleIndex}
+                    className="flex items-center gap-2 p-2 rounded-md bg-background border"
+                  >
                     <Select
                       value={rule.type}
                       onValueChange={(type: ProgressionType) => {
                         const newRules = [...(exercise.progression?.rules || [])];
-                        newRules[ruleIndex] = { ...rule, type, value: getDefaultProgressionValue(type) };
+                        newRules[ruleIndex] = {
+                          ...rule,
+                          type,
+                          value: getDefaultProgressionValue(type),
+                        };
                         handleChange("progression", { ...exercise.progression!, rules: newRules });
                       }}
                     >
@@ -375,10 +386,12 @@ export function ExerciseContextEditor({
                         <SelectItem value="sets_increase">Aumenta Serie</SelectItem>
                       </SelectContent>
                     </Select>
-                    
+
                     <Input
                       type="number"
-                      step={rule.type === 'rpe_increase' ? 0.5 : rule.type.includes('percent') ? 0.5 : 1}
+                      step={
+                        rule.type === "rpe_increase" ? 0.5 : rule.type.includes("percent") ? 0.5 : 1
+                      }
                       min={0}
                       value={rule.value}
                       onChange={(e) => {
@@ -388,17 +401,19 @@ export function ExerciseContextEditor({
                       }}
                       className="h-8 w-20 text-xs"
                     />
-                    
-                    <Badge variant="secondary" className="text-[9px] flex-shrink-0">
+
+                    <Badge variant="secondary" className="text-4xs flex-shrink-0">
                       {getProgressionDescription(rule)}
                     </Badge>
-                    
+
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6 text-destructive hover:text-destructive flex-shrink-0"
                       onClick={() => {
-                        const newRules = (exercise.progression?.rules || []).filter((_, i) => i !== ruleIndex);
+                        const newRules = (exercise.progression?.rules || []).filter(
+                          (_, i) => i !== ruleIndex,
+                        );
                         handleChange("progression", { ...exercise.progression!, rules: newRules });
                       }}
                     >
@@ -406,7 +421,7 @@ export function ExerciseContextEditor({
                     </Button>
                   </div>
                 ))}
-                
+
                 {/* Add Rule Button */}
                 <Button
                   variant="outline"
@@ -414,13 +429,13 @@ export function ExerciseContextEditor({
                   className="w-full h-8 text-xs border-dashed"
                   onClick={() => {
                     const newRule: ProgressionRule = {
-                      type: 'rir_decrease',
-                      value: 1
+                      type: "rir_decrease",
+                      value: 1,
                     };
                     const currentRules = exercise.progression?.rules || [];
-                    handleChange("progression", { 
-                      ...exercise.progression!, 
-                      rules: [...currentRules, newRule] 
+                    handleChange("progression", {
+                      ...exercise.progression!,
+                      rules: [...currentRules, newRule],
                     });
                   }}
                 >
@@ -445,15 +460,17 @@ export function ExerciseContextEditor({
                   <Settings2 className="h-3.5 w-3.5" />
                   Campi Tracciamento ({activeTrackingFields.length})
                 </span>
-                <ChevronDown className={cn(
-                  "h-3.5 w-3.5 transition-transform",
-                  trackingFieldsOpen && "rotate-180"
-                )} />
+                <ChevronDown
+                  className={cn(
+                    "h-3.5 w-3.5 transition-transform",
+                    trackingFieldsOpen && "rotate-180",
+                  )}
+                />
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="pt-3 space-y-2">
-                <p className="text-[10px] text-muted-foreground mb-2">
+                <p className="text-3xs text-muted-foreground mb-2">
                   Seleziona quali campi l'atleta dovrà compilare durante l'allenamento
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -464,7 +481,7 @@ export function ExerciseContextEditor({
                         "flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-colors",
                         activeTrackingFields.includes(field.value)
                           ? "bg-primary/5 border-primary/30"
-                          : "bg-background border-border hover:border-primary/20"
+                          : "bg-background border-border hover:border-primary/20",
                       )}
                     >
                       <Checkbox

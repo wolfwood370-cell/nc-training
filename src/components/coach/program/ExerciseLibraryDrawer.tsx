@@ -1,28 +1,21 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from "react";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/sheet';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Dumbbell, AlertCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useDebounce } from '@/hooks/useDebounce';
-import { useProgramBuilderStore } from '@/stores/programBuilder/useProgramBuilderStore';
-import {
-  useExerciseLibraryQuery,
-  type LibraryExercise,
-} from '@/hooks/useExerciseLibraryQuery';
-import type {
-  NewProgrammedExercise,
-  ProgrammedSet,
-  UUID,
-} from '@/types/training';
+} from "@/components/ui/sheet";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Search, Dumbbell, AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useProgramBuilderStore } from "@/stores/programBuilder/useProgramBuilderStore";
+import { useExerciseLibraryQuery, type LibraryExercise } from "@/hooks/useExerciseLibraryQuery";
+import type { NewProgrammedExercise, ProgrammedSet, UUID } from "@/types/training";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -37,7 +30,7 @@ function buildNewExercise(def: LibraryExercise): NewProgrammedExercise {
   const buildSet = (n: number): ProgrammedSet => ({
     id: crypto.randomUUID(),
     set_number: n,
-    reps_target: '8',
+    reps_target: "8",
     rpe_target: defaultRpe,
     rest_seconds: 90,
   });
@@ -66,14 +59,16 @@ export function ExerciseLibraryDrawer({
   weekId,
   sessionId,
 }: ExerciseLibraryDrawerProps) {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 250);
 
-  const addExerciseToSession = useProgramBuilderStore(
-    (s) => s.addExerciseToSession,
-  );
+  const addExerciseToSession = useProgramBuilderStore((s) => s.addExerciseToSession);
 
-  const { data: exercises = [], isLoading, error } = useExerciseLibraryQuery({
+  const {
+    data: exercises = [],
+    isLoading,
+    error,
+  } = useExerciseLibraryQuery({
     searchQuery: debouncedSearch,
     enabled: open,
   });
@@ -81,7 +76,7 @@ export function ExerciseLibraryDrawer({
   const handlePick = (def: LibraryExercise) => {
     if (!weekId || !sessionId) return;
     addExerciseToSession(weekId, sessionId, buildNewExercise(def));
-    setSearch('');
+    setSearch("");
     onOpenChange(false);
   };
 
@@ -92,7 +87,7 @@ export function ExerciseLibraryDrawer({
     <Sheet
       open={open}
       onOpenChange={(o) => {
-        if (!o) setSearch('');
+        if (!o) setSearch("");
         onOpenChange(o);
       }}
     >
@@ -146,7 +141,7 @@ export function ExerciseLibraryDrawer({
               <li className="px-5 py-8 text-center text-xs text-muted-foreground">
                 {debouncedSearch.trim()
                   ? `No exercises match "${debouncedSearch}".`
-                  : 'No exercises in your library yet.'}
+                  : "No exercises in your library yet."}
               </li>
             )}
 
@@ -156,17 +151,15 @@ export function ExerciseLibraryDrawer({
                   type="button"
                   onClick={() => handlePick(ex)}
                   className={cn(
-                    'w-full flex items-center justify-between gap-3 px-5 py-2',
-                    'text-left hover:bg-muted/60 active:bg-muted',
-                    'transition-colors focus:outline-none focus:bg-muted/60',
+                    "w-full flex items-center justify-between gap-3 px-5 py-2",
+                    "text-left hover:bg-muted/60 active:bg-muted",
+                    "transition-colors focus:outline-none focus:bg-muted/60",
                   )}
                 >
-                  <span className="text-sm font-medium truncate">
-                    {ex.name}
-                  </span>
+                  <span className="text-sm font-medium truncate">{ex.name}</span>
                   <Badge
                     variant="secondary"
-                    className="text-[10px] h-4 px-1.5 font-normal flex-shrink-0"
+                    className="text-3xs h-4 px-1.5 font-normal flex-shrink-0"
                   >
                     {ex.muscle_group}
                   </Badge>

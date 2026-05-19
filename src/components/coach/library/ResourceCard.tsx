@@ -112,7 +112,7 @@ export function ResourceCard({ resource, onDelete, onOpenVideo }: ResourceCardPr
               <TooltipTrigger>
                 <Badge
                   variant="secondary"
-                  className="bg-gradient-to-r from-violet-500/15 to-cyan-500/15 text-violet-500 border-violet-500/20 text-[10px] gap-1"
+                  className="bg-gradient-to-r from-violet-500/15 to-cyan-500/15 text-violet-500 border-violet-500/20 text-3xs gap-1"
                 >
                   <Brain className="h-3 w-3" />
                   AI Brain
@@ -132,7 +132,7 @@ export function ResourceCard({ resource, onDelete, onOpenVideo }: ResourceCardPr
         <div className="absolute top-2 right-12 z-10">
           <Badge
             variant="secondary"
-            className="bg-violet-500/10 text-violet-500 border-violet-500/20 text-[10px] gap-1"
+            className="bg-violet-500/10 text-violet-500 border-violet-500/20 text-3xs gap-1"
           >
             <Brain className="h-3 w-3" />
             AI

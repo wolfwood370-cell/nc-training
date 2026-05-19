@@ -65,11 +65,7 @@ function ScoreSelector({
   ariaLabel: string;
 }) {
   return (
-    <div
-      className="grid grid-cols-4 gap-2"
-      role="radiogroup"
-      aria-label={ariaLabel}
-    >
+    <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label={ariaLabel}>
       {SCORE_OPTIONS.map((s) => {
         const selected = value === s;
         return (
@@ -97,11 +93,7 @@ function ScoreSelector({
 // Test Card
 // ---------------------------------------------------------------------------
 
-function TestCard({
-  testId,
-}: {
-  testId: FmsTestId;
-}) {
+function TestCard({ testId }: { testId: FmsTestId }) {
   const def = FMS_TESTS.find((t) => t.id === testId)!;
   const test = useMovementStore((s) => s.assessment?.tests[testId]);
   const setScore = useMovementStore((s) => s.setScore);
@@ -110,30 +102,19 @@ function TestCard({
 
   const isRedFlag =
     (test.kind === "bilateral" && test.score === 0) ||
-    (test.kind === "asymmetrical" &&
-      (test.leftScore === 0 || test.rightScore === 0));
+    (test.kind === "asymmetrical" && (test.leftScore === 0 || test.rightScore === 0));
 
   return (
     <Card
-      className={cn(
-        "transition-colors",
-        isRedFlag && "border-rose-500/70 ring-1 ring-rose-500/30",
-      )}
+      className={cn("transition-colors", isRedFlag && "border-rose-500/70 ring-1 ring-rose-500/30")}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <CardTitle className="text-base font-semibold">
-              {def.displayName}
-            </CardTitle>
-            <CardDescription className="text-xs mt-1">
-              {def.bodyArea}
-            </CardDescription>
+            <CardTitle className="text-base font-semibold">{def.displayName}</CardTitle>
+            <CardDescription className="text-xs mt-1">{def.bodyArea}</CardDescription>
           </div>
-          <Badge
-            variant="outline"
-            className="text-[10px] uppercase tracking-wider shrink-0"
-          >
+          <Badge variant="outline" className="text-3xs uppercase tracking-wider shrink-0">
             {def.kind === "bilateral" ? "Bilaterale" : "Asimmetrico"}
           </Badge>
         </div>
@@ -171,7 +152,7 @@ function TestCard({
         )}
 
         {def.gatedBy && (
-          <p className="text-[11px] text-muted-foreground italic">
+          <p className="text-2xs text-muted-foreground italic">
             ⚠ Gated dal clearing test:{" "}
             {FMS_CLEARING_TESTS.find((c) => c.id === def.gatedBy)?.displayName}
           </p>
@@ -195,21 +176,15 @@ function ClearingTestsCard() {
 
   return (
     <Card
-      className={cn(
-        "transition-colors",
-        anyPain && "border-rose-500/70 ring-1 ring-rose-500/30",
-      )}
+      className={cn("transition-colors", anyPain && "border-rose-500/70 ring-1 ring-rose-500/30")}
     >
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 text-amber-500" />
-          <CardTitle className="text-base font-semibold">
-            Clearing Tests
-          </CardTitle>
+          <CardTitle className="text-base font-semibold">Clearing Tests</CardTitle>
         </div>
         <CardDescription className="text-xs">
-          Un risultato positivo (dolore) forza a 0 il punteggio del pattern
-          collegato.
+          Un risultato positivo (dolore) forza a 0 il punteggio del pattern collegato.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -220,19 +195,14 @@ function ClearingTestsCard() {
               key={ct.id}
               className={cn(
                 "flex items-center justify-between gap-3 p-3 rounded-lg border-2 transition-colors",
-                hasPain
-                  ? "border-rose-500 bg-rose-500/10"
-                  : "border-border bg-muted/30",
+                hasPain ? "border-rose-500 bg-rose-500/10" : "border-border bg-muted/30",
               )}
             >
               <div className="flex-1 min-w-0">
-                <Label
-                  htmlFor={`ct-${ct.id}`}
-                  className="text-sm font-medium block"
-                >
+                <Label htmlFor={`ct-${ct.id}`} className="text-sm font-medium block">
                   {ct.displayName}
                 </Label>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
+                <p className="text-2xs text-muted-foreground mt-0.5">
                   Gates: {FMS_TESTS.find((t) => t.id === ct.gates)?.displayName}
                 </p>
               </div>
@@ -288,8 +258,7 @@ export default function FmsScreening() {
   const { user, profile } = useAuth();
   const coachId = user?.id;
 
-  const { data: athletes = [], isLoading: loadingAthletes } =
-    useCoachAthletes(coachId);
+  const { data: athletes = [], isLoading: loadingAthletes } = useCoachAthletes(coachId);
 
   const assessment = useMovementStore((s) => s.assessment);
   const startAssessment = useMovementStore((s) => s.startAssessment);
@@ -362,9 +331,7 @@ export default function FmsScreening() {
             <Activity className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold leading-tight">
-              FMS Screening
-            </h1>
+            <h1 className="text-lg font-semibold leading-tight">FMS Screening</h1>
             <p className="text-xs text-muted-foreground">
               Valutazione on-the-floor · 7 test + 3 clearing
             </p>
@@ -386,11 +353,7 @@ export default function FmsScreening() {
             >
               <SelectTrigger className="h-12 text-base">
                 <SelectValue
-                  placeholder={
-                    loadingAthletes
-                      ? "Caricamento atleti…"
-                      : "Seleziona un atleta"
-                  }
+                  placeholder={loadingAthletes ? "Caricamento atleti…" : "Seleziona un atleta"}
                 />
               </SelectTrigger>
               <SelectContent>
@@ -457,7 +420,7 @@ export default function FmsScreening() {
         <div className="fixed bottom-0 inset-x-0 lg:left-64 border-t bg-background/95 backdrop-blur-sm z-40 px-4 py-3 safe-area-pb">
           <div className="mx-auto max-w-2xl flex items-center gap-3">
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              <p className="text-3xs uppercase tracking-wider text-muted-foreground">
                 {selectedAthleteName || "Atleta"}
               </p>
               <div className="flex items-baseline gap-2">
@@ -477,9 +440,7 @@ export default function FmsScreening() {
                 {composite?.isComplete && !composite.hasRedFlags && (
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 ml-1" />
                 )}
-                {composite?.hasRedFlags && (
-                  <AlertTriangle className="h-4 w-4 text-rose-600 ml-1" />
-                )}
+                {composite?.hasRedFlags && <AlertTriangle className="h-4 w-4 text-rose-600 ml-1" />}
               </div>
             </div>
             <Button

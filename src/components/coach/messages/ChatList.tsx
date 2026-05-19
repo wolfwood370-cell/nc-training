@@ -50,10 +50,8 @@ export function ChatList({
 
   // Filter conversations
   const filteredConversations = conversations.filter((conv) => {
-    const matchesSearch = conv.athleteName
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    
+    const matchesSearch = conv.athleteName.toLowerCase().includes(searchQuery.toLowerCase());
+
     if (activeTab === "inbox") {
       return matchesSearch && conv.unreadCount > 0;
     }
@@ -68,7 +66,9 @@ export function ChatList({
         "border-0 shadow-sm flex flex-col overflow-hidden h-full",
         "lg:relative lg:translate-x-0 lg:opacity-100",
         "fixed inset-y-0 left-0 z-50 w-80 transition-all duration-300 lg:w-full",
-        isOpen ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100"
+        isOpen
+          ? "translate-x-0 opacity-100"
+          : "-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100",
       )}
     >
       {/* Mobile Back Button */}
@@ -86,7 +86,7 @@ export function ChatList({
             <TabsTrigger value="inbox" className="flex-1 text-xs gap-1.5">
               Inbox
               {unreadCount > 0 && (
-                <Badge variant="destructive" className="h-4 px-1 text-[10px]">
+                <Badge variant="destructive" className="h-4 px-1 text-3xs">
                   {unreadCount}
                 </Badge>
               )}
@@ -130,16 +130,12 @@ export function ChatList({
             <div className="p-6 text-center text-muted-foreground">
               <Radio className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm font-medium">Broadcast</p>
-              <p className="text-xs mt-1">
-                Invia messaggi a più atleti contemporaneamente
-              </p>
+              <p className="text-xs mt-1">Invia messaggi a più atleti contemporaneamente</p>
             </div>
           ) : filteredConversations.length === 0 ? (
             <div className="p-6 text-center text-muted-foreground">
               <p className="text-sm">
-                {activeTab === "inbox"
-                  ? "Nessun messaggio non letto"
-                  : "Nessun atleta trovato"}
+                {activeTab === "inbox" ? "Nessun messaggio non letto" : "Nessun atleta trovato"}
               </p>
             </div>
           ) : (
@@ -151,8 +147,7 @@ export function ChatList({
                   className={cn(
                     "w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left",
                     "hover:bg-muted/50",
-                    selectedConversation?.athleteId === conv.athleteId &&
-                      "bg-muted"
+                    selectedConversation?.athleteId === conv.athleteId && "bg-muted",
                   )}
                 >
                   {/* Avatar with Online Status */}
@@ -174,13 +169,13 @@ export function ChatList({
                       <p
                         className={cn(
                           "text-sm truncate",
-                          conv.unreadCount > 0 ? "font-semibold" : "font-medium"
+                          conv.unreadCount > 0 ? "font-semibold" : "font-medium",
                         )}
                       >
                         {conv.athleteName}
                       </p>
                       {conv.lastMessageTime && (
-                        <span className="text-[10px] text-muted-foreground shrink-0">
+                        <span className="text-3xs text-muted-foreground shrink-0">
                           {getTimeAgo(conv.lastMessageTime)}
                         </span>
                       )}
@@ -189,9 +184,7 @@ export function ChatList({
                       <p
                         className={cn(
                           "text-xs truncate",
-                          conv.unreadCount > 0
-                            ? "text-foreground"
-                            : "text-muted-foreground"
+                          conv.unreadCount > 0 ? "text-foreground" : "text-muted-foreground",
                         )}
                       >
                         {conv.lastMessage}
@@ -208,10 +201,7 @@ export function ChatList({
         </ScrollArea>
 
         {/* Floating Broadcast Button */}
-        <Button
-          size="icon"
-          className="absolute bottom-4 right-4 h-12 w-12 rounded-full shadow-lg"
-        >
+        <Button size="icon" className="absolute bottom-4 right-4 h-12 w-12 rounded-full shadow-lg">
           <Radio className="h-5 w-5" />
         </Button>
       </CardContent>

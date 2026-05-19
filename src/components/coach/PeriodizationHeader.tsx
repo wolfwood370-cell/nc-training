@@ -21,12 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Plus,
   Calendar,
@@ -60,13 +55,14 @@ import {
   addWeeks,
 } from "date-fns";
 import { it } from "date-fns/locale";
-import { usePeriodization, TrainingPhase, PhaseFocusType, CreatePhaseInput } from "@/hooks/usePeriodization";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+  usePeriodization,
+  TrainingPhase,
+  PhaseFocusType,
+  CreatePhaseInput,
+} from "@/hooks/usePeriodization";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 // ============================================
 // PHASE CONFIGURATION
@@ -168,10 +164,10 @@ function PhaseBlock({
 
   const startDate = parseISO(phase.start_date);
   const endDate = parseISO(phase.end_date);
-  
+
   const daysFromStart = differenceInDays(startDate, timelineStart);
   const duration = differenceInDays(endDate, startDate) + 1;
-  
+
   const left = Math.max(0, daysFromStart * dayWidth);
   const width = duration * dayWidth - 4;
 
@@ -189,7 +185,7 @@ function PhaseBlock({
               "hover:scale-[1.02] hover:shadow-lg hover:z-10 active:scale-[0.98]",
               config.bgColor,
               config.borderColor,
-              isSelected && "ring-2 ring-primary ring-offset-1"
+              isSelected && "ring-2 ring-primary ring-offset-1",
             )}
             style={{ left, width: Math.max(width, 50) }}
             onClick={() => onClick(phase)}
@@ -197,11 +193,9 @@ function PhaseBlock({
             <div className="h-full flex items-center gap-1.5 px-2 overflow-hidden">
               <Icon className={cn("h-3 w-3 flex-shrink-0", config.color)} />
               <div className="flex-1 min-w-0">
-                <p className={cn("text-[10px] font-semibold truncate", config.color)}>
-                  {phase.name}
-                </p>
+                <p className={cn("text-3xs font-semibold truncate", config.color)}>{phase.name}</p>
               </div>
-              
+
               {/* Action buttons */}
               <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
@@ -229,7 +223,8 @@ function PhaseBlock({
         <TooltipContent>
           <p className="font-medium">{phase.name}</p>
           <p className="text-xs text-muted-foreground">
-            {config.label} · {format(startDate, "d MMM", { locale: it })} - {format(endDate, "d MMM", { locale: it })}
+            {config.label} · {format(startDate, "d MMM", { locale: it })} -{" "}
+            {format(endDate, "d MMM", { locale: it })}
           </p>
           <p className="text-xs text-muted-foreground">
             {differenceInWeeks(endDate, startDate) + 1} settimane
@@ -263,7 +258,7 @@ export function PeriodizationHeader({
 }: PeriodizationHeaderProps) {
   const DAY_WIDTH = 3;
   const scrollRef = useRef<HTMLDivElement>(null);
-  
+
   const [isExpanded, setIsExpanded] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPhase, setEditingPhase] = useState<TrainingPhase | null>(null);
@@ -296,7 +291,7 @@ export function PeriodizationHeader({
   // Generate months array
   const monthsArray = useMemo(
     () => eachMonthOfInterval({ start: timelineStart, end: timelineEnd }),
-    [timelineStart, timelineEnd]
+    [timelineStart, timelineEnd],
   );
 
   // Calculate total days and width
@@ -316,7 +311,7 @@ export function PeriodizationHeader({
         const offset = differenceInDays(weekStart, timelineStart);
         return { index, offset, date: weekStart };
       })
-      .filter(w => w.offset >= 0);
+      .filter((w) => w.offset >= 0);
   }, [timelineStart, timelineEnd]);
 
   // Calculate total weeks from phases and update parent
@@ -327,7 +322,7 @@ export function PeriodizationHeader({
         const end = parseISO(phase.end_date);
         return sum + differenceInWeeks(end, start) + 1;
       }, 0);
-      
+
       if (totalPhaseWeeks > 0 && totalPhaseWeeks !== totalWeeks) {
         onWeeksGenerated(Math.max(totalPhaseWeeks, 4));
       }
@@ -338,7 +333,7 @@ export function PeriodizationHeader({
   const handleAddPhase = (clickedDate?: Date) => {
     const startDate = clickedDate || new Date();
     const endDate = addWeeks(startDate, 4);
-    
+
     setFormData({
       name: "",
       focus_type: "hypertrophy",
@@ -377,12 +372,12 @@ export function PeriodizationHeader({
 
   const handlePhaseClick = (phase: TrainingPhase) => {
     setSelectedPhase(phase);
-    
+
     // Calculate which week this phase starts at relative to the first phase
-    const sortedPhases = [...phases].sort((a, b) => 
-      parseISO(a.start_date).getTime() - parseISO(b.start_date).getTime()
+    const sortedPhases = [...phases].sort(
+      (a, b) => parseISO(a.start_date).getTime() - parseISO(b.start_date).getTime(),
     );
-    
+
     let weekIndex = 0;
     for (const p of sortedPhases) {
       if (p.id === phase.id) break;
@@ -390,25 +385,28 @@ export function PeriodizationHeader({
       const end = parseISO(p.end_date);
       weekIndex += differenceInWeeks(end, start) + 1;
     }
-    
+
     onWeekClick(weekIndex);
   };
 
   const validateAndCheckOverlap = () => {
     if (!formData.start_date || !formData.end_date) return true;
-    
-    const result = checkOverlap({
-      id: editingPhase?.id,
-      start_date: formData.start_date,
-      end_date: formData.end_date,
-    }, phases);
-    
+
+    const result = checkOverlap(
+      {
+        id: editingPhase?.id,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+      },
+      phases,
+    );
+
     if (result.hasOverlap) {
-      const conflictNames = result.conflictingPhases.map(p => p.name).join(", ");
+      const conflictNames = result.conflictingPhases.map((p) => p.name).join(", ");
       setOverlapWarning(`Date in conflitto con: ${conflictNames}`);
       return false;
     }
-    
+
     setOverlapWarning(null);
     return true;
   };
@@ -465,20 +463,20 @@ export function PeriodizationHeader({
   // Handle click on timeline to add phase
   const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!athleteId) return;
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const daysFromStart = Math.floor(x / DAY_WIDTH);
     const clickedDate = new Date(timelineStart);
     clickedDate.setDate(clickedDate.getDate() + daysFromStart);
-    
+
     // Check if clicking on an existing phase
     const clickedOnPhase = phases.some((phase) => {
       const start = parseISO(phase.start_date);
       const end = parseISO(phase.end_date);
       return isWithinInterval(clickedDate, { start, end });
     });
-    
+
     if (!clickedOnPhase) {
       handleAddPhase(clickedDate);
     }
@@ -505,14 +503,14 @@ export function PeriodizationHeader({
               <Calendar className="h-3.5 w-3.5" />
               <span className="font-medium">Macro-Periodizzazione</span>
               {phases.length > 0 && (
-                <Badge variant="secondary" className="h-5 text-[10px]">
+                <Badge variant="secondary" className="h-5 text-3xs">
                   {phases.length} {phases.length === 1 ? "fase" : "fasi"}
                 </Badge>
               )}
               {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             </Button>
           </CollapsibleTrigger>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -538,21 +536,21 @@ export function PeriodizationHeader({
                     {/* Month Headers */}
                     <div className="flex border-b border-border/30 bg-secondary/20 sticky top-0 z-20">
                       <div className="w-[60px] flex-shrink-0 p-1.5 border-r border-border/30">
-                        <span className="text-[10px] text-muted-foreground">Mese</span>
+                        <span className="text-3xs text-muted-foreground">Mese</span>
                       </div>
                       {monthsArray.map((month, i) => {
                         const monthStart = startOfMonth(month);
                         const monthEnd = endOfMonth(month);
                         const daysInMonth = differenceInDays(monthEnd, monthStart) + 1;
                         const monthWidth = daysInMonth * DAY_WIDTH;
-                        
+
                         return (
                           <div
                             key={i}
                             className="border-r border-border/30 p-1.5 flex-shrink-0"
                             style={{ width: monthWidth }}
                           >
-                            <span className="text-[10px] font-medium">
+                            <span className="text-3xs font-medium">
                               {format(month, "MMM yy", { locale: it })}
                             </span>
                           </div>
@@ -568,7 +566,7 @@ export function PeriodizationHeader({
                     >
                       {/* Row label */}
                       <div className="absolute left-0 top-0 w-[60px] h-full flex items-center justify-center border-r border-border/30 bg-muted/10 z-10">
-                        <span className="text-[9px] text-muted-foreground font-medium">Fasi</span>
+                        <span className="text-4xs text-muted-foreground font-medium">Fasi</span>
                       </div>
 
                       {/* Today marker */}
@@ -594,11 +592,11 @@ export function PeriodizationHeader({
                           />
                         ))}
                       </div>
-                      
+
                       {/* Empty state hint */}
                       {phases.length === 0 && (
                         <div className="absolute inset-0 left-[60px] flex items-center justify-center pointer-events-none">
-                          <p className="text-[10px] text-muted-foreground">
+                          <p className="text-3xs text-muted-foreground">
                             Clicca per aggiungere una fase
                           </p>
                         </div>
@@ -608,7 +606,7 @@ export function PeriodizationHeader({
                     {/* Week Markers Row */}
                     <div className="flex border-b border-border/30 bg-muted/10">
                       <div className="w-[60px] flex-shrink-0 p-1 border-r border-border/30">
-                        <span className="text-[9px] text-muted-foreground">Sett.</span>
+                        <span className="text-4xs text-muted-foreground">Sett.</span>
                       </div>
                       <div className="flex-1 relative h-6" style={{ width: totalWidth }}>
                         {weekMarkers.slice(0, totalWeeks).map((week) => (
@@ -617,16 +615,18 @@ export function PeriodizationHeader({
                             onClick={() => handleWeekMarkerClick(week.index)}
                             className={cn(
                               "absolute top-0 h-full border-l border-border/20 px-0.5 hover:bg-primary/10 transition-colors",
-                              week.index === currentWeek && "bg-primary/20"
+                              week.index === currentWeek && "bg-primary/20",
                             )}
                             style={{ left: week.offset * DAY_WIDTH, width: 7 * DAY_WIDTH }}
                           >
-                            <span className={cn(
-                              "text-[8px]",
-                              week.index === currentWeek 
-                                ? "text-primary font-semibold" 
-                                : "text-muted-foreground/60"
-                            )}>
+                            <span
+                              className={cn(
+                                "text-5xs",
+                                week.index === currentWeek
+                                  ? "text-primary font-semibold"
+                                  : "text-muted-foreground/60",
+                              )}
+                            >
                               {week.index + 1}
                             </span>
                           </button>
@@ -648,7 +648,11 @@ export function PeriodizationHeader({
                 <Badge
                   key={key}
                   variant="secondary"
-                  className={cn("gap-1 px-1.5 py-0.5 text-[9px] flex-shrink-0", config.bgColor, config.color)}
+                  className={cn(
+                    "gap-1 px-1.5 py-0.5 text-4xs flex-shrink-0",
+                    config.bgColor,
+                    config.color,
+                  )}
                 >
                   <Icon className="h-2.5 w-2.5" />
                   {config.label}
@@ -667,9 +671,7 @@ export function PeriodizationHeader({
               <Calendar className="h-5 w-5 text-primary" />
               {editingPhase ? "Modifica Fase" : "Nuova Fase"}
             </DialogTitle>
-            <DialogDescription>
-              Definisci le caratteristiche del mesociclo
-            </DialogDescription>
+            <DialogDescription>Definisci le caratteristiche del mesociclo</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -685,7 +687,7 @@ export function PeriodizationHeader({
               <Input
                 placeholder="es. Blocco Ipertrofia Q1"
                 value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
               />
             </div>
 
@@ -693,7 +695,9 @@ export function PeriodizationHeader({
               <Label>Focus</Label>
               <Select
                 value={formData.focus_type}
-                onValueChange={(value: PhaseFocusType) => setFormData(prev => ({ ...prev, focus_type: value }))}
+                onValueChange={(value: PhaseFocusType) =>
+                  setFormData((prev) => ({ ...prev, focus_type: value }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -721,7 +725,7 @@ export function PeriodizationHeader({
                   type="date"
                   value={formData.start_date}
                   onChange={(e) => {
-                    setFormData(prev => ({ ...prev, start_date: e.target.value }));
+                    setFormData((prev) => ({ ...prev, start_date: e.target.value }));
                     setOverlapWarning(null);
                   }}
                 />
@@ -732,7 +736,7 @@ export function PeriodizationHeader({
                   type="date"
                   value={formData.end_date}
                   onChange={(e) => {
-                    setFormData(prev => ({ ...prev, end_date: e.target.value }));
+                    setFormData((prev) => ({ ...prev, end_date: e.target.value }));
                     setOverlapWarning(null);
                   }}
                 />
@@ -746,7 +750,9 @@ export function PeriodizationHeader({
                 min={50}
                 max={150}
                 value={formData.base_volume}
-                onChange={(e) => setFormData(prev => ({ ...prev, base_volume: parseInt(e.target.value) || 100 }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, base_volume: parseInt(e.target.value) || 100 }))
+                }
               />
               <p className="text-xs text-muted-foreground">
                 Indicatore relativo del carico pianificato
@@ -758,7 +764,7 @@ export function PeriodizationHeader({
               <Textarea
                 placeholder="Obiettivi, note..."
                 value={formData.notes}
-                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
                 rows={2}
               />
             </div>
@@ -768,8 +774,8 @@ export function PeriodizationHeader({
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Annulla
             </Button>
-            <Button 
-              onClick={handleSavePhase} 
+            <Button
+              onClick={handleSavePhase}
               className="gradient-primary"
               disabled={isCreating || isUpdating || !formData.name.trim()}
             >

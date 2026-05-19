@@ -219,7 +219,7 @@ export function AthleteContextPane({ room, isOpen, onClose }: AthleteContextPane
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium truncate">{workout.workoutTitle}</p>
-                            <p className="text-[11px] text-muted-foreground">
+                            <p className="text-2xs text-muted-foreground">
                               {format(new Date(workout.scheduled_date), "EEEE", { locale: it })}
                             </p>
                           </div>
@@ -341,7 +341,7 @@ export function AthleteContextPane({ room, isOpen, onClose }: AthleteContextPane
                           />
                         ))}
                     </div>
-                    <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
+                    <div className="flex justify-between mt-2 text-3xs text-muted-foreground">
                       <span>7 giorni fa</span>
                       <span>Oggi</span>
                     </div>

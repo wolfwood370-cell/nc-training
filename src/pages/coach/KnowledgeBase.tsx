@@ -440,7 +440,7 @@ export default function KnowledgeBase() {
                   <span className="font-medium">{statusLine}</span>
                 </div>
                 <Progress value={progress} className="h-1.5" />
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-2xs text-muted-foreground">
                   L'embedding può richiedere fino a 60 secondi per documento. Non chiudere la
                   pagina.
                 </p>

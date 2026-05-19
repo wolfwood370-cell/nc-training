@@ -107,7 +107,7 @@ export function CoachSidebar() {
       <SidebarContent className="px-2">
         <SidebarGroup>
           {!isCollapsed && (
-            <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-medium px-3 mb-1">
+            <SidebarGroupLabel className="text-sidebar-foreground/40 text-3xs uppercase tracking-widest font-medium px-3 mb-1">
               Menu Principale
             </SidebarGroupLabel>
           )}
@@ -146,7 +146,7 @@ export function CoachSidebar() {
 
         <SidebarGroup className="mt-auto">
           {!isCollapsed && (
-            <SidebarGroupLabel className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-medium px-3 mb-1">
+            <SidebarGroupLabel className="text-sidebar-foreground/40 text-3xs uppercase tracking-widest font-medium px-3 mb-1">
               Sistema
             </SidebarGroupLabel>
           )}

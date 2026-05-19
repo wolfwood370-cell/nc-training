@@ -291,7 +291,7 @@ export function ChatPane({
 
           <div>
             <h3 className="font-semibold text-sm">{otherParticipant?.full_name || "Utente"}</h3>
-            <p className="text-[11px] text-muted-foreground">Attivo di recente</p>
+            <p className="text-2xs text-muted-foreground">Attivo di recente</p>
           </div>
         </div>
 

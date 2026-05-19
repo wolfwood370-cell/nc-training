@@ -172,7 +172,7 @@ function WeekTimelineCard({ week, isActive, onSelect }: WeekTimelineCardProps) {
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="text-3xs font-medium uppercase tracking-wide text-muted-foreground">
             Week {week.order}
           </p>
           <p className="mt-0.5 truncate text-sm font-semibold leading-tight">
@@ -182,14 +182,14 @@ function WeekTimelineCard({ week, isActive, onSelect }: WeekTimelineCardProps) {
         {week.is_deload && (
           <Badge
             variant="outline"
-            className="h-4 shrink-0 border-sky-500/40 px-1 text-[9px] text-sky-600 dark:text-sky-400"
+            className="h-4 shrink-0 border-sky-500/40 px-1 text-4xs text-sky-600 dark:text-sky-400"
           >
             Deload
           </Badge>
         )}
       </div>
 
-      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-3xs text-muted-foreground">
         <Dumbbell className="h-3 w-3" />
         <span className="tabular-nums">
           {exerciseCount} {exerciseCount === 1 ? "exercise" : "exercises"}
@@ -266,7 +266,7 @@ function ExerciseCard({ exercise }: ExerciseCardProps) {
         </p>
 
         {/* Volume row: sets × reps */}
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <div className="flex items-center gap-1.5 text-2xs text-muted-foreground">
           <span className="tabular-nums font-medium text-foreground">{totalSets}</span>
           <span>×</span>
           <span className="tabular-nums">{firstSet?.reps_target ?? "—"}</span>
@@ -283,7 +283,7 @@ function ExerciseCard({ exercise }: ExerciseCardProps) {
         {intensityBadge && (
           <Badge
             variant="outline"
-            className={cn("h-4 px-1.5 text-[10px] font-medium", intensityBadge.className)}
+            className={cn("h-4 px-1.5 text-3xs font-medium", intensityBadge.className)}
           >
             {intensityBadge.label}
           </Badge>
@@ -325,12 +325,12 @@ function SessionColumn({ weekId, session, checkExercise }: SessionColumnProps) {
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold leading-tight">{session.name}</p>
           {session.focus && (
-            <p className="truncate text-[10px] uppercase tracking-wide text-muted-foreground">
+            <p className="truncate text-3xs uppercase tracking-wide text-muted-foreground">
               {session.focus}
             </p>
           )}
         </div>
-        <Badge variant="secondary" className="h-4 shrink-0 px-1.5 text-[10px] tabular-nums">
+        <Badge variant="secondary" className="h-4 shrink-0 px-1.5 text-3xs tabular-nums">
           {session.exercises.length}
         </Badge>
       </div>
@@ -340,7 +340,7 @@ function SessionColumn({ weekId, session, checkExercise }: SessionColumnProps) {
       {/* Exercise list */}
       <div className="flex flex-1 flex-col gap-1.5 overflow-y-auto">
         {session.exercises.length === 0 ? (
-          <p className="px-1 py-3 text-center text-[11px] italic text-muted-foreground/70">
+          <p className="px-1 py-3 text-center text-2xs italic text-muted-foreground/70">
             No exercises yet
           </p>
         ) : (
@@ -649,9 +649,7 @@ export default function ProgramBuilder() {
             <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Macro-Timeline
             </h2>
-            <span className="text-[10px] text-muted-foreground">
-              {block.weeks.length} microcycles
-            </span>
+            <span className="text-3xs text-muted-foreground">{block.weeks.length} microcycles</span>
           </div>
           <Separator className="bg-border/40" />
           <ScrollArea className="w-full">
@@ -701,7 +699,7 @@ export default function ProgramBuilder() {
                   Copy from previous week
                 </Button>
               )}
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-3xs text-muted-foreground">
                 {selectedWeek?.sessions.length ?? 0} sessions
               </span>
             </div>

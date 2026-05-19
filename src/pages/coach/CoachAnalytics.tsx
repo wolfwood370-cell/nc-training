@@ -62,7 +62,7 @@ export default function CoachAnalytics() {
                     <div className="flex items-center gap-2">
                       <Avatar className="h-5 w-5">
                         <AvatarImage src={selectedAthlete.avatar_url ?? undefined} />
-                        <AvatarFallback className="text-[10px]">
+                        <AvatarFallback className="text-3xs">
                           {selectedAthlete.full_name?.slice(0, 2).toUpperCase() ?? "??"}
                         </AvatarFallback>
                       </Avatar>
@@ -77,7 +77,7 @@ export default function CoachAnalytics() {
                     <div className="flex items-center gap-2">
                       <Avatar className="h-5 w-5">
                         <AvatarImage src={athlete.avatar_url ?? undefined} />
-                        <AvatarFallback className="text-[10px]">
+                        <AvatarFallback className="text-3xs">
                           {athlete.full_name?.slice(0, 2).toUpperCase() ?? "??"}
                         </AvatarFallback>
                       </Avatar>

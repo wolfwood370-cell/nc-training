@@ -3163,7 +3163,7 @@ export default function AthleteDetail() {
                         >
                           {readinessScore ?? "—"}
                         </span>
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                        <span className="text-3xs text-muted-foreground uppercase tracking-wide">
                           Readiness
                         </span>
                       </div>
@@ -3192,7 +3192,7 @@ export default function AthleteDetail() {
                             <Badge
                               variant="secondary"
                               className={cn(
-                                "text-[10px]",
+                                "text-3xs",
                                 acwrData?.status === "optimal" && "bg-success/10 text-success",
                                 acwrData?.status === "warning" && "bg-warning/10 text-warning",
                                 acwrData?.status === "high-risk" &&
@@ -3331,7 +3331,7 @@ export default function AthleteDetail() {
                   <div className="flex items-center justify-between gap-2 mb-4">
                     {weeklyCompliance.days.map((day, idx) => (
                       <div key={idx} className="flex flex-col items-center gap-1.5">
-                        <span className="text-[10px] text-muted-foreground uppercase font-medium">
+                        <span className="text-3xs text-muted-foreground uppercase font-medium">
                           {day.day.slice(0, 2)}
                         </span>
                         <div
@@ -3581,16 +3581,13 @@ export default function AthleteDetail() {
                           {/* Badges */}
                           <div className="flex flex-wrap justify-center gap-1">
                             {day.workout.estimated_duration && (
-                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                              <Badge variant="secondary" className="text-3xs px-1.5 py-0">
                                 <Clock className="h-2.5 w-2.5 mr-0.5" />
                                 {day.workout.estimated_duration}m
                               </Badge>
                             )}
                             {currentPhase?.focus_type && (
-                              <Badge
-                                variant="outline"
-                                className="text-[10px] px-1.5 py-0 capitalize"
-                              >
+                              <Badge variant="outline" className="text-3xs px-1.5 py-0 capitalize">
                                 {currentPhase.focus_type.replace("_", "")}
                               </Badge>
                             )}
@@ -3626,7 +3623,7 @@ export default function AthleteDetail() {
                           day.isToday ? "bg-primary text-primary-foreground" : "bg-muted",
                         )}
                       >
-                        <span className="text-[10px] uppercase font-medium">{day.dayName}</span>
+                        <span className="text-3xs uppercase font-medium">{day.dayName}</span>
                         <span className="text-xl font-bold">{day.dayNumber}</span>
                       </div>
 
@@ -3650,7 +3647,7 @@ export default function AthleteDetail() {
                                 </span>
                               )}
                               {currentPhase?.focus_type && (
-                                <Badge variant="outline" className="text-[10px] capitalize">
+                                <Badge variant="outline" className="text-3xs capitalize">
                                   {currentPhase.focus_type.replace("_", "")}
                                 </Badge>
                               )}

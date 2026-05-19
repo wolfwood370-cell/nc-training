@@ -544,7 +544,7 @@ export default function CoachCalendar() {
                         <div className="flex items-center gap-2">
                           <Avatar className="h-5 w-5">
                             <AvatarImage src={athlete.avatar_url || undefined} />
-                            <AvatarFallback className="text-[9px]">
+                            <AvatarFallback className="text-4xs">
                               {(athlete.full_name || "A")
                                 .split(" ")
                                 .map((n) => n[0])

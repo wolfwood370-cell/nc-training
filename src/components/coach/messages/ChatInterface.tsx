@@ -379,7 +379,7 @@ export function ChatInterface({
                 <h3 className="text-sm font-semibold bg-gradient-to-r from-violet-600 to-cyan-600 bg-clip-text text-transparent">
                   Assistente AI Coach
                 </h3>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-3xs text-muted-foreground">
                   Risponde dalla knowledge base del coach
                 </p>
               </div>
@@ -410,7 +410,7 @@ export function ChatInterface({
         <div className="flex items-center gap-3">
           {/* AI Mode Toggle */}
           <div className="flex items-center gap-2">
-            <Label htmlFor="ai-mode" className="text-[10px] text-muted-foreground cursor-pointer">
+            <Label htmlFor="ai-mode" className="text-3xs text-muted-foreground cursor-pointer">
               {isAiMode ? (
                 <span className="flex items-center gap-1">
                   <Bot className="h-3 w-3 text-violet-500" /> AI
@@ -436,7 +436,7 @@ export function ChatInterface({
           {isAiMode && quota && (
             <Badge
               variant={quotaExhausted ? "destructive" : "secondary"}
-              className="text-[10px] shrink-0"
+              className="text-3xs shrink-0"
             >
               <Sparkles className="h-3 w-3 mr-1" />
               {quotaExhausted
@@ -559,7 +559,7 @@ export function ChatInterface({
                     msg.isMe ? "text-primary-foreground/70" : "text-muted-foreground",
                   )}
                 >
-                  <span className="text-[10px]">{msg.timestamp}</span>
+                  <span className="text-3xs">{msg.timestamp}</span>
                   {msg.isMe && <CheckCheck className="h-3 w-3" />}
                   {msg.isAi && <Bot className="h-3 w-3 text-violet-500" />}
                 </div>
@@ -647,7 +647,7 @@ export function ChatInterface({
         </div>
 
         {/* Hint */}
-        <p className="text-[10px] text-muted-foreground text-center mt-2">
+        <p className="text-3xs text-muted-foreground text-center mt-2">
           {isAiMode
             ? quotaExhausted
               ? "Hai raggiunto il limite giornaliero. L'assistente tornerà domani!"

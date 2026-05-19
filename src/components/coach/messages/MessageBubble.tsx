@@ -137,7 +137,7 @@ function VideoPreviewCard({
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
           <span
             className={cn(
-              "px-1.5 py-0.5 rounded text-[10px] font-medium uppercase",
+              "px-1.5 py-0.5 rounded text-3xs font-medium uppercase",
               embed.type === "loom"
                 ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
                 : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
@@ -289,7 +289,7 @@ export function MessageBubble({ message, isOwn, showAvatar = true }: MessageBubb
         {renderContent()}
         <span
           className={cn(
-            "text-[10px] text-muted-foreground mt-1 px-1",
+            "text-3xs text-muted-foreground mt-1 px-1",
             isOwn ? "text-right" : "text-left",
           )}
         >

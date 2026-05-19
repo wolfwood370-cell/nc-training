@@ -44,7 +44,7 @@ export function ScheduleWeekDialog({
       acc[dayNum].push(workout);
       return acc;
     },
-    {} as Record<number, typeof workouts>
+    {} as Record<number, typeof workouts>,
   );
 
   const uniqueDays = Object.keys(workoutsByDay)
@@ -61,10 +61,7 @@ export function ScheduleWeekDialog({
           </DialogTitle>
           <DialogDescription>
             Vuoi programmare <strong>{weekName}</strong> a partire da{" "}
-            <strong>
-              {format(startDate, "EEEE d MMMM", { locale: it })}
-            </strong>
-            ?
+            <strong>{format(startDate, "EEEE d MMMM", { locale: it })}</strong>?
           </DialogDescription>
         </DialogHeader>
 
@@ -75,24 +72,16 @@ export function ScheduleWeekDialog({
             const scheduledDate = addDays(startDate, dayNum - 1);
 
             return (
-              <div
-                key={dayNum}
-                className="flex items-start gap-3 p-2 rounded-lg bg-muted/50"
-              >
+              <div key={dayNum} className="flex items-start gap-3 p-2 rounded-lg bg-muted/50">
                 <div className="text-center min-w-[60px]">
-                  <p className="text-[10px] uppercase text-muted-foreground">
+                  <p className="text-3xs uppercase text-muted-foreground">
                     {format(scheduledDate, "EEE", { locale: it })}
                   </p>
-                  <p className="text-lg font-semibold tabular-nums">
-                    {format(scheduledDate, "d")}
-                  </p>
+                  <p className="text-lg font-semibold tabular-nums">{format(scheduledDate, "d")}</p>
                 </div>
                 <div className="flex-1 space-y-1">
                   {dayWorkouts.map((workout) => (
-                    <div
-                      key={workout.id}
-                      className="flex items-center gap-2 text-sm"
-                    >
+                    <div key={workout.id} className="flex items-center gap-2 text-sm">
                       <Dumbbell className="h-3.5 w-3.5 text-primary shrink-0" />
                       <span className="truncate">{workout.name}</span>
                     </div>
@@ -104,18 +93,14 @@ export function ScheduleWeekDialog({
         </div>
 
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Badge variant="secondary" className="text-[10px]">
+          <Badge variant="secondary" className="text-3xs">
             {workouts.length} workout
           </Badge>
           <span>verranno programmati su {uniqueDays.length} giorni</span>
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isScheduling}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isScheduling}>
             Annulla
           </Button>
           <Button onClick={onConfirm} disabled={isScheduling}>

@@ -2,7 +2,12 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
@@ -14,8 +19,21 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Manrope', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Manrope", "Inter", "system-ui", "sans-serif"],
+      },
+      // Sub-`xs` font tokens for compact UI (badges, labels, table micro-text).
+      // Closes audit finding B3 — replaces ad-hoc `text-[Npx]` arbitrary
+      // values with semantic tokens that respond to design-system updates.
+      //   text-2xs → 11px  (audit B3: replaces `text-[11px]`)
+      //   text-3xs → 10px  (audit B3: replaces `text-[10px]`)
+      //   text-4xs → 9px   (audit B3: replaces `text-[9px]`)
+      //   text-5xs → 8px   (audit B3: replaces `text-[8px]`)
+      fontSize: {
+        "2xs": ["0.6875rem", { lineHeight: "1rem" }],
+        "3xs": ["0.625rem", { lineHeight: "0.875rem" }],
+        "4xs": ["0.5625rem", { lineHeight: "0.75rem" }],
+        "5xs": ["0.5rem", { lineHeight: "0.75rem" }],
       },
       colors: {
         /* Athlete brand palette — namespaced to avoid colliding with Coach semantic tokens */

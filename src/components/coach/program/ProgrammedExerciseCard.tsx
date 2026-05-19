@@ -1,24 +1,16 @@
-import { memo, useCallback, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Plus, X, AlertTriangle } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useProgramBuilderStore } from '@/stores/programBuilder/useProgramBuilderStore';
-import type {
-  ExerciseInfo,
-  ExerciseRiskAssessment,
-} from '@/lib/math/fmsRiskEngine';
+import { memo, useCallback, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Plus, X, AlertTriangle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useProgramBuilderStore } from "@/stores/programBuilder/useProgramBuilderStore";
+import type { ExerciseInfo, ExerciseRiskAssessment } from "@/lib/math/fmsRiskEngine";
 import type {
   ProgrammedExercise,
   ProgrammedSet,
   ProgrammedSetUpdate,
   UUID,
-} from '@/types/training';
+} from "@/types/training";
 
 // ---------------------------------------------------------------------------
 // Auto-regulation editor: RPE | RIR
@@ -29,7 +21,7 @@ import type {
 // to displaying RPE (the more common modern choice). A coach can flip the
 // header label to switch the rendered field.
 
-type AutoRegMode = 'rpe' | 'rir';
+type AutoRegMode = "rpe" | "rir";
 
 // ---------------------------------------------------------------------------
 // CompactCell — borderless input that reveals its border only on hover/focus
@@ -39,7 +31,7 @@ interface CompactCellProps {
   value: string | number | undefined;
   /** Called on blur with the raw string from the input. */
   onCommit: (raw: string) => void;
-  type?: 'text' | 'number';
+  type?: "text" | "number";
   placeholder?: string;
   /** Tighten the input width if the column is narrow. */
   width?: string;
@@ -53,8 +45,8 @@ interface CompactCellProps {
 const CompactCell = memo(function CompactCell({
   value,
   onCommit,
-  type = 'text',
-  placeholder = '—',
+  type = "text",
+  placeholder = "—",
   width,
   suffix,
   min,
@@ -72,10 +64,10 @@ const CompactCell = memo(function CompactCell({
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       // Enter commits and tabs forward; Escape rolls back to last committed.
-      if (e.key === 'Enter') {
+      if (e.key === "Enter") {
         e.currentTarget.blur();
-      } else if (e.key === 'Escape') {
-        e.currentTarget.value = value == null ? '' : String(value);
+      } else if (e.key === "Escape") {
+        e.currentTarget.value = value == null ? "" : String(value);
         e.currentTarget.blur();
       }
     },
@@ -83,31 +75,31 @@ const CompactCell = memo(function CompactCell({
   );
 
   return (
-    <div className={cn('relative inline-flex items-center', width)}>
+    <div className={cn("relative inline-flex items-center", width)}>
       <input
         type={type}
-        defaultValue={value ?? ''}
+        defaultValue={value ?? ""}
         placeholder={placeholder}
         min={min}
         max={max}
         step={step}
-        inputMode={type === 'number' ? 'decimal' : undefined}
+        inputMode={type === "number" ? "decimal" : undefined}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         // Re-key when the upstream value changes so the uncontrolled input
         // syncs (e.g. after week duplication overwrites this set).
-        key={String(value ?? '')}
+        key={String(value ?? "")}
         className={cn(
-          'w-full h-7 px-1.5 text-xs tabular-nums text-center bg-transparent',
-          'rounded-sm border border-transparent',
-          'hover:border-border/70 hover:bg-muted/30',
-          'focus:outline-none focus:border-primary/60 focus:bg-background focus:ring-1 focus:ring-primary/20',
-          'transition-colors',
-          suffix && 'pr-3.5',
+          "w-full h-7 px-1.5 text-xs tabular-nums text-center bg-transparent",
+          "rounded-sm border border-transparent",
+          "hover:border-border/70 hover:bg-muted/30",
+          "focus:outline-none focus:border-primary/60 focus:bg-background focus:ring-1 focus:ring-primary/20",
+          "transition-colors",
+          suffix && "pr-3.5",
         )}
       />
       {suffix && (
-        <span className="absolute right-1 text-[9px] text-muted-foreground pointer-events-none">
+        <span className="absolute right-1 text-4xs text-muted-foreground pointer-events-none">
           {suffix}
         </span>
       )}
@@ -141,27 +133,17 @@ export const ProgrammedExerciseCard = memo(function ProgrammedExerciseCard({
   sessionId,
   exercise,
   onRemove,
-  autoRegMode = 'rpe',
+  autoRegMode = "rpe",
   checkExercise,
 }: ProgrammedExerciseCardProps) {
   // Store actions are pulled atomically — using shallow selectors here would
   // be overkill since the function references are stable inside zustand.
-  const updateSetProgression = useProgramBuilderStore(
-    (s) => s.updateSetProgression,
-  );
-  const addSetToExercise = useProgramBuilderStore(
-    (s) => s.addSetToExercise,
-  );
+  const updateSetProgression = useProgramBuilderStore((s) => s.updateSetProgression);
+  const addSetToExercise = useProgramBuilderStore((s) => s.addSetToExercise);
 
   const patch = useCallback(
     (set: ProgrammedSet, updates: ProgrammedSetUpdate) => {
-      updateSetProgression(
-        weekId,
-        sessionId,
-        exercise.id,
-        set.set_number,
-        updates,
-      );
+      updateSetProgression(weekId, sessionId, exercise.id, set.set_number, updates);
     },
     [updateSetProgression, weekId, sessionId, exercise.id],
   );
@@ -169,7 +151,7 @@ export const ProgrammedExerciseCard = memo(function ProgrammedExerciseCard({
   // Parse a raw numeric input. Empty string → undefined (clears the field).
   // Out-of-range or non-numeric → no-op (the input visually re-syncs via key).
   const parseNum = (raw: string, min?: number, max?: number) => {
-    if (raw === '') return undefined;
+    if (raw === "") return undefined;
     const n = Number(raw);
     if (!Number.isFinite(n)) return null; // sentinel: ignore
     if (min != null && n < min) return null;
@@ -189,24 +171,23 @@ export const ProgrammedExerciseCard = memo(function ProgrammedExerciseCard({
     return checkExercise({ name: exercise.exercise_name });
   }, [checkExercise, exercise.exercise_name]);
 
-  const isHighRisk =
-    verdict !== null && (verdict.isSafe === false || verdict.riskLevel === 'high');
+  const isHighRisk = verdict !== null && (verdict.isSafe === false || verdict.riskLevel === "high");
 
   return (
     <div
       className={cn(
-        'group/card rounded-md border bg-card',
-        'shadow-sm transition-colors',
+        "group/card rounded-md border bg-card",
+        "shadow-sm transition-colors",
         isHighRisk
-          ? 'border-destructive/80 hover:border-destructive'
-          : 'border-border/60 hover:border-border',
+          ? "border-destructive/80 hover:border-destructive"
+          : "border-border/60 hover:border-border",
       )}
     >
       {/* Header — exercise name + remove */}
       <div
         className={cn(
-          'flex items-center justify-between gap-1 px-2 py-1.5 border-b',
-          isHighRisk ? 'border-destructive/40 bg-destructive/5' : 'border-border/50',
+          "flex items-center justify-between gap-1 px-2 py-1.5 border-b",
+          isHighRisk ? "border-destructive/40 bg-destructive/5" : "border-border/50",
         )}
       >
         <div className="flex min-w-0 items-center gap-1.5">
@@ -227,9 +208,7 @@ export const ProgrammedExerciseCard = memo(function ProgrammedExerciseCard({
                   align="start"
                   className="max-w-xs space-y-1 border-destructive/40 bg-popover text-xs"
                 >
-                  <p className="font-semibold text-destructive">
-                    Rischio biomeccanico elevato
-                  </p>
+                  <p className="font-semibold text-destructive">Rischio biomeccanico elevato</p>
                   <ul className="list-disc space-y-0.5 pl-4 text-foreground">
                     {verdict.reasons.map((r, i) => (
                       <li key={i}>{r}</li>
@@ -240,10 +219,7 @@ export const ProgrammedExerciseCard = memo(function ProgrammedExerciseCard({
             </TooltipProvider>
           )}
           <span
-            className={cn(
-              'text-xs font-semibold truncate',
-              isHighRisk && 'text-destructive',
-            )}
+            className={cn("text-xs font-semibold truncate", isHighRisk && "text-destructive")}
             title={exercise.exercise_name}
           >
             {exercise.exercise_name}
@@ -256,8 +232,8 @@ export const ProgrammedExerciseCard = memo(function ProgrammedExerciseCard({
             size="icon"
             onClick={onRemove}
             className={cn(
-              'h-5 w-5 flex-shrink-0 text-muted-foreground hover:text-destructive',
-              'opacity-0 group-hover/card:opacity-100 transition-opacity',
+              "h-5 w-5 flex-shrink-0 text-muted-foreground hover:text-destructive",
+              "opacity-0 group-hover/card:opacity-100 transition-opacity",
             )}
             aria-label="Remove exercise"
           >
@@ -274,46 +250,42 @@ export const ProgrammedExerciseCard = memo(function ProgrammedExerciseCard({
         {/* Header row */}
         <div
           className={cn(
-            'grid grid-cols-[1.5rem_1fr_1fr_1fr] items-center gap-1',
-            'px-1 pb-0.5 mb-0.5 border-b border-border/40',
-            'text-[9px] font-medium text-muted-foreground uppercase tracking-wider',
+            "grid grid-cols-[1.5rem_1fr_1fr_1fr] items-center gap-1",
+            "px-1 pb-0.5 mb-0.5 border-b border-border/40",
+            "text-4xs font-medium text-muted-foreground uppercase tracking-wider",
           )}
         >
           <span className="text-center">Set</span>
           <span className="text-center">Reps</span>
-          <span className="text-center">{autoRegMode === 'rir' ? 'RIR' : 'RPE'}</span>
+          <span className="text-center">{autoRegMode === "rir" ? "RIR" : "RPE"}</span>
           <span className="text-center">%1RM</span>
         </div>
 
         {/* Set rows */}
         {exercise.sets.length === 0 && (
-          <p className="text-[10px] text-muted-foreground text-center py-1.5">
-            No sets yet.
-          </p>
+          <p className="text-3xs text-muted-foreground text-center py-1.5">No sets yet.</p>
         )}
         {exercise.sets.map((set) => (
           <div
             key={set.id}
             className={cn(
-              'grid grid-cols-[1.5rem_1fr_1fr_1fr] items-center gap-1',
-              'px-1 py-0.5 rounded-sm hover:bg-muted/20',
+              "grid grid-cols-[1.5rem_1fr_1fr_1fr] items-center gap-1",
+              "px-1 py-0.5 rounded-sm hover:bg-muted/20",
             )}
           >
-            <span className="text-[10px] text-muted-foreground text-center tabular-nums">
+            <span className="text-3xs text-muted-foreground text-center tabular-nums">
               {set.set_number}
             </span>
 
             {/* Reps — free-form string ("8", "8-10", "AMRAP") */}
             <CompactCell
               value={set.reps_target}
-              onCommit={(raw) =>
-                patch(set, { reps_target: raw === '' ? '' : raw })
-              }
+              onCommit={(raw) => patch(set, { reps_target: raw === "" ? "" : raw })}
               placeholder="—"
             />
 
             {/* RPE or RIR */}
-            {autoRegMode === 'rir' ? (
+            {autoRegMode === "rir" ? (
               <CompactCell
                 type="number"
                 value={set.rir_target}
@@ -368,8 +340,8 @@ export const ProgrammedExerciseCard = memo(function ProgrammedExerciseCard({
           size="sm"
           onClick={() => addSetToExercise(weekId, sessionId, exercise.id)}
           className={cn(
-            'w-full h-6 mt-0.5 text-[10px] text-muted-foreground',
-            'hover:text-foreground hover:bg-muted/40',
+            "w-full h-6 mt-0.5 text-3xs text-muted-foreground",
+            "hover:text-foreground hover:bg-muted/40",
           )}
         >
           <Plus className="h-3 w-3 mr-1" />

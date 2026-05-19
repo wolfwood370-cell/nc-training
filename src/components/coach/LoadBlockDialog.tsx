@@ -187,12 +187,12 @@ export function LoadBlockDialog({
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{template.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <Badge variant="secondary" className="text-[10px]">
+                        <Badge variant="secondary" className="text-3xs">
                           {template.weekCount} settiman
                           {template.weekCount === 1 ? "a" : "e"}
                         </Badge>
                         {template.description && (
-                          <span className="text-[10px] text-muted-foreground truncate">
+                          <span className="text-3xs text-muted-foreground truncate">
                             {template.description}
                           </span>
                         )}
@@ -236,7 +236,7 @@ export function LoadBlockDialog({
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-3xs text-muted-foreground">
                 Le settimane esistenti da S{insertAtWeek + 1} saranno spostate in avanti
               </p>
             </div>

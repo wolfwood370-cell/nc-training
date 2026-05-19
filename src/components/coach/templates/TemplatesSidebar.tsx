@@ -21,15 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Search,
-  Bookmark,
-  Trash2,
-  Plus,
-  Dumbbell,
-  Loader2,
-  FolderOpen,
-} from "lucide-react";
+import { Search, Bookmark, Trash2, Plus, Dumbbell, Loader2, FolderOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { WorkoutTemplate } from "@/hooks/useWorkoutTemplates";
 import type { ProgramExercise } from "@/components/coach/WeekGrid";
@@ -156,9 +148,7 @@ export function TemplatesSidebar({
                 <div className="text-center py-12">
                   <FolderOpen className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
                   <p className="text-sm text-muted-foreground">
-                    {templates.length === 0
-                      ? "Nessun template salvato"
-                      : "Nessun template trovato"}
+                    {templates.length === 0 ? "Nessun template salvato" : "Nessun template trovato"}
                   </p>
                   {templates.length === 0 && (
                     <p className="text-xs text-muted-foreground mt-1">
@@ -173,9 +163,7 @@ export function TemplatesSidebar({
                     template={template}
                     isSelected={previewTemplate?.id === template.id}
                     onSelect={() =>
-                      setPreviewTemplate(
-                        previewTemplate?.id === template.id ? null : template
-                      )
+                      setPreviewTemplate(previewTemplate?.id === template.id ? null : template)
                     }
                     onDelete={() => setDeleteConfirmId(template.id)}
                   />
@@ -195,7 +183,7 @@ export function TemplatesSidebar({
                     {previewTemplate.structure.length} esercizi
                   </Badge>
                 </div>
-                
+
                 {previewTemplate.description && (
                   <p className="text-xs text-muted-foreground mb-3">
                     {previewTemplate.description}
@@ -217,10 +205,7 @@ export function TemplatesSidebar({
                   ))}
                 </div>
 
-                <Button
-                  className="w-full"
-                  onClick={() => handleInsert(previewTemplate)}
-                >
+                <Button className="w-full" onClick={() => handleInsert(previewTemplate)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Inserisci nel Giorno
                 </Button>
@@ -245,11 +230,7 @@ export function TemplatesSidebar({
           <AlertDialogFooter>
             <AlertDialogCancel>Annulla</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
-              {isDeleting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "Elimina"
-              )}
+              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Elimina"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -276,7 +257,7 @@ function TemplateCard({
         "p-3 rounded-lg border cursor-pointer transition-all group",
         isSelected
           ? "border-primary bg-primary/5 ring-1 ring-primary"
-          : "hover:border-primary/50 hover:bg-muted/50"
+          : "hover:border-primary/50 hover:bg-muted/50",
       )}
       onClick={onSelect}
     >
@@ -299,16 +280,16 @@ function TemplateCard({
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </div>
-      
+
       {template.tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-2">
           {template.tags.slice(0, 3).map((tag) => (
-            <Badge key={tag} variant="outline" className="text-[10px] h-5">
+            <Badge key={tag} variant="outline" className="text-3xs h-5">
               {tag}
             </Badge>
           ))}
           {template.tags.length > 3 && (
-            <Badge variant="outline" className="text-[10px] h-5">
+            <Badge variant="outline" className="text-3xs h-5">
               +{template.tags.length - 3}
             </Badge>
           )}

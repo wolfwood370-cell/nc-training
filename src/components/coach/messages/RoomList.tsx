@@ -1,13 +1,7 @@
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
-import {
-  Search,
-  Users,
-  MessageSquarePlus,
-  Mic,
-  Image as ImageIcon,
-} from "lucide-react";
+import { Search, Users, MessageSquarePlus, Mic, Image as ImageIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -120,12 +114,7 @@ export function RoomList({
       <div className="p-4 border-b space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-lg">Messaggi</h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onNewChat}
-            className="h-8 w-8"
-          >
+          <Button variant="ghost" size="icon" onClick={onNewChat} className="h-8 w-8">
             <MessageSquarePlus className="h-4 w-4" />
           </Button>
         </div>
@@ -148,10 +137,7 @@ export function RoomList({
             <TabsTrigger value="unread" className="text-xs">
               Non letti
               {rooms.filter((r) => r.unread_count > 0).length > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="ml-1 h-4 px-1 text-[10px]"
-                >
+                <Badge variant="destructive" className="ml-1 h-4 px-1 text-3xs">
                   {rooms.filter((r) => r.unread_count > 0).length}
                 </Badge>
               )}
@@ -168,9 +154,7 @@ export function RoomList({
         <div className="p-2">
           {filteredRooms.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground text-sm">
-              {tab === "unread"
-                ? "Nessun messaggio non letto"
-                : "Nessuna conversazione"}
+              {tab === "unread" ? "Nessun messaggio non letto" : "Nessuna conversazione"}
             </div>
           ) : (
             filteredRooms.map((room) => (
@@ -210,14 +194,11 @@ export function RoomList({
                       {getRoomDisplayName(room)}
                     </span>
                     {room.last_message && (
-                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                        {formatDistanceToNow(
-                          new Date(room.last_message.created_at),
-                          {
-                            addSuffix: false,
-                            locale: it,
-                          },
-                        )}
+                      <span className="text-3xs text-muted-foreground whitespace-nowrap">
+                        {formatDistanceToNow(new Date(room.last_message.created_at), {
+                          addSuffix: false,
+                          locale: it,
+                        })}
                       </span>
                     )}
                   </div>

@@ -273,7 +273,7 @@ export function AiProgramWizard({
                         )}
                       />
                       <span className="text-sm font-medium">Nuova Scheda</span>
-                      <span className="text-[11px] text-muted-foreground text-center">
+                      <span className="text-2xs text-muted-foreground text-center">
                         Partenza da zero, assessment iniziale
                       </span>
                     </Label>
@@ -294,7 +294,7 @@ export function AiProgramWizard({
                         )}
                       />
                       <span className="text-sm font-medium">Progressione</span>
-                      <span className="text-[11px] text-muted-foreground text-center">
+                      <span className="text-2xs text-muted-foreground text-center">
                         Basata sui log delle ultime 4 settimane
                       </span>
                     </Label>
@@ -332,7 +332,7 @@ export function AiProgramWizard({
                     step={1}
                     className="w-full"
                   />
-                  <div className="flex justify-between text-[10px] text-muted-foreground px-1">
+                  <div className="flex justify-between text-3xs text-muted-foreground px-1">
                     <span>2</span>
                     <span>3</span>
                     <span>4</span>
@@ -414,7 +414,7 @@ export function AiProgramWizard({
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[10px]">
+                        <Badge variant="outline" className="text-3xs">
                           {DAYS_FULL[day.day_index] || day.day_name}
                         </Badge>
                         <span className="text-sm font-medium">{day.focus}</span>
@@ -435,12 +435,12 @@ export function AiProgramWizard({
                             {ex.sets}×{ex.reps}
                           </span>
                           {ex.load && (
-                            <Badge variant="secondary" className="text-[10px] h-5">
+                            <Badge variant="secondary" className="text-3xs h-5">
                               {ex.load}
                             </Badge>
                           )}
                           {ex.rpe && (
-                            <Badge variant="outline" className="text-[10px] h-5">
+                            <Badge variant="outline" className="text-3xs h-5">
                               RPE {ex.rpe}
                             </Badge>
                           )}

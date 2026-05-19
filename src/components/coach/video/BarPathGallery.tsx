@@ -9,15 +9,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Video, Play, Zap, Gauge, Ruler } from "lucide-react";
-import { useAthleteVbtData, useAthleteVbtExercises, type VbtDataPoint } from "@/hooks/useAthleteVbtData";
+import {
+  useAthleteVbtData,
+  useAthleteVbtExercises,
+  type VbtDataPoint,
+} from "@/hooks/useAthleteVbtData";
 import { cn } from "@/lib/utils";
 
 interface BarPathGalleryProps {
@@ -25,11 +24,12 @@ interface BarPathGalleryProps {
 }
 
 function VelocityBadge({ velocity }: { velocity: number }) {
-  const color = velocity >= 1.0
-    ? "bg-success/15 text-success border-success/30"
-    : velocity >= 0.5
-      ? "bg-warning/15 text-warning border-warning/30"
-      : "bg-destructive/15 text-destructive border-destructive/30";
+  const color =
+    velocity >= 1.0
+      ? "bg-success/15 text-success border-success/30"
+      : velocity >= 0.5
+        ? "bg-warning/15 text-warning border-warning/30"
+        : "bg-destructive/15 text-destructive border-destructive/30";
 
   return (
     <Badge className={cn("text-xs font-mono tabular-nums border", color)}>
@@ -45,7 +45,7 @@ export function BarPathGallery({ athleteId }: BarPathGalleryProps) {
   const { data: exercises = [], isLoading: exLoading } = useAthleteVbtExercises(athleteId);
   const { data: vbtData = [], isLoading: dataLoading } = useAthleteVbtData(
     athleteId,
-    exerciseFilter === "all" ? undefined : exerciseFilter
+    exerciseFilter === "all" ? undefined : exerciseFilter,
   );
 
   const isLoading = exLoading || dataLoading;
@@ -53,10 +53,14 @@ export function BarPathGallery({ athleteId }: BarPathGalleryProps) {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader><Skeleton className="h-5 w-48" /></CardHeader>
+        <CardHeader>
+          <Skeleton className="h-5 w-48" />
+        </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => <Skeleton key={i} className="aspect-video rounded-lg" />)}
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="aspect-video rounded-lg" />
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -98,7 +102,9 @@ export function BarPathGallery({ athleteId }: BarPathGalleryProps) {
               <SelectContent>
                 <SelectItem value="all">Tutti gli esercizi</SelectItem>
                 {exercises.map((ex) => (
-                  <SelectItem key={ex} value={ex}>{ex}</SelectItem>
+                  <SelectItem key={ex} value={ex}>
+                    {ex}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -116,7 +122,7 @@ export function BarPathGallery({ athleteId }: BarPathGalleryProps) {
                 <div className="relative aspect-video bg-muted/50 flex items-center justify-center">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   <Play className="h-10 w-10 text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
-                  
+
                   {/* Peak velocity badge */}
                   <div className="absolute top-2 right-2">
                     <VelocityBadge velocity={entry.peakVelocity} />
@@ -125,7 +131,7 @@ export function BarPathGallery({ athleteId }: BarPathGalleryProps) {
                   {/* Exercise name overlay */}
                   <div className="absolute bottom-2 left-2 right-2">
                     <p className="text-xs font-medium text-white truncate">{entry.exerciseName}</p>
-                    <p className="text-[10px] text-white/70">{entry.dateFormatted}</p>
+                    <p className="text-3xs text-white/70">{entry.dateFormatted}</p>
                   </div>
                 </div>
 
@@ -183,34 +189,52 @@ export function BarPathGallery({ athleteId }: BarPathGalleryProps) {
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg border p-3">
                   <p className="text-xs text-muted-foreground mb-1">Velocità Media</p>
-                  <p className="text-xl font-bold tabular-nums">{selectedEntry.meanVelocity} <span className="text-sm font-normal text-muted-foreground">m/s</span></p>
+                  <p className="text-xl font-bold tabular-nums">
+                    {selectedEntry.meanVelocity}{" "}
+                    <span className="text-sm font-normal text-muted-foreground">m/s</span>
+                  </p>
                 </div>
                 <div className="rounded-lg border p-3">
                   <p className="text-xs text-muted-foreground mb-1">Picco Velocità</p>
-                  <p className="text-xl font-bold tabular-nums">{selectedEntry.peakVelocity} <span className="text-sm font-normal text-muted-foreground">m/s</span></p>
+                  <p className="text-xl font-bold tabular-nums">
+                    {selectedEntry.peakVelocity}{" "}
+                    <span className="text-sm font-normal text-muted-foreground">m/s</span>
+                  </p>
                 </div>
                 {selectedEntry.romCm !== null && (
                   <div className="rounded-lg border p-3">
                     <p className="text-xs text-muted-foreground mb-1">ROM</p>
-                    <p className="text-xl font-bold tabular-nums">{selectedEntry.romCm} <span className="text-sm font-normal text-muted-foreground">cm</span></p>
+                    <p className="text-xl font-bold tabular-nums">
+                      {selectedEntry.romCm}{" "}
+                      <span className="text-sm font-normal text-muted-foreground">cm</span>
+                    </p>
                   </div>
                 )}
                 {selectedEntry.powerWatts !== null && (
                   <div className="rounded-lg border p-3">
                     <p className="text-xs text-muted-foreground mb-1">Potenza Stimata</p>
-                    <p className="text-xl font-bold tabular-nums">{selectedEntry.powerWatts} <span className="text-sm font-normal text-muted-foreground">W</span></p>
+                    <p className="text-xl font-bold tabular-nums">
+                      {selectedEntry.powerWatts}{" "}
+                      <span className="text-sm font-normal text-muted-foreground">W</span>
+                    </p>
                   </div>
                 )}
                 {selectedEntry.weightKg > 0 && (
                   <div className="rounded-lg border p-3">
                     <p className="text-xs text-muted-foreground mb-1">Carico</p>
-                    <p className="text-xl font-bold tabular-nums">{selectedEntry.weightKg} <span className="text-sm font-normal text-muted-foreground">kg</span></p>
+                    <p className="text-xl font-bold tabular-nums">
+                      {selectedEntry.weightKg}{" "}
+                      <span className="text-sm font-normal text-muted-foreground">kg</span>
+                    </p>
                   </div>
                 )}
                 {selectedEntry.estimated1RM > 0 && (
                   <div className="rounded-lg border p-3">
                     <p className="text-xs text-muted-foreground mb-1">1RM Stimato</p>
-                    <p className="text-xl font-bold tabular-nums">{selectedEntry.estimated1RM} <span className="text-sm font-normal text-muted-foreground">kg</span></p>
+                    <p className="text-xl font-bold tabular-nums">
+                      {selectedEntry.estimated1RM}{" "}
+                      <span className="text-sm font-normal text-muted-foreground">kg</span>
+                    </p>
                   </div>
                 )}
               </div>

@@ -3,12 +3,7 @@ import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -43,13 +38,16 @@ import {
 } from "lucide-react";
 
 // Phase configuration for colors and icons
-const PHASE_CONFIG: Record<PhaseFocusType, { 
-  label: string; 
-  color: string; 
-  bgColor: string;
-  borderColor: string;
-  icon: typeof Dumbbell;
-}> = {
+const PHASE_CONFIG: Record<
+  PhaseFocusType,
+  {
+    label: string;
+    color: string;
+    bgColor: string;
+    borderColor: string;
+    icon: typeof Dumbbell;
+  }
+> = {
   strength: {
     label: "Forza",
     color: "text-orange-600 dark:text-orange-400",
@@ -152,41 +150,42 @@ export function WeekTabs({
   // Map weeks to their corresponding phases
   const weeksWithPhases = useMemo((): WeekInfo[] => {
     const result: WeekInfo[] = [];
-    
+
     // Sort phases by start date
     const sortedPhases = [...phases].sort(
-      (a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+      (a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime(),
     );
-    
+
     let currentPhaseIndex = 0;
     let weekInPhase = 0;
-    
+
     for (let i = 0; i < totalWeeks; i++) {
       let assignedPhase: PhaseInfo | null = null;
-      
+
       if (currentPhaseIndex < sortedPhases.length) {
         const phase = sortedPhases[currentPhaseIndex];
         const phaseStart = new Date(phase.start_date);
         const phaseEnd = new Date(phase.end_date);
-        const phaseDuration = Math.ceil((phaseEnd.getTime() - phaseStart.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
-        
+        const phaseDuration =
+          Math.ceil((phaseEnd.getTime() - phaseStart.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+
         if (weekInPhase < phaseDuration) {
           assignedPhase = phase;
           weekInPhase++;
         }
-        
+
         if (weekInPhase >= phaseDuration) {
           currentPhaseIndex++;
           weekInPhase = 0;
         }
       }
-      
+
       result.push({
         weekIndex: i,
         phase: assignedPhase,
       });
     }
-    
+
     return result;
   }, [phases, totalWeeks]);
 
@@ -200,12 +199,7 @@ export function WeekTabs({
               {onSaveBlock && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0"
-                      onClick={onSaveBlock}
-                    >
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={onSaveBlock}>
                       <Layers className="h-3.5 w-3.5" />
                     </Button>
                   </TooltipTrigger>
@@ -215,12 +209,7 @@ export function WeekTabs({
               {onLoadBlock && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0"
-                      onClick={onLoadBlock}
-                    >
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={onLoadBlock}>
                       <Download className="h-3.5 w-3.5" />
                     </Button>
                   </TooltipTrigger>
@@ -302,23 +291,23 @@ export function WeekTabs({
                             isActive && "bg-background shadow-sm",
                             phase && "border-b-2",
                             phase && config?.borderColor,
-                            !phase && "border-b-2 border-b-transparent"
+                            !phase && "border-b-2 border-b-transparent",
                           )}
                         >
                           {/* Week number */}
                           <div className="flex items-center gap-1">
                             {Icon && (
-                              <Icon 
+                              <Icon
                                 className={cn(
                                   "h-3 w-3",
-                                  isActive ? config?.color : "text-muted-foreground/50"
-                                )} 
+                                  isActive ? config?.color : "text-muted-foreground/50",
+                                )}
                               />
                             )}
                             <span
                               className={cn(
                                 "text-xs font-medium",
-                                isActive ? "text-foreground" : "text-muted-foreground"
+                                isActive ? "text-foreground" : "text-muted-foreground",
                               )}
                             >
                               S{weekIndex + 1}
@@ -330,16 +319,23 @@ export function WeekTabs({
                             <div
                               className={cn(
                                 "w-1.5 h-1.5 rounded-full mt-0.5",
-                                config?.bgColor?.replace("/20", "")
+                                config?.bgColor?.replace("/20", ""),
                               )}
                               style={{
-                                backgroundColor: phase.focus_type === "strength" ? "#f97316" :
-                                  phase.focus_type === "hypertrophy" ? "#6366f1" :
-                                  phase.focus_type === "endurance" ? "#06b6d4" :
-                                  phase.focus_type === "power" ? "#f59e0b" :
-                                  phase.focus_type === "recovery" ? "#10b981" :
-                                  phase.focus_type === "peaking" ? "#ef4444" :
-                                  "#64748b"
+                                backgroundColor:
+                                  phase.focus_type === "strength"
+                                    ? "#f97316"
+                                    : phase.focus_type === "hypertrophy"
+                                      ? "#6366f1"
+                                      : phase.focus_type === "endurance"
+                                        ? "#06b6d4"
+                                        : phase.focus_type === "power"
+                                          ? "#f59e0b"
+                                          : phase.focus_type === "recovery"
+                                            ? "#10b981"
+                                            : phase.focus_type === "peaking"
+                                              ? "#ef4444"
+                                              : "#64748b",
                               }}
                             />
                           )}
@@ -353,11 +349,11 @@ export function WeekTabs({
                       <TooltipContent side="bottom" className="text-xs">
                         <p className="font-medium">Settimana {weekIndex + 1}</p>
                         {phase && (
-                          <p className={cn("text-[10px]", config?.color)}>
+                          <p className={cn("text-3xs", config?.color)}>
                             {phase.name} · {config?.label}
                           </p>
                         )}
-                        <p className="text-[10px] text-muted-foreground mt-1">
+                        <p className="text-3xs text-muted-foreground mt-1">
                           Tasto destro per opzioni
                         </p>
                       </TooltipContent>

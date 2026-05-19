@@ -97,11 +97,7 @@ export default function MasterCopilot() {
                 {!isLoading && lastSources.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 pl-11">
                     {lastSources.map((s) => (
-                      <Badge
-                        key={s.chunk_id}
-                        variant="secondary"
-                        className="text-[10px] font-normal"
-                      >
+                      <Badge key={s.chunk_id} variant="secondary" className="text-3xs font-normal">
                         {s.document_title}
                       </Badge>
                     ))}
@@ -138,7 +134,7 @@ export default function MasterCopilot() {
                 <ArrowUp className="h-4 w-4" />
               </Button>
             </div>
-            <p className="mt-2 text-center text-[10px] text-muted-foreground">
+            <p className="mt-2 text-center text-3xs text-muted-foreground">
               Le risposte si basano sui documenti caricati nell'AI Brain.
             </p>
           </form>
@@ -205,8 +201,8 @@ function EmptyState({ onPick }: { onPick: (text: string) => void }) {
       </div>
       <h2 className="mt-5 text-2xl font-semibold tracking-tight">Master Copilot</h2>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
-        Il tuo assistente clinico, addestrato sui manuali e sui protocolli che hai caricato
-        nell'AI Brain.
+        Il tuo assistente clinico, addestrato sui manuali e sui protocolli che hai caricato nell'AI
+        Brain.
       </p>
       <div className="mt-8 grid w-full max-w-2xl grid-cols-1 gap-2 sm:grid-cols-2">
         {SUGGESTIONS.map((s) => (

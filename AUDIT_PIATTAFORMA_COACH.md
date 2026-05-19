@@ -59,9 +59,9 @@ Sessione di cleanup eseguita sul branch `claude/flamboyant-hertz-937c2d`. Lo sta
 | --------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------ | ----------- |
 | 🔴 Critical (4) | **C1, C2, C4**                                               | —                                                                        | C3          |
 | 🟡 Medium (13)  | **M1, M2, M4, M6, M7, M9, M10, M12** (de-facto chiuso da C2) | M3 (1/6 zone), M5 (14/16), M8 (2/5), M11 (3 spot), M13 (95% già coperto) | —           |
-| 🔵 Low (9)      | **B2, B4, B5, B6, B7, B8**                                   | —                                                                        | B1, B3, B9  |
+| 🔵 Low (9)      | **B2, B3, B4, B5, B6, B7, B8**                               | —                                                                        | B1, B9      |
 
-**Totale**: **17/26 finding completamente chiusi (65%)**, 5 parziali, 4 pendenti.
+**Totale**: **18/26 finding completamente chiusi (69%)**, 5 parziali, 3 pendenti.
 
 ### Mappa commit → finding
 
@@ -113,7 +113,6 @@ Sessione di cleanup eseguita sul branch `claude/flamboyant-hertz-937c2d`. Lo sta
 | **M8** residui             | 🟡 parziale (2/5)   | 1-2 ore               | 3 `as unknown as` documentati come bridge `Json` inevitabile; chiudibili solo aggiungendo `[key: string]: unknown` alle interface o usando zod.                                                                |
 | **M11** touch-area globale | 🟡 parziale         | 2-4 ore               | Aria-label aggiunti dove serviva; resta da fare un audit sistematico dei `size="icon"` con `Button` shadcn.                                                                                                    |
 | **B1**                     | ❌ pendente         | Decisione di prodotto | PDF extraction in KnowledgeBase: pdfjs lato client o edge function.                                                                                                                                            |
-| **B3**                     | ❌ pendente         | ~30 min               | Arbitrary Tailwind sizes (`text-[10px]`/`[9px]`/`[11px]`) → font-scale tokens.                                                                                                                                 |
 | **B9**                     | ❌ pendente         | ~1 giorno             | Skeleton loader pattern uniforme per i widget dashboard coach.                                                                                                                                                 |
 
 ---
@@ -287,7 +286,7 @@ Sessione di cleanup eseguita sul branch `claude/flamboyant-hertz-937c2d`. Lo sta
 - **Dove**: [`CoachLibrary.tsx:1-7`](src/pages/coach/CoachLibrary.tsx) — `import ... from"react"` senza spazio dopo `from`.
 - **Improvement**: Prettier dovrebbe sistemare automaticamente. Verificare config `.prettierrc`.
 
-### B3. ❌ Arbitrary Tailwind sizes `text-[10px]`, `text-[9px]`, `text-[11px]` sparsi _(pendente — ~30 min, token in `tailwind.config.ts`)_
+### B3. ✅ Arbitrary Tailwind sizes `text-[10px]`, `text-[9px]`, `text-[11px]` sparsi _(chiuso — token `text-2xs/3xs/4xs/5xs` in `tailwind.config.ts`, 159 occorrenze sostituite in 43 file coach)_
 
 - **Dove**: AthleteDetail.tsx (righe 3363, 3399 e altre), ChatPane.tsx:266, CoachHome.tsx:201-202.
 - **Impatto**: design system non semantico. Cambio scale typography richiede grep manuale.
@@ -371,6 +370,7 @@ In ordine di probabilità:
 15. 🟡 Aria-label sui button-icon (M11) — parziale `d53f433`.
 16. ❌ Skeleton loader sui dashboard widgets (B9) — pendente.
 17. ✅ ~~Prettier fix import spacing~~ — `8c041c9` (B2).
+18. ✅ ~~Token font-size sub-`xs`~~ — chiuso (B3: `text-2xs/3xs/4xs/5xs` in `tailwind.config.ts`).
 
 ---
 

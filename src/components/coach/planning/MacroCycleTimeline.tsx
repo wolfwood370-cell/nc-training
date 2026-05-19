@@ -18,15 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-  Layers,
-  Pencil,
-  Clock,
-  Target,
-} from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Layers, Pencil, Clock, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   format,
@@ -65,10 +57,7 @@ interface MacroCycleTimelineProps {
 
 // ── Phase styling map ─────────────────────────────────────────────────
 
-const PHASE_STYLES: Record<
-  string,
-  { bg: string; border: string; text: string; label: string }
-> = {
+const PHASE_STYLES: Record<string, { bg: string; border: string; text: string; label: string }> = {
   hypertrophy: {
     bg: "bg-violet-500/15",
     border: "border-violet-500/40",
@@ -113,8 +102,7 @@ const PHASE_STYLES: Record<
   },
 };
 
-const getPhaseStyle = (focusType: string) =>
-  PHASE_STYLES[focusType] ?? PHASE_STYLES.transition;
+const getPhaseStyle = (focusType: string) => PHASE_STYLES[focusType] ?? PHASE_STYLES.transition;
 
 // ── Mock data ─────────────────────────────────────────────────────────
 
@@ -209,10 +197,7 @@ export function MacroCycleTimeline({
   }, [blocks]);
 
   const filteredBlocks = useMemo(
-    () =>
-      athleteFilter === "all"
-        ? blocks
-        : blocks.filter((b) => b.athleteId === athleteFilter),
+    () => (athleteFilter === "all" ? blocks : blocks.filter((b) => b.athleteId === athleteFilter)),
     [blocks, athleteFilter],
   );
 
@@ -240,20 +225,14 @@ export function MacroCycleTimeline({
     return Array.from(grouped, ([athleteId, rowBlocks]) => ({
       athleteId,
       athleteName: rowBlocks[0]?.athleteName ?? "Unassigned",
-      blocks: rowBlocks.sort(
-        (a, b) => a.startDate.getTime() - b.startDate.getTime(),
-      ),
+      blocks: rowBlocks.sort((a, b) => a.startDate.getTime() - b.startDate.getTime()),
     }));
   }, [filteredBlocks]);
 
   // Helper: position a block on the timeline
   const getBlockStyle = (block: TrainingBlock) => {
-    const clampedStart = isBefore(block.startDate, timelineStart)
-      ? timelineStart
-      : block.startDate;
-    const clampedEnd = isAfter(block.endDate, timelineEnd)
-      ? timelineEnd
-      : block.endDate;
+    const clampedStart = isBefore(block.startDate, timelineStart) ? timelineStart : block.startDate;
+    const clampedEnd = isAfter(block.endDate, timelineEnd) ? timelineEnd : block.endDate;
 
     const leftDays = differenceInDays(clampedStart, timelineStart);
     const widthDays = differenceInDays(clampedEnd, clampedStart) + 1;
@@ -265,10 +244,7 @@ export function MacroCycleTimeline({
   };
 
   const isToday = (month: Date) => {
-    return (
-      month.getMonth() === now.getMonth() &&
-      month.getFullYear() === now.getFullYear()
-    );
+    return month.getMonth() === now.getMonth() && month.getFullYear() === now.getFullYear();
   };
 
   const todayOffset = differenceInDays(now, timelineStart) * PX_PER_DAY;
@@ -283,9 +259,7 @@ export function MacroCycleTimeline({
                 <Layers className="h-4.5 w-4.5 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-base font-bold">
-                  Macro-Ciclo
-                </CardTitle>
+                <CardTitle className="text-base font-bold">Macro-Ciclo</CardTitle>
                 <p className="text-xs text-muted-foreground">
                   Pianificazione periodizzazione •{" "}
                   {format(timelineStart, "MMM yyyy", { locale: it })} –{" "}
@@ -316,21 +290,11 @@ export function MacroCycleTimeline({
                 {Object.entries(PHASE_STYLES)
                   .slice(0, 5)
                   .map(([key, style]) => (
-                    <div
-                      key={key}
-                      className="flex items-center gap-1"
-                      title={style.label}
-                    >
+                    <div key={key} className="flex items-center gap-1" title={style.label}>
                       <div
-                        className={cn(
-                          "h-2.5 w-2.5 rounded-sm border",
-                          style.bg,
-                          style.border,
-                        )}
+                        className={cn("h-2.5 w-2.5 rounded-sm border", style.bg, style.border)}
                       />
-                      <span className="text-[10px] text-muted-foreground">
-                        {style.label}
-                      </span>
+                      <span className="text-3xs text-muted-foreground">{style.label}</span>
                     </div>
                   ))}
               </div>
@@ -346,8 +310,7 @@ export function MacroCycleTimeline({
                 {months.map((month, i) => {
                   const monthStart = startOfMonth(month);
                   const monthEnd = endOfMonth(month);
-                  const daysInMonth =
-                    differenceInDays(monthEnd, monthStart) + 1;
+                  const daysInMonth = differenceInDays(monthEnd, monthStart) + 1;
                   const w = daysInMonth * PX_PER_DAY;
 
                   return (
@@ -372,7 +335,7 @@ export function MacroCycleTimeline({
                 <div key={row.athleteId} className="relative border-b border-border/20">
                   {/* Athlete label */}
                   <div className="sticky left-0 z-20 inline-flex items-center gap-1.5 px-3 py-1 bg-card/90 backdrop-blur-sm">
-                    <span className="text-[11px] font-semibold text-muted-foreground truncate max-w-[100px]">
+                    <span className="text-2xs font-semibold text-muted-foreground truncate max-w-[100px]">
                       {row.athleteName}
                     </span>
                   </div>
@@ -384,7 +347,7 @@ export function MacroCycleTimeline({
                       className="absolute top-0 bottom-0 w-px bg-primary/50 z-10"
                       style={{ left: todayOffset }}
                     >
-                      <div className="absolute -top-0 left-1/2 -translate-x-1/2 text-[9px] font-bold text-primary bg-primary/10 px-1 rounded-b">
+                      <div className="absolute -top-0 left-1/2 -translate-x-1/2 text-4xs font-bold text-primary bg-primary/10 px-1 rounded-b">
                         Oggi
                       </div>
                     </div>
@@ -416,14 +379,14 @@ export function MacroCycleTimeline({
                         >
                           <span
                             className={cn(
-                              "text-[10px] font-semibold truncate leading-none",
+                              "text-3xs font-semibold truncate leading-none",
                               style.text,
                             )}
                           >
                             {block.name}
                           </span>
                           {pos.width > 90 && (
-                            <span className="text-[9px] text-muted-foreground/70 flex-shrink-0">
+                            <span className="text-4xs text-muted-foreground/70 flex-shrink-0">
                               {weeks}w
                             </span>
                           )}
@@ -450,10 +413,7 @@ export function MacroCycleTimeline({
       </Card>
 
       {/* Block Detail Drawer */}
-      <Sheet
-        open={!!selectedBlock}
-        onOpenChange={(open) => !open && setSelectedBlock(null)}
-      >
+      <Sheet open={!!selectedBlock} onOpenChange={(open) => !open && setSelectedBlock(null)}>
         <SheetContent className="sm:max-w-md">
           {selectedBlock && (
             <>
@@ -495,7 +455,7 @@ export function MacroCycleTimeline({
                   <div className="p-3 rounded-lg bg-muted/30">
                     <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
                       <Calendar className="h-3.5 w-3.5" />
-                      <span className="text-[11px] font-medium">Inizio</span>
+                      <span className="text-2xs font-medium">Inizio</span>
                     </div>
                     <p className="text-sm font-semibold">
                       {format(selectedBlock.startDate, "d MMM yyyy", {
@@ -506,7 +466,7 @@ export function MacroCycleTimeline({
                   <div className="p-3 rounded-lg bg-muted/30">
                     <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
                       <Calendar className="h-3.5 w-3.5" />
-                      <span className="text-[11px] font-medium">Fine</span>
+                      <span className="text-2xs font-medium">Fine</span>
                     </div>
                     <p className="text-sm font-semibold">
                       {format(selectedBlock.endDate, "d MMM yyyy", {
@@ -517,14 +477,11 @@ export function MacroCycleTimeline({
                   <div className="p-3 rounded-lg bg-muted/30">
                     <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
                       <Clock className="h-3.5 w-3.5" />
-                      <span className="text-[11px] font-medium">Durata</span>
+                      <span className="text-2xs font-medium">Durata</span>
                     </div>
                     <p className="text-sm font-semibold">
                       {Math.round(
-                        differenceInDays(
-                          selectedBlock.endDate,
-                          selectedBlock.startDate,
-                        ) / 7,
+                        differenceInDays(selectedBlock.endDate, selectedBlock.startDate) / 7,
                       )}{" "}
                       Settimane
                     </p>
@@ -532,7 +489,7 @@ export function MacroCycleTimeline({
                   <div className="p-3 rounded-lg bg-muted/30">
                     <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
                       <Target className="h-3.5 w-3.5" />
-                      <span className="text-[11px] font-medium">Focus</span>
+                      <span className="text-2xs font-medium">Focus</span>
                     </div>
                     <p className="text-sm font-semibold capitalize">
                       {getPhaseStyle(selectedBlock.focusType).label}
@@ -543,9 +500,7 @@ export function MacroCycleTimeline({
                 {/* Notes */}
                 {selectedBlock.notes && (
                   <div className="p-3 rounded-lg bg-muted/20 border border-border/50">
-                    <p className="text-xs text-muted-foreground mb-1 font-medium">
-                      Note
-                    </p>
+                    <p className="text-xs text-muted-foreground mb-1 font-medium">Note</p>
                     <p className="text-sm">{selectedBlock.notes}</p>
                   </div>
                 )}
@@ -556,9 +511,7 @@ export function MacroCycleTimeline({
                     className="w-full"
                     onClick={() => {
                       if (selectedBlock.programId) {
-                        navigate(
-                          `/coach/program-builder/${selectedBlock.programId}`,
-                        );
+                        navigate(`/coach/program-builder/${selectedBlock.programId}`);
                       } else {
                         navigate("/coach/program-builder");
                       }
@@ -573,9 +526,7 @@ export function MacroCycleTimeline({
                       variant="outline"
                       className="w-full"
                       onClick={() => {
-                        navigate(
-                          `/coach/athlete/${selectedBlock.athleteId}`,
-                        );
+                        navigate(`/coach/athlete/${selectedBlock.athleteId}`);
                         setSelectedBlock(null);
                       }}
                     >

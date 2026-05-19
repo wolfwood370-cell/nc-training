@@ -1,27 +1,11 @@
 import React, { memo } from "react";
 import { useDroppable } from "@dnd-kit/core";
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Trash2,
-  Link2,
-  Unlink,
-  Copy,
-  Plus,
-  Bookmark,
-  TrendingUp,
-} from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Trash2, Link2, Unlink, Copy, Plus, Bookmark, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProgramExercise } from "@/components/coach/WeekGrid";
 
@@ -51,7 +35,7 @@ function EmptySlot({
         "relative border-2 border-dashed rounded-lg p-4 text-center transition-all group min-h-[52px] flex items-center justify-center",
         isOver
           ? "border-primary bg-primary/10 scale-[1.02]"
-          : "border-muted-foreground/40 bg-muted/10 opacity-70 hover:opacity-90 hover:border-muted-foreground/60"
+          : "border-muted-foreground/40 bg-muted/10 opacity-70 hover:opacity-90 hover:border-muted-foreground/60",
       )}
     >
       <Button
@@ -62,9 +46,7 @@ function EmptySlot({
       >
         <Trash2 className="h-3 w-3" />
       </Button>
-      <p className="text-[10px] text-muted-foreground/80 font-medium">
-        Trascina esercizio qui
-      </p>
+      <p className="text-3xs text-muted-foreground/80 font-medium">Trascina esercizio qui</p>
     </div>
   );
 }
@@ -127,7 +109,7 @@ function SortableExercise({
         isSelected && "ring-2 ring-primary border-primary bg-primary/5",
         isInSuperset && "border-l-4",
         supersetColor,
-        !isDragging && "hover:shadow-md"
+        !isDragging && "hover:shadow-md",
       )}
     >
       <div className="flex items-stretch">
@@ -139,7 +121,7 @@ function SortableExercise({
           className={cn(
             "flex items-center justify-center px-1.5 rounded-l-lg border-r border-border/50",
             "bg-muted/30 hover:bg-muted cursor-grab active:cursor-grabbing",
-            "touch-none select-none flex-shrink-0"
+            "touch-none select-none flex-shrink-0",
           )}
         >
           <div className="flex flex-col gap-[2px]">
@@ -162,7 +144,7 @@ function SortableExercise({
           <div className="flex items-center gap-1.5">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1">
-                <p className="text-[11px] font-medium truncate leading-tight" title={exercise.name}>
+                <p className="text-2xs font-medium truncate leading-tight" title={exercise.name}>
                   {exercise.name}
                 </p>
                 {hasProgression && (
@@ -180,12 +162,10 @@ function SortableExercise({
               </div>
               <div className="flex items-center gap-1.5 mt-0.5">
                 {setsReps && (
-                  <span className="text-[10px] font-medium text-foreground/80">
-                    {setsReps}
-                  </span>
+                  <span className="text-3xs font-medium text-foreground/80">{setsReps}</span>
                 )}
                 {rpeText && (
-                  <span className="text-[9px] text-muted-foreground bg-muted/50 px-1 py-0.5 rounded">
+                  <span className="text-4xs text-muted-foreground bg-muted/50 px-1 py-0.5 rounded">
                     {rpeText}
                   </span>
                 )}
@@ -200,15 +180,11 @@ function SortableExercise({
                     size="icon"
                     className={cn(
                       "h-5 w-5 flex-shrink-0",
-                      isInSuperset && "text-primary opacity-100"
+                      isInSuperset && "text-primary opacity-100",
                     )}
                     onClick={onToggleSuperset}
                   >
-                    {isInSuperset ? (
-                      <Unlink className="h-3 w-3" />
-                    ) : (
-                      <Link2 className="h-3 w-3" />
-                    )}
+                    {isInSuperset ? <Unlink className="h-3 w-3" /> : <Link2 className="h-3 w-3" />}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="text-xs">
@@ -265,17 +241,10 @@ export const DayBuilderCard = memo(function DayBuilderCard({
   });
 
   const supersetGroups = [
-    ...new Set(
-      exercises.filter((e) => e.supersetGroup && !e.isEmpty).map((e) => e.supersetGroup)
-    ),
+    ...new Set(exercises.filter((e) => e.supersetGroup && !e.isEmpty).map((e) => e.supersetGroup)),
   ];
   const supersetColors: Record<string, string> = {};
-  const colors = [
-    "border-l-primary",
-    "border-l-success",
-    "border-l-warning",
-    "border-l-accent",
-  ];
+  const colors = ["border-l-primary", "border-l-success", "border-l-warning", "border-l-accent"];
   supersetGroups.forEach((group, i) => {
     if (group) supersetColors[group] = colors[i % colors.length];
   });
@@ -288,7 +257,7 @@ export const DayBuilderCard = memo(function DayBuilderCard({
       className={cn(
         "flex flex-col min-h-[150px] rounded-lg border transition-all",
         isOver && "ring-2 ring-primary border-primary bg-primary/5",
-        exercises.length === 0 && "border-dashed"
+        exercises.length === 0 && "border-dashed",
       )}
     >
       {/* Day Header */}
@@ -323,7 +292,7 @@ export const DayBuilderCard = memo(function DayBuilderCard({
                 </TooltipTrigger>
                 <TooltipContent>Copia allenamento</TooltipContent>
               </Tooltip>
-              <Badge variant="secondary" className="text-[9px] h-4 px-1.5">
+              <Badge variant="secondary" className="text-4xs h-4 px-1.5">
                 {filledExercises.length} ex
               </Badge>
             </>
@@ -333,10 +302,7 @@ export const DayBuilderCard = memo(function DayBuilderCard({
 
       {/* Exercise List */}
       <div className="flex-1 p-1.5 space-y-1.5 overflow-y-auto">
-        <SortableContext
-          items={exercises.map((e) => e.id)}
-          strategy={verticalListSortingStrategy}
-        >
+        <SortableContext items={exercises.map((e) => e.id)} strategy={verticalListSortingStrategy}>
           {exercises.map((exercise) =>
             exercise.isEmpty ? (
               <EmptySlot
@@ -358,12 +324,10 @@ export const DayBuilderCard = memo(function DayBuilderCard({
                 onSelect={() => onSelectExercise?.(exercise)}
                 isInSuperset={!!exercise.supersetGroup}
                 supersetColor={
-                  exercise.supersetGroup
-                    ? supersetColors[exercise.supersetGroup]
-                    : undefined
+                  exercise.supersetGroup ? supersetColors[exercise.supersetGroup] : undefined
                 }
               />
-            )
+            ),
           )}
         </SortableContext>
 
@@ -371,7 +335,7 @@ export const DayBuilderCard = memo(function DayBuilderCard({
           <div className="h-full min-h-[80px] flex items-center justify-center">
             <div className="text-center">
               <Plus className="h-5 w-5 text-muted-foreground/30 mx-auto mb-1" />
-              <p className="text-[10px] text-muted-foreground">Trascina qui</p>
+              <p className="text-3xs text-muted-foreground">Trascina qui</p>
             </div>
           </div>
         )}
@@ -382,7 +346,7 @@ export const DayBuilderCard = memo(function DayBuilderCard({
         <Button
           variant="ghost"
           size="sm"
-          className="w-full h-7 text-[10px] text-muted-foreground hover:text-foreground border border-dashed border-muted-foreground/30 hover:border-muted-foreground/50"
+          className="w-full h-7 text-3xs text-muted-foreground hover:text-foreground border border-dashed border-muted-foreground/30 hover:border-muted-foreground/50"
           onClick={onAddSlot}
         >
           <Plus className="h-3 w-3 mr-1" />

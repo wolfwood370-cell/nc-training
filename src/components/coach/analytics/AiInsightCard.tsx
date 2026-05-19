@@ -5,7 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkles, RefreshCw, Copy, CheckCircle2, AlertTriangle, TrendingDown, Loader2, HelpCircle } from "lucide-react";
+import {
+  Sparkles,
+  RefreshCw,
+  Copy,
+  CheckCircle2,
+  AlertTriangle,
+  TrendingDown,
+  Loader2,
+  HelpCircle,
+} from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -28,20 +37,22 @@ interface AiInsight {
 }
 
 function getSentimentConfig(score: number) {
-  if (score >= 0.7) return {
-    border: "border-success/50",
-    bg: "bg-success/5",
-    badge: "bg-success/15 text-success border-success/30",
-    label: "Eccellente",
-    icon: CheckCircle2,
-  };
-  if (score >= 0.4) return {
-    border: "border-warning/50",
-    bg: "bg-warning/5",
-    badge: "bg-warning/15 text-warning border-warning/30",
-    label: "Attenzione",
-    icon: AlertTriangle,
-  };
+  if (score >= 0.7)
+    return {
+      border: "border-success/50",
+      bg: "bg-success/5",
+      badge: "bg-success/15 text-success border-success/30",
+      label: "Eccellente",
+      icon: CheckCircle2,
+    };
+  if (score >= 0.4)
+    return {
+      border: "border-warning/50",
+      bg: "bg-warning/5",
+      badge: "bg-warning/15 text-warning border-warning/30",
+      label: "Attenzione",
+      icon: AlertTriangle,
+    };
   return {
     border: "border-destructive/50",
     bg: "bg-destructive/5",
@@ -100,8 +111,12 @@ export function AiInsightCard({ athleteId }: AiInsightCardProps) {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader><Skeleton className="h-6 w-48" /></CardHeader>
-        <CardContent><Skeleton className="h-32 w-full" /></CardContent>
+        <CardHeader>
+          <Skeleton className="h-6 w-48" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-32 w-full" />
+        </CardContent>
       </Card>
     );
   }
@@ -109,10 +124,12 @@ export function AiInsightCard({ athleteId }: AiInsightCardProps) {
   const sentiment = insight ? getSentimentConfig(insight.sentiment_score) : null;
 
   return (
-    <Card className={cn(
-      "overflow-hidden transition-colors",
-      insight && sentiment ? `${sentiment.border} ${sentiment.bg}` : ""
-    )}>
+    <Card
+      className={cn(
+        "overflow-hidden transition-colors",
+        insight && sentiment ? `${sentiment.border} ${sentiment.bg}` : "",
+      )}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -123,14 +140,15 @@ export function AiInsightCard({ athleteId }: AiInsightCardProps) {
               <CardTitle className="text-base flex items-center gap-2">
                 Analisi AI Settimanale
                 {insight && sentiment && (
-                  <Badge className={cn("text-[10px] border", sentiment.badge)}>
+                  <Badge className={cn("text-3xs border", sentiment.badge)}>
                     {sentiment.label}
                   </Badge>
                 )}
               </CardTitle>
               {insight && (
                 <p className="text-xs text-muted-foreground">
-                  Settimana del {format(new Date(insight.week_start_date), "d MMMM yyyy", { locale: it })}
+                  Settimana del{" "}
+                  {format(new Date(insight.week_start_date), "d MMMM yyyy", { locale: it })}
                 </p>
               )}
             </div>
@@ -199,7 +217,7 @@ export function AiInsightCard({ athleteId }: AiInsightCardProps) {
                     "h-full rounded-full transition-all",
                     insight.sentiment_score >= 0.7 && "bg-success",
                     insight.sentiment_score >= 0.4 && insight.sentiment_score < 0.7 && "bg-warning",
-                    insight.sentiment_score < 0.4 && "bg-destructive"
+                    insight.sentiment_score < 0.4 && "bg-destructive",
                   )}
                   style={{ width: `${insight.sentiment_score * 100}%` }}
                 />

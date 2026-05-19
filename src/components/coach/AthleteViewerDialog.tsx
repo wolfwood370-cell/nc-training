@@ -1,12 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,10 +58,7 @@ function parseExecutionLog(raw: unknown): ParsedExercise[] | null {
   const parsed: ParsedExercise[] = [];
   for (const ex of raw as Array<Record<string, unknown>>) {
     if (!ex || typeof ex !== "object") continue;
-    const name =
-      (ex.exercise_name as string) ||
-      (ex.name as string) ||
-      "Esercizio";
+    const name = (ex.exercise_name as string) || (ex.name as string) || "Esercizio";
     const rawSets = (ex.sets_data as unknown) ?? (ex.sets as unknown);
     if (!Array.isArray(rawSets)) continue;
     const sets: ParsedSet[] = rawSets
@@ -76,11 +68,7 @@ function parseExecutionLog(raw: unknown): ParsedExercise[] | null {
         return {
           set_number: typeof r.set_number === "number" ? r.set_number : idx + 1,
           weight_kg:
-            typeof r.weight_kg === "number"
-              ? r.weight_kg
-              : typeof r.kg === "number"
-              ? r.kg
-              : null,
+            typeof r.weight_kg === "number" ? r.weight_kg : typeof r.kg === "number" ? r.kg : null,
           reps: typeof r.reps === "number" ? r.reps : null,
           rpe: typeof r.rpe === "number" ? r.rpe : null,
           completed: r.completed !== false,
@@ -122,13 +110,17 @@ function ReviewWorkoutItem({
         <p className="text-xs font-semibold truncate">{title}</p>
         <div className="flex items-center gap-1">
           {rpe != null && (
-            <Badge variant="secondary" className="text-[10px]">RPE {rpe}</Badge>
+            <Badge variant="secondary" className="text-3xs">
+              RPE {rpe}
+            </Badge>
           )}
           {srpe != null && (
-            <Badge variant="outline" className="text-[10px]">sRPE {srpe}</Badge>
+            <Badge variant="outline" className="text-3xs">
+              sRPE {srpe}
+            </Badge>
           )}
           {reviewed && (
-            <Badge variant="default" className="text-[10px] bg-success text-success-foreground">
+            <Badge variant="default" className="text-3xs bg-success text-success-foreground">
               Recensito
             </Badge>
           )}
@@ -139,7 +131,7 @@ function ReviewWorkoutItem({
       <div className="rounded border border-border/50 bg-background/60 overflow-hidden">
         <div className="px-2 py-1.5 border-b border-border/50 bg-muted/40 flex items-center gap-1.5">
           <Dumbbell className="h-3 w-3 text-primary" />
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="text-3xs font-semibold uppercase tracking-wide text-muted-foreground">
             Esecuzione
           </span>
         </div>
@@ -147,10 +139,8 @@ function ReviewWorkoutItem({
           <div className="divide-y divide-border/40">
             {execution.map((ex, idx) => (
               <div key={idx} className="p-2 space-y-1.5">
-                <p className="text-[11px] font-semibold text-foreground truncate">
-                  {ex.name}
-                </p>
-                <table className="w-full text-[10px]">
+                <p className="text-2xs font-semibold text-foreground truncate">{ex.name}</p>
+                <table className="w-full text-3xs">
                   <thead>
                     <tr className="text-muted-foreground">
                       <th className="text-left font-medium py-0.5 w-8">Set</th>
@@ -163,14 +153,9 @@ function ReviewWorkoutItem({
                     {ex.sets.map((s, sIdx) => (
                       <tr
                         key={sIdx}
-                        className={cn(
-                          "border-t border-border/30",
-                          !s.completed && "opacity-50"
-                        )}
+                        className={cn("border-t border-border/30", !s.completed && "opacity-50")}
                       >
-                        <td className="py-0.5 font-mono text-muted-foreground">
-                          {s.set_number}
-                        </td>
+                        <td className="py-0.5 font-mono text-muted-foreground">{s.set_number}</td>
                         <td className="py-0.5 text-right font-mono tabular-nums">
                           {s.weight_kg != null ? s.weight_kg : "—"}
                         </td>
@@ -185,23 +170,19 @@ function ReviewWorkoutItem({
                   </tbody>
                 </table>
                 {ex.notes && (
-                  <p className="text-[10px] text-muted-foreground italic pt-0.5">
-                    {ex.notes}
-                  </p>
+                  <p className="text-3xs text-muted-foreground italic pt-0.5">{ex.notes}</p>
                 )}
               </div>
             ))}
           </div>
         ) : (
-          <p className="px-2 py-3 text-[10px] text-muted-foreground text-center italic">
+          <p className="px-2 py-3 text-3xs text-muted-foreground text-center italic">
             Nessun log dettagliato fornito
           </p>
         )}
       </div>
 
-      {athleteNotes && (
-        <p className="text-[11px] text-muted-foreground italic">"{athleteNotes}"</p>
-      )}
+      {athleteNotes && <p className="text-2xs text-muted-foreground italic">"{athleteNotes}"</p>}
       <Textarea
         value={feedback}
         onChange={(e) => setFeedback(e.target.value)}
@@ -274,12 +255,18 @@ export function AthleteViewerDialog({
   });
 
   // Fetch completed workout logs for today (review queue)
-  const { data: completedLogs = [], isLoading: logsLoading, refetch: refetchLogs } = useQuery({
+  const {
+    data: completedLogs = [],
+    isLoading: logsLoading,
+    refetch: refetchLogs,
+  } = useQuery({
     queryKey: ["god-mode-workout-logs", athleteId, todayDate],
     queryFn: async () => {
       const { data } = await supabase
         .from("workout_logs")
-        .select("id, workout_id, rpe_global, srpe, notes, coach_feedback, completed_at, exercises_data, workouts(title)")
+        .select(
+          "id, workout_id, rpe_global, srpe, notes, coach_feedback, completed_at, exercises_data, workouts(title)",
+        )
         .eq("athlete_id", athleteId)
         .eq("status", "completed")
         .gte("completed_at", `${todayDate}T00:00:00`)
@@ -359,7 +346,7 @@ export function AthleteViewerDialog({
         carbs: acc.carbs + (log.carbs || 0),
         fats: acc.fats + (log.fats || 0),
       }),
-      { calories: 0, protein: 0, carbs: 0, fats: 0 }
+      { calories: 0, protein: 0, carbs: 0, fats: 0 },
     );
   }, [nutritionLogs]);
 
@@ -384,7 +371,7 @@ export function AthleteViewerDialog({
             </div>
             Vista Atleta — {athleteName}
           </DialogTitle>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-3xs text-muted-foreground">
             Modalità sola lettura · {format(new Date(), "EEEE d MMMM", { locale: it })}
           </p>
         </DialogHeader>
@@ -402,17 +389,37 @@ export function AthleteViewerDialog({
                     {/* Score Ring */}
                     <div className="relative flex-shrink-0">
                       <svg className="w-16 h-16 -rotate-90" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="8" className="text-muted/30" />
                         <circle
-                          cx="50" cy="50" r="42" fill="none"
-                          stroke={readinessScore && readinessScore >= 75 ? "hsl(160 84% 39%)" : readinessScore && readinessScore >= 50 ? "hsl(38 92% 50%)" : "hsl(0 84% 60%)"}
-                          strokeWidth="8" strokeLinecap="round"
+                          cx="50"
+                          cy="50"
+                          r="42"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="8"
+                          className="text-muted/30"
+                        />
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="42"
+                          fill="none"
+                          stroke={
+                            readinessScore && readinessScore >= 75
+                              ? "hsl(160 84% 39%)"
+                              : readinessScore && readinessScore >= 50
+                                ? "hsl(38 92% 50%)"
+                                : "hsl(0 84% 60%)"
+                          }
+                          strokeWidth="8"
+                          strokeLinecap="round"
                           strokeDasharray={`${2 * Math.PI * 42}`}
                           strokeDashoffset={`${2 * Math.PI * 42 * (1 - (readinessScore || 0) / 100)}`}
                         />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className={cn("text-lg font-bold", getScoreColor(readinessScore || 0))}>
+                        <span
+                          className={cn("text-lg font-bold", getScoreColor(readinessScore || 0))}
+                        >
                           {readinessScore}
                         </span>
                       </div>
@@ -439,7 +446,9 @@ export function AthleteViewerDialog({
                     <AlertTriangle className="h-5 w-5" />
                     <div>
                       <p className="text-sm font-medium">Check-in non completato</p>
-                      <p className="text-xs">L'atleta non ha ancora registrato la readiness oggi.</p>
+                      <p className="text-xs">
+                        L'atleta non ha ancora registrato la readiness oggi.
+                      </p>
                     </div>
                   </div>
                 )}
@@ -456,15 +465,22 @@ export function AthleteViewerDialog({
                 {workoutsLoading ? (
                   <Skeleton className="h-12 w-full" />
                 ) : todayWorkouts.length === 0 ? (
-                  <p className="text-xs text-muted-foreground py-2">Nessun allenamento programmato per oggi.</p>
+                  <p className="text-xs text-muted-foreground py-2">
+                    Nessun allenamento programmato per oggi.
+                  </p>
                 ) : (
                   todayWorkouts.map((w) => (
-                    <div key={w.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/40">
+                    <div
+                      key={w.id}
+                      className="flex items-center justify-between p-2 rounded-lg bg-muted/40"
+                    >
                       <div className="flex items-center gap-2">
-                        <div className={cn(
-                          "h-7 w-7 rounded-md flex items-center justify-center",
-                          w.status === "completed" ? "bg-success/15" : "bg-primary/10"
-                        )}>
+                        <div
+                          className={cn(
+                            "h-7 w-7 rounded-md flex items-center justify-center",
+                            w.status === "completed" ? "bg-success/15" : "bg-primary/10",
+                          )}
+                        >
                           {w.status === "completed" ? (
                             <CheckCircle2 className="h-4 w-4 text-success" />
                           ) : (
@@ -474,11 +490,16 @@ export function AthleteViewerDialog({
                         <div>
                           <p className="text-xs font-medium">{w.title}</p>
                           {w.estimated_duration && (
-                            <p className="text-[10px] text-muted-foreground">~{w.estimated_duration} min</p>
+                            <p className="text-3xs text-muted-foreground">
+                              ~{w.estimated_duration} min
+                            </p>
                           )}
                         </div>
                       </div>
-                      <Badge variant={w.status === "completed" ? "default" : "secondary"} className="text-[10px]">
+                      <Badge
+                        variant={w.status === "completed" ? "default" : "secondary"}
+                        className="text-3xs"
+                      >
                         {w.status === "completed" ? "Completato" : "In attesa"}
                       </Badge>
                     </div>
@@ -516,7 +537,6 @@ export function AthleteViewerDialog({
               </Card>
             )}
 
-
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
@@ -529,22 +549,24 @@ export function AthleteViewerDialog({
                   <div className="grid grid-cols-4 gap-2 text-center">
                     <div>
                       <p className="text-lg font-bold">{nutritionTotals.calories}</p>
-                      <p className="text-[10px] text-muted-foreground">kcal</p>
+                      <p className="text-3xs text-muted-foreground">kcal</p>
                       {nutritionPlan && (
-                        <p className="text-[9px] text-muted-foreground">/{nutritionPlan.daily_calories}</p>
+                        <p className="text-4xs text-muted-foreground">
+                          /{nutritionPlan.daily_calories}
+                        </p>
                       )}
                     </div>
                     <div>
                       <p className="text-lg font-bold">{Math.round(nutritionTotals.protein)}</p>
-                      <p className="text-[10px] text-muted-foreground">Proteine</p>
+                      <p className="text-3xs text-muted-foreground">Proteine</p>
                     </div>
                     <div>
                       <p className="text-lg font-bold">{Math.round(nutritionTotals.carbs)}</p>
-                      <p className="text-[10px] text-muted-foreground">Carb</p>
+                      <p className="text-3xs text-muted-foreground">Carb</p>
                     </div>
                     <div>
                       <p className="text-lg font-bold">{Math.round(nutritionTotals.fats)}</p>
-                      <p className="text-[10px] text-muted-foreground">Grassi</p>
+                      <p className="text-3xs text-muted-foreground">Grassi</p>
                     </div>
                   </div>
                 )}
@@ -559,7 +581,7 @@ export function AthleteViewerDialog({
                     <Flame className="h-4 w-4 text-primary" />
                     <h3 className="text-sm font-semibold">Abitudini</h3>
                   </div>
-                  <Badge variant="secondary" className="text-[10px]">
+                  <Badge variant="secondary" className="text-3xs">
                     {completedHabits}/{habits.length}
                   </Badge>
                 </div>
@@ -571,16 +593,24 @@ export function AthleteViewerDialog({
                   <div className="space-y-1.5">
                     {habits.map((h) => (
                       <div key={h.id} className="flex items-center gap-2 p-1.5 rounded-md">
-                        <div className={cn(
-                          "h-5 w-5 rounded-full border-2 flex items-center justify-center flex-shrink-0",
-                          h.completed ? "bg-success border-success" : "border-muted-foreground/40"
-                        )}>
-                          {h.completed && <CheckCircle2 className="h-3 w-3 text-success-foreground" />}
+                        <div
+                          className={cn(
+                            "h-5 w-5 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+                            h.completed
+                              ? "bg-success border-success"
+                              : "border-muted-foreground/40",
+                          )}
+                        >
+                          {h.completed && (
+                            <CheckCircle2 className="h-3 w-3 text-success-foreground" />
+                          )}
                         </div>
-                        <span className={cn(
-                          "text-xs",
-                          h.completed ? "line-through text-muted-foreground" : "text-foreground"
-                        )}>
+                        <span
+                          className={cn(
+                            "text-xs",
+                            h.completed ? "line-through text-muted-foreground" : "text-foreground",
+                          )}
+                        >
                           {h.name}
                         </span>
                       </div>
@@ -595,4 +625,3 @@ export function AthleteViewerDialog({
     </Dialog>
   );
 }
-

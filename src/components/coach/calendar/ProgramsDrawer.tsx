@@ -1,20 +1,20 @@
-import { useState, useMemo } from"react";
-import { useQuery } from"@tanstack/react-query";
-import { supabase } from"@/integrations/supabase/client";
-import { useAuth } from"@/hooks/useAuth";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from"@/components/ui/accordion";
-import { ScrollArea } from"@/components/ui/scroll-area";
-import { Skeleton } from"@/components/ui/skeleton";
-import { Badge } from"@/components/ui/badge";
-import { Input } from"@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from"@/components/ui/tabs";
-import { useDraggable } from"@dnd-kit/core";
-import { CSS } from"@dnd-kit/utilities";
+} from "@/components/ui/accordion";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 import {
   FolderOpen,
   Calendar,
@@ -24,8 +24,8 @@ import {
   Search,
   FileStack,
   Layout,
-} from"lucide-react";
-import { cn } from"@/lib/utils";
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ProgramPlan {
   id: string;
@@ -76,16 +76,15 @@ function DraggableWorkout({
   weekId: string;
   planId: string;
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id:`calendar-workout-${workout.id}`,
-      data: {
-        type:"calendar-workout",
-        workout,
-        weekId,
-        planId,
-      },
-    });
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: `calendar-workout-${workout.id}`,
+    data: {
+      type: "calendar-workout",
+      workout,
+      weekId,
+      planId,
+    },
+  });
 
   const style = transform
     ? {
@@ -101,20 +100,19 @@ function DraggableWorkout({
       style={style}
       className={cn(
         "flex items-center gap-2 p-2.5 rounded-lg bg-card border border-border/50 hover:border-primary/30 hover:bg-muted/50 transition-all cursor-grab active:cursor-grabbing group shadow-sm",
-        isDragging &&"ring-2 ring-primary shadow-lg"      )}
+        isDragging && "ring-2 ring-primary shadow-lg",
+      )}
       {...attributes}
       {...listeners}
     >
-      <GripVertical className="h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity shrink-0"/>
+      <GripVertical className="h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity shrink-0" />
       <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
-        <Dumbbell className="h-4 w-4 text-primary"/>
+        <Dumbbell className="h-4 w-4 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{workout.name}</p>
         {workout.day_number !== undefined && (
-          <p className="text-[10px] text-muted-foreground">
-            Giorno {workout.day_number}
-          </p>
+          <p className="text-3xs text-muted-foreground">Giorno {workout.day_number}</p>
         )}
       </div>
     </div>
@@ -131,15 +129,14 @@ function DraggableWeek({
   planId: string;
   workoutCount: number;
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id:`calendar-week-${week.id}`,
-      data: {
-        type:"calendar-week",
-        week,
-        planId,
-      },
-    });
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: `calendar-week-${week.id}`,
+    data: {
+      type: "calendar-week",
+      week,
+      planId,
+    },
+  });
 
   const style = transform
     ? {
@@ -155,16 +152,17 @@ function DraggableWeek({
       style={style}
       className={cn(
         "flex items-center gap-2 p-2 rounded-lg bg-accent/50 hover:bg-accent cursor-grab active:cursor-grabbing transition-colors",
-        isDragging &&"ring-2 ring-primary shadow-lg"      )}
+        isDragging && "ring-2 ring-primary shadow-lg",
+      )}
       {...attributes}
       {...listeners}
     >
-      <GripVertical className="h-3.5 w-3.5 text-muted-foreground shrink-0"/>
-      <Calendar className="h-4 w-4 text-primary shrink-0"/>
+      <GripVertical className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+      <Calendar className="h-4 w-4 text-primary shrink-0" />
       <span className="text-sm font-medium flex-1 truncate">
-        {week.name ||`Settimana ${week.week_order}`}
+        {week.name || `Settimana ${week.week_order}`}
       </span>
-      <Badge variant="secondary"className="text-[10px] h-5 px-2">
+      <Badge variant="secondary" className="text-3xs h-5 px-2">
         {workoutCount} workout
       </Badge>
     </div>
@@ -174,7 +172,7 @@ function DraggableWeek({
 export function ProgramsDrawer() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"programs"|"templates">("programs");
+  const [activeTab, setActiveTab] = useState<"programs" | "templates">("programs");
   const [expandedPlans, setExpandedPlans] = useState<string[]>([]);
   const [expandedWeeks, setExpandedWeeks] = useState<string[]>([]);
 
@@ -256,8 +254,7 @@ export function ProgramsDrawer() {
 
       // Build final structure
       const result: PlanWithWeeks[] = plans.map((plan) => {
-        const planWeeks =
-          weeks?.filter((w) => w.program_plan_id === plan.id) || [];
+        const planWeeks = weeks?.filter((w) => w.program_plan_id === plan.id) || [];
         return {
           ...plan,
           weeks: planWeeks.map((week) => ({
@@ -278,7 +275,7 @@ export function ProgramsDrawer() {
     let programs = allPrograms;
 
     // Filter by tab
-    if (activeTab ==="templates") {
+    if (activeTab === "templates") {
       programs = programs.filter((p) => p.is_template);
     } else {
       programs = programs.filter((p) => !p.is_template);
@@ -293,8 +290,8 @@ export function ProgramsDrawer() {
           p.weeks.some(
             (w) =>
               w.name?.toLowerCase().includes(query) ||
-              w.workouts.some((wo) => wo.name.toLowerCase().includes(query))
-          )
+              w.workouts.some((wo) => wo.name.toLowerCase().includes(query)),
+          ),
       );
     }
 
@@ -304,10 +301,10 @@ export function ProgramsDrawer() {
   if (isLoading) {
     return (
       <div className="p-4 space-y-3">
-        <Skeleton className="h-9 w-full"/>
-        <Skeleton className="h-9 w-full"/>
+        <Skeleton className="h-9 w-full" />
+        <Skeleton className="h-9 w-full" />
         {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-14 w-full"/>
+          <Skeleton key={i} className="h-14 w-full" />
         ))}
       </div>
     );
@@ -319,22 +316,24 @@ export function ProgramsDrawer() {
       <div className="p-4 space-y-3 border-b border-border/50">
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Cerca programma..."            value={searchQuery}
+            placeholder="Cerca programma..."
+            value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 bg-muted/50 border-0"          />
+            className="pl-9 h-9 bg-muted/50 border-0"
+          />
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
           <TabsList className="w-full h-9">
-            <TabsTrigger value="programs"className="flex-1 text-xs gap-1.5">
-              <Layout className="h-3.5 w-3.5"/>
+            <TabsTrigger value="programs" className="flex-1 text-xs gap-1.5">
+              <Layout className="h-3.5 w-3.5" />
               Programmi
             </TabsTrigger>
-            <TabsTrigger value="templates"className="flex-1 text-xs gap-1.5">
-              <FileStack className="h-3.5 w-3.5"/>
+            <TabsTrigger value="templates" className="flex-1 text-xs gap-1.5">
+              <FileStack className="h-3.5 w-3.5" />
               Template
             </TabsTrigger>
           </TabsList>
@@ -347,39 +346,43 @@ export function ProgramsDrawer() {
           {filteredPrograms.length === 0 ? (
             <div className="py-12 text-center">
               <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-                <FolderOpen className="h-6 w-6 text-muted-foreground"/>
+                <FolderOpen className="h-6 w-6 text-muted-foreground" />
               </div>
               <p className="text-sm font-medium">
                 {searchQuery
-                  ?"Nessun risultato"                  : activeTab ==="templates"                    ?"Nessun template"                    :"Nessun programma"}
+                  ? "Nessun risultato"
+                  : activeTab === "templates"
+                    ? "Nessun template"
+                    : "Nessun programma"}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {searchQuery
-                  ?"Prova con altri termini"                  :"Crea un programma nel Program Builder"}
+                {searchQuery ? "Prova con altri termini" : "Crea un programma nel Program Builder"}
               </p>
             </div>
           ) : (
             <Accordion
-              type="multiple"              value={expandedPlans}
+              type="multiple"
+              value={expandedPlans}
               onValueChange={setExpandedPlans}
-              className="space-y-2"            >
+              className="space-y-2"
+            >
               {filteredPrograms.map((plan) => (
                 <AccordionItem
                   key={plan.id}
                   value={plan.id}
-                  className="border rounded-xl bg-card overflow-hidden shadow-sm"                >
+                  className="border rounded-xl bg-card overflow-hidden shadow-sm"
+                >
                   <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/30">
                     <div className="flex items-center gap-3 text-left">
                       <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <FolderOpen className="h-5 w-5 text-primary"/>
+                        <FolderOpen className="h-5 w-5 text-primary" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold truncate">
-                          {plan.name}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-sm font-semibold truncate">{plan.name}</p>
+                        <p className="text-2xs text-muted-foreground">
                           {plan.weeks.length} settimane •{""}
-                          {plan.weeks.reduce((acc, w) => acc + w.workouts.length, 0)}{""}
+                          {plan.weeks.reduce((acc, w) => acc + w.workouts.length, 0)}
+                          {""}
                           workout
                         </p>
                       </div>
@@ -387,14 +390,13 @@ export function ProgramsDrawer() {
                   </AccordionTrigger>
                   <AccordionContent className="px-3 pb-3">
                     <Accordion
-                      type="multiple"                      value={expandedWeeks}
+                      type="multiple"
+                      value={expandedWeeks}
                       onValueChange={setExpandedWeeks}
-                      className="space-y-2"                    >
+                      className="space-y-2"
+                    >
                       {plan.weeks.map((week) => (
-                        <AccordionItem
-                          key={week.id}
-                          value={week.id}
-                          className="border-0"                        >
+                        <AccordionItem key={week.id} value={week.id} className="border-0">
                           {/* Draggable Week Header */}
                           <div className="flex items-center gap-1">
                             <div className="flex-1">
@@ -405,7 +407,7 @@ export function ProgramsDrawer() {
                               />
                             </div>
                             <AccordionTrigger className="p-2 hover:no-underline hover:bg-muted/50 rounded-lg [&>svg]:hidden">
-                              <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-90"/>
+                              <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-90" />
                             </AccordionTrigger>
                           </div>
                           <AccordionContent className="pt-2 pl-2 space-y-2">
@@ -437,8 +439,8 @@ export function ProgramsDrawer() {
 
       {/* Footer Hint */}
       <div className="p-3 border-t border-border/50 bg-muted/30">
-        <p className="text-[11px] text-muted-foreground text-center">
-           Trascina workout o settimane sul calendario per programmarli
+        <p className="text-2xs text-muted-foreground text-center">
+          Trascina workout o settimane sul calendario per programmarli
         </p>
       </div>
     </div>

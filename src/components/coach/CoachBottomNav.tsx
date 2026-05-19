@@ -76,7 +76,7 @@ export function CoachBottomNav() {
                 </div>
                 <span
                   className={cn(
-                    "text-[10px] font-medium transition-all duration-300",
+                    "text-3xs font-medium transition-all duration-300",
                     isActive && "font-semibold",
                   )}
                   style={isActive ? { color: brandColor || undefined } : undefined}
